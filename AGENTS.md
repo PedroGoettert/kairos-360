@@ -1,5 +1,19 @@
 # AGENTS.md — Diagnóstico 360
 
+## Mandatory Reading
+
+Before making any change, read:
+
+- docs/architecture.md
+- docs/database.md
+- docs/api-patterns.md
+- docs/frontend-patterns.md
+- docs/business-rules.md
+- docs/ai-rules.md
+- docs/git-workflow.md
+
+These documents are considered part of the project specification.
+
 ## Project overview
 
 This repository contains the Diagnóstico 360 platform, an internal business diagnostic system for Kairos.
