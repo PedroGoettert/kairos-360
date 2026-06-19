@@ -1,0 +1,58 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist
+build
+.next
+out
+.turbo
+
+# Coverage
+coverage
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Certificates
+*.pem
+
+# Drizzle
+drizzle/*.sql
+
+# Database
+*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode
+.idea

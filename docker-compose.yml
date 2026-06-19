@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: diagnostico-360-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: diagnostico_360
+    ports:
+      - "5432:5432"
+    volumes:
+      - diagnostico_360_pg:/var/lib/postgresql/data
+
+volumes:
+  diagnostico_360_pg:

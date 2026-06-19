@@ -1,0 +1,14 @@
+{
+  "name": "api",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src/server.ts --format esm --dts",
+    "start": "node dist/server.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4",
+    "typescript": "^6.0.3"
+  }
+}
