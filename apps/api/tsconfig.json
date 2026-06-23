@@ -3,16 +3,12 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "module": "es2022",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
+    "ignoreDeprecations": "6.0"
   },
   "include": [
     "src"
