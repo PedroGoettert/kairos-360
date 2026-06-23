@@ -12,6 +12,12 @@ const envSchema = z.object({
     .string()
     .url()
     .default("postgres://postgres:postgres@localhost:5432/diagnostico_360"),
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32)
+    .default("diagnostico-360-development-secret-change-me"),
+  BETTER_AUTH_URL: z.string().url().default("http://localhost:3333"),
+  WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
