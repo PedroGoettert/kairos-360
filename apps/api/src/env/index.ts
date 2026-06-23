@@ -8,6 +8,10 @@ const envSchema = z.object({
     .default("development"),
   HOST: z.string().min(1).default("0.0.0.0"),
   PORT: z.coerce.number().int().positive().max(65_535).default(3333),
+  DATABASE_URL: z
+    .string()
+    .url()
+    .default("postgres://postgres:postgres@localhost:5432/diagnostico_360"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
