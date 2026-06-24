@@ -8,9 +8,9 @@ const envSchema = z.object({
     .default("development"),
   HOST: z.string().min(1).default("0.0.0.0"),
   PORT: z.coerce.number().int().positive().max(65_535).default(3333),
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.url(),
   BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string().url(),
+  BETTER_AUTH_URL: z.url(),
   WEB_ORIGIN: z.string().optional(),
   WEB_ORIGINS: z.string().optional(),
 });
@@ -28,7 +28,7 @@ const webOrigins = webOriginsSource
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const webOriginsSchema = z.array(z.string().url()).min(1);
+const webOriginsSchema = z.array(z.url()).min(1);
 const parsedWebOrigins = webOriginsSchema.safeParse(webOrigins);
 
 if (!parsedWebOrigins.success) {
