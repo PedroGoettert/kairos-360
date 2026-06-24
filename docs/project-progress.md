@@ -87,12 +87,40 @@ apps/api/src/database/schema/
 pnpm --filter api db:generate
 pnpm --filter api db:migrate
 pnpm --filter api db:studio
+pnpm --filter api db:seed
 ```
 
 Commit relacionado:
 
 ```txt
 6960378 build(database): configure drizzle foundation
+```
+
+### Seed local
+
+- Script de seed criado em:
+
+```txt
+apps/api/src/database/seed.ts
+```
+
+- O seed cria dados ficticios para desenvolvimento local:
+
+```txt
+3 usuarios com contas Better Auth
+3 empresas
+21 perguntas de diagnostico
+4 diagnosticos
+63 respostas
+21 scores por area
+```
+
+- Credenciais locais:
+
+```txt
+admin@kairos.local      / Kairos@123456
+consultora@kairos.local / Kairos@123456
+viewer@kairos.local     / Kairos@123456
 ```
 
 ### Better Auth
@@ -400,6 +428,7 @@ apps/api/src/modules/diagnostics/
 POST /diagnostics
 GET /diagnostics/:id
 GET /companies/:companyId/diagnostics
+POST /diagnostics/:id/answers
 ```
 
 - Todo diagnostico pertence a uma empresa.
@@ -411,10 +440,17 @@ status = draft
 completed_at = null
 ```
 
-Commit planejado:
+- Respostas de diagnostico podem ser registradas em diagnosticos `draft`.
+- A API valida se o diagnostico pertence a uma empresa do usuario logado.
+- A API valida se a pergunta existe e esta ativa.
+- A API bloqueia respostas duplicadas para a mesma pergunta no mesmo diagnostico.
+- A API bloqueia novas respostas em diagnosticos ja finalizados.
+
+Commits relacionados:
 
 ```txt
 feat(diagnostics): create diagnostics foundation
+feat(diagnostics): add diagnostic answers endpoint
 ```
 
 ## Validacoes ja realizadas
@@ -456,7 +492,7 @@ GET /companies/:id
 
 ## Onde paramos
 
-Paramos na fundacao do modulo `diagnostics`.
+Paramos na implementacao de finalizacao e scoring do modulo `diagnostics`.
 
 Ja existe:
 
@@ -464,34 +500,19 @@ Ja existe:
 POST /diagnostics
 GET /diagnostics/:id
 GET /companies/:companyId/diagnostics
+POST /diagnostics/:id/answers
 ```
 
 Ainda falta implementar:
 
 ```txt
-POST /diagnostics/:id/answers
 POST /diagnostics/:id/complete
 GET /diagnostics/:id/scores
 ```
 
 ## Proximos passos recomendados
 
-### 1. Respostas do diagnostico
-
-Criar endpoint:
-
-```txt
-POST /diagnostics/:id/answers
-```
-
-Objetivo:
-
-- registrar notas de 0 a 10 por pergunta;
-- validar se o diagnostico pertence a uma empresa do usuario logado;
-- validar se a pergunta existe e esta ativa;
-- evitar respostas duplicadas para a mesma pergunta no mesmo diagnostico.
-
-### 2. Finalizacao e scoring
+### 1. Finalizacao e scoring
 
 Criar endpoints:
 
@@ -508,7 +529,7 @@ Objetivo:
 - identificar segunda prioridade;
 - marcar diagnostico como `completed`.
 
-### 3. Dashboard
+### 2. Dashboard
 
 Depois de scoring:
 
@@ -524,7 +545,7 @@ Deve exibir:
 - evolucao mensal;
 - status dos planos de acao.
 
-### 4. Planos de acao
+### 3. Planos de acao
 
 Criar modulo de action plans:
 
@@ -535,7 +556,7 @@ PATCH /action-plans/:id
 PATCH /action-plans/:id/status
 ```
 
-### 5. IA, relatorios e CRM
+### 4. IA, relatorios e CRM
 
 Somente depois do core:
 
@@ -547,13 +568,11 @@ Somente depois do core:
 ## Ordem recomendada atual
 
 ```txt
-1. Commit da fundacao de diagnostics
-2. Respostas do diagnostico
-3. Finalizacao do diagnostico e scoring
-4. Dashboard
-5. Action plans
-6. IA
-7. Relatorios
-8. CRM
-9. Integracoes
+1. Finalizacao do diagnostico e scoring
+2. Dashboard
+3. Action plans
+4. IA
+5. Relatorios
+6. CRM
+7. Integracoes
 ```

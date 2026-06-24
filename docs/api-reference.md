@@ -29,6 +29,20 @@ Rodar a API em modo desenvolvimento:
 pnpm dev:api
 ```
 
+Popular o banco local com dados ficticios:
+
+```bash
+pnpm --filter api db:seed
+```
+
+Usuarios criados pelo seed:
+
+```txt
+admin@kairos.local      / Kairos@123456
+consultora@kairos.local / Kairos@123456
+viewer@kairos.local     / Kairos@123456
+```
+
 ## Padrao de Resposta
 
 Resposta de sucesso para recurso unico:
@@ -109,6 +123,7 @@ Comportamento atual:
 | POST | `/diagnostics` | Cookie | Cria um diagnostico para uma empresa do usuario logado. |
 | GET | `/diagnostics/:id` | Cookie | Busca um diagnostico do usuario logado. |
 | GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos de uma empresa do usuario logado. |
+| POST | `/diagnostics/:id/answers` | Cookie | Registra uma resposta para uma pergunta do diagnostico. |
 
 ## Health
 
@@ -688,6 +703,79 @@ Resposta esperada:
 }
 ```
 
+### POST `/diagnostics/:id/answers`
+
+Registra a nota de uma pergunta em um diagnostico em andamento.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID
+```
+
+Body:
+
+```json
+{
+  "questionId": "770e8400-e29b-41d4-a716-446655440000",
+  "score": 8,
+  "comment": "Processo comercial bem definido, mas ainda sem rotina clara de follow-up."
+}
+```
+
+Campos obrigatorios:
+
+```txt
+questionId
+score
+```
+
+Campos opcionais:
+
+```txt
+comment
+```
+
+Regras de validacao:
+
+- `score` deve ser um numero inteiro entre 0 e 10.
+- a pergunta precisa existir e estar ativa.
+- o diagnostico precisa pertencer a uma empresa do usuario logado.
+- o diagnostico precisa estar em status `draft`.
+- nao pode existir outra resposta para a mesma pergunta no mesmo diagnostico.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "880e8400-e29b-41d4-a716-446655440000",
+    "diagnosticId": "660e8400-e29b-41d4-a716-446655440000",
+    "questionId": "770e8400-e29b-41d4-a716-446655440000",
+    "score": 8,
+    "comment": "Processo comercial bem definido, mas ainda sem rotina clara de follow-up.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:00:00.000Z"
+  }
+}
+```
+
+Erros esperados:
+
+```txt
+DIAGNOSTIC_NOT_FOUND
+DIAGNOSTIC_ALREADY_COMPLETED
+DIAGNOSTIC_QUESTION_NOT_FOUND
+DIAGNOSTIC_ANSWER_ALREADY_EXISTS
+VALIDATION_ERROR
+```
+
 ## Fluxo de Teste no Insomnia
 
 Crie um environment com:
@@ -713,8 +801,9 @@ Ordem recomendada das requisicoes:
 10. POST {{ base_url }}/diagnostics
 11. GET  {{ base_url }}/diagnostics/:id
 12. GET  {{ base_url }}/companies/:companyId/diagnostics
-13. POST {{ base_url }}/auth/sign-out
-14. GET  {{ base_url }}/users/me
+13. POST {{ base_url }}/diagnostics/:id/answers
+14. POST {{ base_url }}/auth/sign-out
+15. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:
@@ -781,7 +870,6 @@ A rota ou o metodo HTTP nao existem na API.
 Estas rotas fazem parte da especificacao do produto, mas ainda nao foram implementadas:
 
 ```txt
-POST   /diagnostics/:id/answers
 POST   /diagnostics/:id/complete
 GET    /diagnostics/:id/scores
 GET    /companies/:companyId/dashboard
