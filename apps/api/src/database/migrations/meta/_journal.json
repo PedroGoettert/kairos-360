@@ -8,6 +8,20 @@
       "when": 1782226828071,
       "tag": "0000_broad_peter_quill",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782298153572,
+      "tag": "0001_clear_warhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782298700718,
+      "tag": "0002_supreme_blindfold",
+      "breakpoints": true
     }
   ]
 }
