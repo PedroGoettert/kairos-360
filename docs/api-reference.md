@@ -99,6 +99,7 @@ Comportamento atual:
 | POST | `/api/auth/sign-up/email` | Nao | Cria usuario com email e senha. |
 | POST | `/api/auth/sign-in/email` | Nao | Faz login e emite cookie de sessao. |
 | GET | `/api/auth/get-session` | Cookie | Retorna a sessao atual do Better Auth. |
+| POST | `/auth/sign-out` | Cookie | Encerra a sessao atual do usuario. |
 | GET | `/users/me` | Cookie | Retorna o usuario atual da aplicacao. |
 | POST | `/companies` | Cookie, role `admin` | Cria uma empresa para o admin logado. |
 | GET | `/companies` | Cookie | Lista empresas do usuario logado. |
@@ -168,6 +169,32 @@ O Insomnia deve armazenar esse cookie. Nao envie `userId` manualmente em header 
 Retorna a sessao Better Auth associada ao cookie atual.
 
 Use esta rota quando quiser inspecionar a sessao bruta de autenticacao.
+
+### POST `/auth/sign-out`
+
+Encerra a sessao atual e remove o cookie de autenticacao.
+
+Autenticacao:
+
+```txt
+Cookie de sessao recomendado
+```
+
+Body:
+
+```json
+{}
+```
+
+Resposta esperada:
+
+```json
+{
+  "success": true
+}
+```
+
+Depois do logoff, chamadas autenticadas como `GET /users/me` devem retornar `UNAUTHORIZED`.
 
 ## Users
 
@@ -408,6 +435,8 @@ Ordem recomendada das requisicoes:
 5. POST {{ base_url }}/companies
 6. GET  {{ base_url }}/companies
 7. GET  {{ base_url }}/companies/:id
+8. POST {{ base_url }}/auth/sign-out
+9. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:
