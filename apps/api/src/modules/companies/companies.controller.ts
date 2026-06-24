@@ -4,11 +4,14 @@ import { getRequiredCurrentUser } from "../../auth/guards.js";
 import {
   companyParamsSchema,
   createCompanySchema,
+  updateCompanySchema,
 } from "./companies.schemas.js";
 import {
   createCompany,
+  deleteCompany,
   getCompanyById,
   listCompanies,
+  updateCompany,
 } from "./companies.service.js";
 
 export async function createCompanyController(
@@ -43,6 +46,51 @@ export async function getCompanyByIdController(
   const currentUser = getRequiredCurrentUser(request);
   const { id } = companyParamsSchema.parse(request.params);
   const company = await getCompanyById(currentUser.id, id);
+
+  if (!company) {
+    return reply.status(404).send({
+      error: {
+        message: "Company not found",
+        code: "COMPANY_NOT_FOUND",
+      },
+    });
+  }
+
+  return reply.send({
+    data: company,
+  });
+}
+
+export async function updateCompanyController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = companyParamsSchema.parse(request.params);
+  const input = updateCompanySchema.parse(request.body);
+  const company = await updateCompany(currentUser.id, id, input);
+
+  if (!company) {
+    return reply.status(404).send({
+      error: {
+        message: "Company not found",
+        code: "COMPANY_NOT_FOUND",
+      },
+    });
+  }
+
+  return reply.send({
+    data: company,
+  });
+}
+
+export async function deleteCompanyController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = companyParamsSchema.parse(request.params);
+  const company = await deleteCompany(currentUser.id, id);
 
   if (!company) {
     return reply.status(404).send({

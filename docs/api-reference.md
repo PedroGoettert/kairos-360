@@ -104,6 +104,8 @@ Comportamento atual:
 | POST | `/companies` | Cookie, role `admin` | Cria uma empresa para o admin logado. |
 | GET | `/companies` | Cookie | Lista empresas do usuario logado. |
 | GET | `/companies/:id` | Cookie | Busca uma empresa do usuario logado. |
+| PATCH | `/companies/:id` | Cookie, role `admin` | Atualiza uma empresa do usuario logado. |
+| DELETE | `/companies/:id` | Cookie, role `admin` | Remove uma empresa do usuario logado. |
 
 ## Health
 
@@ -415,6 +417,118 @@ Essa resposta e usada quando:
 - a empresa nao existe;
 - a empresa existe, mas pertence a outro usuario.
 
+### PATCH `/companies/:id`
+
+Atualiza uma empresa por ID, escopada ao usuario admin logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+role = admin obrigatoria
+```
+
+Path params:
+
+```txt
+id: UUID
+```
+
+Body:
+
+```json
+{
+  "name": "Cliente Exemplo Atualizado LTDA",
+  "tradeName": "Cliente Atualizado",
+  "industry": "Tecnologia",
+  "website": "https://clienteatualizado.com.br",
+  "notes": "Dados atualizados no cadastro do cliente."
+}
+```
+
+Regras de validacao:
+
+- envie pelo menos um campo;
+- `name`, quando enviado, deve ser uma string nao vazia;
+- `website`, quando enviado, deve ser uma URL valida;
+- campos opcionais podem ser enviados como `null` para limpar o valor.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "ownerUserId": "user_id",
+    "name": "Cliente Exemplo Atualizado LTDA",
+    "tradeName": "Cliente Atualizado",
+    "document": "12.345.678/0001-90",
+    "industry": "Tecnologia",
+    "website": "https://clienteatualizado.com.br",
+    "notes": "Dados atualizados no cadastro do cliente.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T11:00:00.000Z"
+  }
+}
+```
+
+Resposta quando nao encontrada:
+
+```json
+{
+  "error": {
+    "message": "Company not found",
+    "code": "COMPANY_NOT_FOUND"
+  }
+}
+```
+
+### DELETE `/companies/:id`
+
+Remove uma empresa por ID, escopada ao usuario admin logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+role = admin obrigatoria
+```
+
+Path params:
+
+```txt
+id: UUID
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "ownerUserId": "user_id",
+    "name": "Cliente Exemplo Atualizado LTDA",
+    "tradeName": "Cliente Atualizado",
+    "document": "12.345.678/0001-90",
+    "industry": "Tecnologia",
+    "website": "https://clienteatualizado.com.br",
+    "notes": "Dados atualizados no cadastro do cliente.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T11:00:00.000Z"
+  }
+}
+```
+
+Resposta quando nao encontrada:
+
+```json
+{
+  "error": {
+    "message": "Company not found",
+    "code": "COMPANY_NOT_FOUND"
+  }
+}
+
 ## Fluxo de Teste no Insomnia
 
 Crie um environment com:
@@ -435,8 +549,10 @@ Ordem recomendada das requisicoes:
 5. POST {{ base_url }}/companies
 6. GET  {{ base_url }}/companies
 7. GET  {{ base_url }}/companies/:id
-8. POST {{ base_url }}/auth/sign-out
-9. GET  {{ base_url }}/users/me
+8. PATCH {{ base_url }}/companies/:id
+9. DELETE {{ base_url }}/companies/:id
+10. POST {{ base_url }}/auth/sign-out
+11. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:
@@ -482,6 +598,7 @@ O body ou os params falharam na validacao Zod.
 Causas comuns:
 
 - `name` ausente ao criar empresa;
+- body vazio ao atualizar empresa;
 - `website` invalido;
 - UUID invalido em `/companies/:id`.
 
@@ -498,8 +615,6 @@ A rota ou o metodo HTTP nao existem na API.
 Estas rotas fazem parte da especificacao do produto, mas ainda nao foram implementadas:
 
 ```txt
-PATCH  /companies/:id
-DELETE /companies/:id
 POST   /diagnostics
 GET    /diagnostics/:id
 POST   /diagnostics/:id/answers

@@ -6,6 +6,7 @@ import type {
   CompaniesList,
   Company,
   CreateCompanyInput,
+  UpdateCompanyInput,
 } from "./companies.types.js";
 
 export async function createCompany(
@@ -44,6 +45,32 @@ export async function getCompanyById(
     .from(companies)
     .where(and(eq(companies.id, companyId), eq(companies.ownerUserId, ownerUserId)))
     .limit(1);
+
+  return company ?? null;
+}
+
+export async function updateCompany(
+  ownerUserId: string,
+  companyId: string,
+  input: UpdateCompanyInput,
+): Promise<Company | null> {
+  const [company] = await db
+    .update(companies)
+    .set(input)
+    .where(and(eq(companies.id, companyId), eq(companies.ownerUserId, ownerUserId)))
+    .returning();
+
+  return company ?? null;
+}
+
+export async function deleteCompany(
+  ownerUserId: string,
+  companyId: string,
+): Promise<Company | null> {
+  const [company] = await db
+    .delete(companies)
+    .where(and(eq(companies.id, companyId), eq(companies.ownerUserId, ownerUserId)))
+    .returning();
 
   return company ?? null;
 }
