@@ -1,6 +1,6 @@
 # Progresso do Projeto
 
-Este documento registra o que ja foi configurado no Diagnostico 360 e os proximos passos planejados.
+Este documento registra o que ja foi configurado no Diagnostico 360 e onde o desenvolvimento parou.
 
 ## Estado atual
 
@@ -15,7 +15,7 @@ packages/
 docs/
 ```
 
-A API ja possui fundacao funcional com Fastify, TypeScript, Drizzle, PostgreSQL, Better Auth e endpoint de usuario autenticado.
+A API possui fundacao funcional com Fastify, TypeScript, Drizzle, PostgreSQL, Better Auth, roles de usuario, preHandlers de autenticacao, CRUD de empresas e fundacao do modulo de diagnosticos.
 
 ## O que ja foi feito
 
@@ -141,7 +141,7 @@ Commit relacionado:
 cd3eb60 build(auth): configure better auth foundation
 ```
 
-### Usuario autenticado
+### Usuarios, roles e autenticacao interna
 
 - Helper de sessao criado em:
 
@@ -166,34 +166,49 @@ apps/api/src/modules/users/
 GET /users/me
 ```
 
-Com sessao valida, retorna:
+- Roles de usuario adicionadas:
 
-```json
-{
-  "data": {
-    "id": "...",
-    "name": "...",
-    "email": "...",
-    "emailVerified": false
-  }
-}
+```txt
+admin
+consultant
+viewer
 ```
 
-Sem sessao, retorna:
+- Novos usuarios nascem como `admin`.
+- `GET /users/me` retorna a role do usuario.
+- PreHandlers de autenticacao/autorizacao criados em:
 
-```json
-{
-  "error": {
-    "message": "Unauthorized",
-    "code": "UNAUTHORIZED"
-  }
-}
+```txt
+apps/api/src/auth/guards.ts
 ```
 
-Commit relacionado:
+Guards atuais:
+
+```txt
+requireAuth
+requireRole
+getRequiredCurrentUser
+```
+
+- `FastifyRequest` foi tipado com `currentUser` em:
+
+```txt
+apps/api/src/types/fastify.d.ts
+```
+
+- Rota de logoff criada:
+
+```txt
+POST /auth/sign-out
+```
+
+Commits relacionados:
 
 ```txt
 7ed73aa feat(users): add current user endpoint
+6cc284c feat(companies): add companies module with user roles
+5d45854 refactor(auth): add auth prehandlers
+f45f70c feat(auth): add sign out route
 ```
 
 ### Variaveis de ambiente
@@ -246,46 +261,33 @@ Commit relacionado:
 a39ab84 refactor(api): use zod top-level string formats
 ```
 
-## Validacoes ja realizadas
+### Documentacao de API
 
-Durante a configuracao, foram validados:
-
-```txt
-pnpm.cmd --filter api exec tsc --noEmit
-pnpm.cmd --filter api build
-docker compose up -d
-docker compose exec -T postgres pg_isready -U postgres -d diagnostico_360
-```
-
-Tambem foram testados:
+- Referencia de API criada em:
 
 ```txt
-GET /health
-POST /api/auth/sign-up/email
-POST /api/auth/sign-in/email
-GET /api/auth/get-session
-GET /users/me
+docs/api-reference.md
 ```
 
-## Observacoes importantes
+- A documentacao descreve:
+  - execucao local;
+  - padrao de resposta;
+  - autenticacao por cookie;
+  - roles;
+  - rotas implementadas;
+  - fluxo de teste no Insomnia;
+  - erros comuns;
+  - rotas planejadas.
 
-- O arquivo real `apps/api/.env` nao deve ser commitado.
-- O arquivo `apps/api/.env.example` deve continuar versionado como modelo.
-- A tabela de autenticacao criada pela Better Auth chama-se `user`, no singular.
-- Antes de criar regras mais complexas de usuarios, deve-se decidir se a tabela `user` sera a tabela principal de usuarios do dominio ou se havera uma tabela/perfil complementar.
-- O PostgreSQL roda via Docker Compose usando o banco `diagnostico_360`.
-- A API usa a porta `3333` por padrao.
+Commit relacionado:
 
-## Mudancas pendentes
+```txt
+4bb754f docs(api): add API route reference
+```
 
-- `apps/api/src/modules/.gitkeep` foi removido porque a pasta `modules` ja possui o modulo `users`.
-- Ainda falta criar commit para essa remocao, caso seja mantida.
+### Modulo de empresas
 
-## Proximos passos planejados
-
-### 1. Modulo de empresas
-
-Proximo modulo recomendado:
+- Modulo `companies` criado seguindo a arquitetura definida:
 
 ```txt
 apps/api/src/modules/companies/
@@ -296,66 +298,219 @@ apps/api/src/modules/companies/
   companies.types.ts
 ```
 
-Schema recomendado:
+- Schema Drizzle criado em:
 
 ```txt
 apps/api/src/database/schema/companies.ts
 ```
 
-Endpoints iniciais:
+- Migration criada:
 
 ```txt
+apps/api/src/database/migrations/0001_clear_warhawk.sql
+```
+
+- Cada empresa pertence ao usuario que criou a conta:
+
+```txt
+user 1:N companies
+companies.owner_user_id -> user.id
+```
+
+- CRUD completo implementado:
+
+```txt
+POST   /companies
+GET    /companies
+GET    /companies/:id
+PATCH  /companies/:id
+DELETE /companies/:id
+```
+
+- Escrita em empresas exige `role = admin`.
+- Todas as operacoes sao escopadas por `ownerUserId`.
+
+Commits relacionados:
+
+```txt
+6cc284c feat(companies): add companies module with user roles
+3129712 feat(companies): complete companies CRUD
+```
+
+### Fundacao do Diagnostico 360
+
+- Schemas Drizzle criados:
+
+```txt
+apps/api/src/database/schema/diagnostic-areas.ts
+apps/api/src/database/schema/diagnostic-questions.ts
+apps/api/src/database/schema/diagnostics.ts
+apps/api/src/database/schema/diagnostic-answers.ts
+apps/api/src/database/schema/diagnostic-scores.ts
+```
+
+- Migration criada e aplicada localmente:
+
+```txt
+apps/api/src/database/migrations/0003_mean_gressill.sql
+```
+
+- Tabelas criadas:
+
+```txt
+diagnostic_areas
+diagnostic_questions
+diagnostics
+diagnostic_answers
+diagnostic_scores
+```
+
+- Areas padrao inseridas pela migration:
+
+```txt
+Marketing
+Comercial
+Operacao
+Financeiro
+Gestao
+Atendimento
+Recursos Humanos
+```
+
+- Constraint criada para respostas futuras:
+
+```txt
+diagnostic_answers.score >= 0 AND diagnostic_answers.score <= 10
+```
+
+- Modulo `diagnostics` criado:
+
+```txt
+apps/api/src/modules/diagnostics/
+  diagnostics.routes.ts
+  diagnostics.controller.ts
+  diagnostics.service.ts
+  diagnostics.schemas.ts
+  diagnostics.types.ts
+```
+
+- Endpoints iniciais implementados:
+
+```txt
+POST /diagnostics
+GET /diagnostics/:id
+GET /companies/:companyId/diagnostics
+```
+
+- Todo diagnostico pertence a uma empresa.
+- A API valida se a empresa pertence ao usuario logado antes de criar/listar/buscar diagnosticos.
+- Diagnosticos nascem com:
+
+```txt
+status = draft
+completed_at = null
+```
+
+Commit planejado:
+
+```txt
+feat(diagnostics): create diagnostics foundation
+```
+
+## Validacoes ja realizadas
+
+Durante a configuracao e evolucao do backend, foram validados:
+
+```txt
+pnpm.cmd --filter api exec tsc --noEmit
+pnpm.cmd --filter api build
+pnpm.cmd --filter api db:generate
+pnpm.cmd --filter api db:migrate
+docker compose up -d
+docker compose exec -T postgres pg_isready -U postgres -d diagnostico_360
+```
+
+Tambem foram testados em momentos anteriores:
+
+```txt
+GET /health
+POST /api/auth/sign-up/email
+POST /api/auth/sign-in/email
+GET /api/auth/get-session
+GET /users/me
 POST /companies
 GET /companies
 GET /companies/:id
 ```
 
-Objetivo:
+## Observacoes importantes
 
-- Criar a primeira entidade de negocio real.
-- Vincular empresas ao usuario autenticado.
-- Preparar base multiempresa para diagnosticos, dashboard, CRM, planos de acao e relatorios.
+- O arquivo real `apps/api/.env` nao deve ser commitado.
+- O arquivo `apps/api/.env.example` deve continuar versionado como modelo.
+- A tabela de autenticacao criada pela Better Auth chama-se `user`, no singular.
+- A role padrao de novos usuarios e `admin`.
+- O vinculo atual de empresa e `companies.owner_user_id -> user.id`.
+- Ainda nao existe tabela `company_members`; se houver equipes por cliente, esta sera uma evolucao futura.
+- O PostgreSQL roda via Docker Compose usando o banco `diagnostico_360`.
+- A API usa a porta `3333` por padrao.
 
-Commit sugerido:
+## Onde paramos
 
-```txt
-feat(companies): create companies module
-```
+Paramos na fundacao do modulo `diagnostics`.
 
-### 2. Relacionamento usuario-empresa
-
-Decidir como representar o vinculo entre usuario e empresa:
-
-- Campo direto `owner_user_id` em `companies`.
-- Ou tabela de relacionamento, por exemplo `company_members`, para suportar multiplos usuarios por empresa no futuro.
-
-Sugestao inicial:
-
-- Se o MVP tiver apenas consultor dono da empresa, usar `owner_user_id`.
-- Se houver equipe/acessos por empresa, criar `company_members` desde o inicio.
-
-### 3. Diagnostico 360
-
-Depois de empresas:
+Ja existe:
 
 ```txt
-diagnostic-areas
-diagnostic-questions
-diagnostics
-diagnostic-answers
-diagnostic-scores
+POST /diagnostics
+GET /diagnostics/:id
+GET /companies/:companyId/diagnostics
+```
+
+Ainda falta implementar:
+
+```txt
+POST /diagnostics/:id/answers
+POST /diagnostics/:id/complete
+GET /diagnostics/:id/scores
+```
+
+## Proximos passos recomendados
+
+### 1. Respostas do diagnostico
+
+Criar endpoint:
+
+```txt
+POST /diagnostics/:id/answers
 ```
 
 Objetivo:
 
-- Criar areas padrao.
-- Criar perguntas configuraveis.
-- Aplicar diagnostico.
-- Calcular scores.
+- registrar notas de 0 a 10 por pergunta;
+- validar se o diagnostico pertence a uma empresa do usuario logado;
+- validar se a pergunta existe e esta ativa;
+- evitar respostas duplicadas para a mesma pergunta no mesmo diagnostico.
 
-### 4. Dashboard
+### 2. Finalizacao e scoring
 
-Depois de diagnostico e scores:
+Criar endpoints:
+
+```txt
+POST /diagnostics/:id/complete
+GET /diagnostics/:id/scores
+```
+
+Objetivo:
+
+- calcular score por area;
+- calcular score geral;
+- identificar gargalo principal;
+- identificar segunda prioridade;
+- marcar diagnostico como `completed`.
+
+### 3. Dashboard
+
+Depois de scoring:
 
 ```txt
 GET /companies/:companyId/dashboard
@@ -363,13 +518,13 @@ GET /companies/:companyId/dashboard
 
 Deve exibir:
 
-- Saude geral.
-- Principal gargalo.
-- Segunda prioridade.
-- Evolucao mensal.
-- Status de planos de acao.
+- saude geral;
+- principal gargalo;
+- segunda prioridade;
+- evolucao mensal;
+- status dos planos de acao.
 
-### 5. Planos de acao
+### 4. Planos de acao
 
 Criar modulo de action plans:
 
@@ -380,27 +535,25 @@ PATCH /action-plans/:id
 PATCH /action-plans/:id/status
 ```
 
-### 6. IA, relatorios e CRM
+### 5. IA, relatorios e CRM
 
 Somente depois do core:
 
-- IA para resumo executivo.
-- Relatorios PDF/Excel.
-- CRM.
-- Integracoes externas.
+- IA para resumo executivo;
+- relatorios PDF/Excel;
+- CRM;
+- integracoes externas.
 
 ## Ordem recomendada atual
 
 ```txt
-1. Commit da remocao do .gitkeep de modules
-2. Modulo companies
-3. Relacionamento usuario-empresa
-4. Diagnostico 360
-5. Scoring
-6. Dashboard
-7. Action plans
-8. IA
-9. Relatorios
-10. CRM
-11. Integracoes
+1. Commit da fundacao de diagnostics
+2. Respostas do diagnostico
+3. Finalizacao do diagnostico e scoring
+4. Dashboard
+5. Action plans
+6. IA
+7. Relatorios
+8. CRM
+9. Integracoes
 ```

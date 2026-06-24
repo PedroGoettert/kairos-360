@@ -106,6 +106,9 @@ Comportamento atual:
 | GET | `/companies/:id` | Cookie | Busca uma empresa do usuario logado. |
 | PATCH | `/companies/:id` | Cookie, role `admin` | Atualiza uma empresa do usuario logado. |
 | DELETE | `/companies/:id` | Cookie, role `admin` | Remove uma empresa do usuario logado. |
+| POST | `/diagnostics` | Cookie | Cria um diagnostico para uma empresa do usuario logado. |
+| GET | `/diagnostics/:id` | Cookie | Busca um diagnostico do usuario logado. |
+| GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos de uma empresa do usuario logado. |
 
 ## Health
 
@@ -528,6 +531,162 @@ Resposta quando nao encontrada:
     "code": "COMPANY_NOT_FOUND"
   }
 }
+```
+
+## Diagnostics
+
+Diagnosticos representam a aplicacao do Diagnostico 360 em uma empresa.
+
+Modelo atual:
+
+```txt
+company 1:N diagnostics
+```
+
+Cada diagnostico pertence a uma empresa e registra o usuario que criou o diagnostico em `createdByUserId`.
+
+### POST `/diagnostics`
+
+Cria um diagnostico em status `draft` para uma empresa do usuario logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Body:
+
+```json
+{
+  "companyId": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Diagnostico inicial",
+  "notes": "Primeira avaliacao do cliente."
+}
+```
+
+Campos obrigatorios:
+
+```txt
+companyId
+```
+
+Campos opcionais:
+
+```txt
+title
+notes
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "660e8400-e29b-41d4-a716-446655440000",
+    "companyId": "550e8400-e29b-41d4-a716-446655440000",
+    "createdByUserId": "user_id",
+    "title": "Diagnostico inicial",
+    "notes": "Primeira avaliacao do cliente.",
+    "status": "draft",
+    "completedAt": null,
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:00:00.000Z"
+  }
+}
+```
+
+Resposta quando a empresa nao existe ou nao pertence ao usuario:
+
+```json
+{
+  "error": {
+    "message": "Company not found",
+    "code": "COMPANY_NOT_FOUND"
+  }
+}
+```
+
+### GET `/diagnostics/:id`
+
+Busca um diagnostico por ID, escopado ao usuario logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "660e8400-e29b-41d4-a716-446655440000",
+    "companyId": "550e8400-e29b-41d4-a716-446655440000",
+    "createdByUserId": "user_id",
+    "title": "Diagnostico inicial",
+    "notes": "Primeira avaliacao do cliente.",
+    "status": "draft",
+    "completedAt": null,
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:00:00.000Z"
+  }
+}
+```
+
+Resposta quando nao encontrado:
+
+```json
+{
+  "error": {
+    "message": "Diagnostic not found",
+    "code": "DIAGNOSTIC_NOT_FOUND"
+  }
+}
+```
+
+### GET `/companies/:companyId/diagnostics`
+
+Lista os diagnosticos de uma empresa do usuario logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+companyId: UUID
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": [
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440000",
+      "companyId": "550e8400-e29b-41d4-a716-446655440000",
+      "createdByUserId": "user_id",
+      "title": "Diagnostico inicial",
+      "notes": "Primeira avaliacao do cliente.",
+      "status": "draft",
+      "completedAt": null,
+      "createdAt": "2026-06-24T10:00:00.000Z",
+      "updatedAt": "2026-06-24T10:00:00.000Z"
+    }
+  ]
+}
+```
 
 ## Fluxo de Teste no Insomnia
 
@@ -551,8 +710,11 @@ Ordem recomendada das requisicoes:
 7. GET  {{ base_url }}/companies/:id
 8. PATCH {{ base_url }}/companies/:id
 9. DELETE {{ base_url }}/companies/:id
-10. POST {{ base_url }}/auth/sign-out
-11. GET  {{ base_url }}/users/me
+10. POST {{ base_url }}/diagnostics
+11. GET  {{ base_url }}/diagnostics/:id
+12. GET  {{ base_url }}/companies/:companyId/diagnostics
+13. POST {{ base_url }}/auth/sign-out
+14. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:
@@ -600,11 +762,15 @@ Causas comuns:
 - `name` ausente ao criar empresa;
 - body vazio ao atualizar empresa;
 - `website` invalido;
-- UUID invalido em `/companies/:id`.
+- UUID invalido em rotas com `:id` ou `:companyId`.
 
 ### `COMPANY_NOT_FOUND`
 
 A empresa nao existe ou nao pertence ao usuario autenticado.
+
+### `DIAGNOSTIC_NOT_FOUND`
+
+O diagnostico nao existe ou pertence a uma empresa de outro usuario.
 
 ### `ROUTE_NOT_FOUND`
 
@@ -615,11 +781,8 @@ A rota ou o metodo HTTP nao existem na API.
 Estas rotas fazem parte da especificacao do produto, mas ainda nao foram implementadas:
 
 ```txt
-POST   /diagnostics
-GET    /diagnostics/:id
 POST   /diagnostics/:id/answers
 POST   /diagnostics/:id/complete
-GET    /companies/:companyId/diagnostics
 GET    /diagnostics/:id/scores
 GET    /companies/:companyId/dashboard
 POST   /action-plans
