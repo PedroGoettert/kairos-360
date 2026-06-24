@@ -3,10 +3,12 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { getRequiredCurrentUser } from "../../auth/guards.js";
 import {
   companyDiagnosticsParamsSchema,
+  createDiagnosticAnswerSchema,
   createDiagnosticSchema,
   diagnosticParamsSchema,
 } from "./diagnostics.schemas.js";
 import {
+  createDiagnosticAnswer,
   createDiagnostic,
   getDiagnosticById,
   listDiagnosticsByCompany,
@@ -76,4 +78,56 @@ export async function listDiagnosticsByCompanyController(
   return reply.send({
     data: diagnostics,
   });
+}
+
+export async function createDiagnosticAnswerController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = diagnosticParamsSchema.parse(request.params);
+  const input = createDiagnosticAnswerSchema.parse(request.body);
+  const result = await createDiagnosticAnswer(currentUser.id, id, input);
+
+  if (result.status === "created") {
+    return reply.status(201).send({
+      data: result.answer,
+    });
+  }
+
+  if (result.status === "diagnostic_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic not found",
+        code: "DIAGNOSTIC_NOT_FOUND",
+      },
+    });
+  }
+
+  if (result.status === "diagnostic_completed") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic is already completed",
+        code: "DIAGNOSTIC_ALREADY_COMPLETED",
+      },
+    });
+  }
+
+  if (result.status === "question_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic question not found",
+        code: "DIAGNOSTIC_QUESTION_NOT_FOUND",
+      },
+    });
+  }
+
+  if (result.status === "answer_already_exists") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic answer already exists",
+        code: "DIAGNOSTIC_ANSWER_ALREADY_EXISTS",
+      },
+    });
+  }
 }

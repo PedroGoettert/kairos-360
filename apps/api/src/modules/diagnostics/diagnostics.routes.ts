@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 
 import { requireAuth } from "../../auth/guards.js";
 import {
+  createDiagnosticAnswerController,
   createDiagnosticController,
   getDiagnosticByIdController,
   listDiagnosticsByCompanyController,
@@ -23,6 +24,13 @@ export async function diagnosticsRoutes(
       preHandler: requireAuth,
     },
     getDiagnosticByIdController,
+  );
+  server.post(
+    "/diagnostics/:id/answers",
+    {
+      preHandler: requireAuth,
+    },
+    createDiagnosticAnswerController,
   );
   server.get(
     "/companies/:companyId/diagnostics",
