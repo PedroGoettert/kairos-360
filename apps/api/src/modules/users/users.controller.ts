@@ -1,23 +1,12 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-import { getCurrentUser } from "./users.service.js";
+import { getRequiredCurrentUser } from "../../auth/guards.js";
 
 export async function getCurrentUserController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const currentUser = await getCurrentUser(request);
-
-  if (!currentUser) {
-    return reply.status(401).send({
-      error: {
-        message: "Unauthorized",
-        code: "UNAUTHORIZED",
-      },
-    });
-  }
-
   return reply.send({
-    data: currentUser,
+    data: getRequiredCurrentUser(request),
   });
 }

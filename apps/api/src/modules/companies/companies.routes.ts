@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 
+import { requireAuth, requireRole } from "../../auth/guards.js";
 import {
   createCompanyController,
   getCompanyByIdController,
@@ -7,7 +8,25 @@ import {
 } from "./companies.controller.js";
 
 export async function companiesRoutes(server: FastifyInstance): Promise<void> {
-  server.post("/companies", createCompanyController);
-  server.get("/companies", listCompaniesController);
-  server.get("/companies/:id", getCompanyByIdController);
+  server.post(
+    "/companies",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    createCompanyController,
+  );
+  server.get(
+    "/companies",
+    {
+      preHandler: requireAuth,
+    },
+    listCompaniesController,
+  );
+  server.get(
+    "/companies/:id",
+    {
+      preHandler: requireAuth,
+    },
+    getCompanyByIdController,
+  );
 }

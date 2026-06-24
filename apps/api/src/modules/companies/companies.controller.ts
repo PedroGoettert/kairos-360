@@ -1,7 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-import { getCurrentUser } from "../users/users.service.js";
-import type { CurrentUser } from "../users/users.types.js";
+import { getRequiredCurrentUser } from "../../auth/guards.js";
 import {
   companyParamsSchema,
   createCompanySchema,
@@ -12,55 +11,11 @@ import {
   listCompanies,
 } from "./companies.service.js";
 
-async function requireCurrentUser(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<CurrentUser | null> {
-  const currentUser = await getCurrentUser(request);
-
-  if (!currentUser) {
-    void reply.status(401).send({
-      error: {
-        message: "Unauthorized",
-        code: "UNAUTHORIZED",
-      },
-    });
-
-    return null;
-  }
-
-  return currentUser;
-}
-
-function requireAdmin(currentUser: CurrentUser, reply: FastifyReply): boolean {
-  if (currentUser.role === "admin") {
-    return true;
-  }
-
-  void reply.status(403).send({
-    error: {
-      message: "Forbidden",
-      code: "FORBIDDEN",
-    },
-  });
-
-  return false;
-}
-
 export async function createCompanyController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const currentUser = await requireCurrentUser(request, reply);
-
-  if (!currentUser) {
-    return;
-  }
-
-  if (!requireAdmin(currentUser, reply)) {
-    return;
-  }
-
+  const currentUser = getRequiredCurrentUser(request);
   const input = createCompanySchema.parse(request.body);
   const company = await createCompany(currentUser.id, input);
 
@@ -73,12 +28,7 @@ export async function listCompaniesController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const currentUser = await requireCurrentUser(request, reply);
-
-  if (!currentUser) {
-    return;
-  }
-
+  const currentUser = getRequiredCurrentUser(request);
   const companies = await listCompanies(currentUser.id);
 
   return reply.send({
@@ -90,12 +40,7 @@ export async function getCompanyByIdController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const currentUser = await requireCurrentUser(request, reply);
-
-  if (!currentUser) {
-    return;
-  }
-
+  const currentUser = getRequiredCurrentUser(request);
   const { id } = companyParamsSchema.parse(request.params);
   const company = await getCompanyById(currentUser.id, id);
 
