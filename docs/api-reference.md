@@ -1,0 +1,488 @@
+# Referencia da API
+
+Este documento descreve as rotas atualmente implementadas na API do Diagnostico 360 e como testa-las manualmente.
+
+## Execucao Local
+
+Base URL local:
+
+```txt
+http://localhost:3333
+```
+
+Subir PostgreSQL:
+
+```bash
+docker compose up -d
+```
+
+Rodar a API compilada a partir de `apps/api/dist/server.js`:
+
+```bash
+pnpm --filter api build
+pnpm --filter api start
+```
+
+Rodar a API em modo desenvolvimento:
+
+```bash
+pnpm dev:api
+```
+
+## Padrao de Resposta
+
+Resposta de sucesso para recurso unico:
+
+```json
+{
+  "data": {}
+}
+```
+
+Resposta de sucesso para listas:
+
+```json
+{
+  "data": []
+}
+```
+
+Resposta de erro:
+
+```json
+{
+  "error": {
+    "message": "Error message",
+    "code": "ERROR_CODE"
+  }
+}
+```
+
+## Autenticacao
+
+A autenticacao e feita pelo Better Auth nas rotas sob `/api/auth/*`.
+
+A API nao aceita `userId`, `ownerUserId` ou `role` enviados pelo cliente em headers ou body. O usuario autenticado e resolvido pelo cookie de sessao emitido depois do login.
+
+No Insomnia, mantenha a cookie jar habilitada. Depois de um login bem-sucedido, o Insomnia deve armazenar o header `Set-Cookie` e enviar o cookie automaticamente nas proximas requisicoes.
+
+Use esta rota para confirmar que o cookie de sessao esta funcionando:
+
+```txt
+GET /users/me
+```
+
+Se a rota retornar o usuario atual, as rotas autenticadas como `/companies` tambem conseguem identificar o usuario logado.
+
+## Funcoes de Usuario
+
+As roles atuais sao:
+
+```txt
+admin
+consultant
+viewer
+```
+
+Comportamento atual:
+
+- Novos usuarios sao criados como `admin` por padrao.
+- `admin` pode criar empresas.
+- Empresas sao escopadas pelo usuario autenticado.
+- `consultant` e `viewer` estao preparadas para regras futuras de permissao.
+
+## Rotas Implementadas
+
+| Metodo | Rota | Auth | Descricao |
+| --- | --- | --- | --- |
+| GET | `/health` | Nao | Verifica se a API esta disponivel. |
+| POST | `/api/auth/sign-up/email` | Nao | Cria usuario com email e senha. |
+| POST | `/api/auth/sign-in/email` | Nao | Faz login e emite cookie de sessao. |
+| GET | `/api/auth/get-session` | Cookie | Retorna a sessao atual do Better Auth. |
+| GET | `/users/me` | Cookie | Retorna o usuario atual da aplicacao. |
+| POST | `/companies` | Cookie, role `admin` | Cria uma empresa para o admin logado. |
+| GET | `/companies` | Cookie | Lista empresas do usuario logado. |
+| GET | `/companies/:id` | Cookie | Busca uma empresa do usuario logado. |
+
+## Health
+
+### GET `/health`
+
+Verifica se o processo da API esta rodando.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "status": "ok"
+  }
+}
+```
+
+## Auth
+
+### POST `/api/auth/sign-up/email`
+
+Cria um novo usuario. No schema atual, o usuario nasce com `role = admin`.
+
+Body:
+
+```json
+{
+  "name": "Admin Kairos",
+  "email": "admin@kairos.com",
+  "password": "12345678"
+}
+```
+
+Observacoes:
+
+- Use um email unico para cada usuario de teste.
+- O Better Auth controla o formato exato da resposta.
+- Se a requisicao funcionar, o usuario e persistido na tabela `user`.
+
+### POST `/api/auth/sign-in/email`
+
+Faz login com email e senha.
+
+Body:
+
+```json
+{
+  "email": "admin@kairos.com",
+  "password": "12345678"
+}
+```
+
+Detalhe importante da resposta:
+
+```txt
+Set-Cookie: better-auth.session_token=...
+```
+
+O Insomnia deve armazenar esse cookie. Nao envie `userId` manualmente em header ou body.
+
+### GET `/api/auth/get-session`
+
+Retorna a sessao Better Auth associada ao cookie atual.
+
+Use esta rota quando quiser inspecionar a sessao bruta de autenticacao.
+
+## Users
+
+### GET `/users/me`
+
+Retorna o usuario atual da aplicacao.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "user_id",
+    "name": "Admin Kairos",
+    "email": "admin@kairos.com",
+    "emailVerified": false,
+    "image": null,
+    "role": "admin"
+  }
+}
+```
+
+Resposta sem sessao:
+
+```json
+{
+  "error": {
+    "message": "Unauthorized",
+    "code": "UNAUTHORIZED"
+  }
+}
+```
+
+## Companies
+
+Empresas representam os clientes atendidos no Diagnostico 360.
+
+Modelo atual de propriedade:
+
+```txt
+user 1:N companies
+```
+
+Cada empresa possui `ownerUserId`. A API define esse valor a partir da sessao autenticada. O cliente nao deve enviar `ownerUserId`.
+
+### POST `/companies`
+
+Cria uma empresa para o usuario admin logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+role = admin obrigatoria
+```
+
+Body:
+
+```json
+{
+  "name": "Cliente Exemplo LTDA",
+  "tradeName": "Cliente Exemplo",
+  "document": "12.345.678/0001-90",
+  "industry": "Servicos",
+  "website": "https://clienteexemplo.com.br",
+  "notes": "Cliente criado para teste no Diagnostico 360."
+}
+```
+
+Campos obrigatorios:
+
+```txt
+name
+```
+
+Campos opcionais:
+
+```txt
+tradeName
+document
+industry
+website
+notes
+```
+
+Regras de validacao:
+
+- `name` deve ser uma string nao vazia.
+- `website`, quando enviado, deve ser uma URL valida.
+- Campos opcionais de texto podem ser omitidos ou enviados como `null`.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "ownerUserId": "user_id",
+    "name": "Cliente Exemplo LTDA",
+    "tradeName": "Cliente Exemplo",
+    "document": "12.345.678/0001-90",
+    "industry": "Servicos",
+    "website": "https://clienteexemplo.com.br",
+    "notes": "Cliente criado para teste no Diagnostico 360.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:00:00.000Z"
+  }
+}
+```
+
+Resposta sem permissao:
+
+```json
+{
+  "error": {
+    "message": "Forbidden",
+    "code": "FORBIDDEN"
+  }
+}
+```
+
+### GET `/companies`
+
+Lista empresas do usuario logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "ownerUserId": "user_id",
+      "name": "Cliente Exemplo LTDA",
+      "tradeName": "Cliente Exemplo",
+      "document": "12.345.678/0001-90",
+      "industry": "Servicos",
+      "website": "https://clienteexemplo.com.br",
+      "notes": "Cliente criado para teste no Diagnostico 360.",
+      "createdAt": "2026-06-24T10:00:00.000Z",
+      "updatedAt": "2026-06-24T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+Observacoes:
+
+- A resposta e ordenada por `createdAt` decrescente.
+- A rota nao retorna empresas de outros usuarios.
+
+### GET `/companies/:id`
+
+Retorna uma empresa por ID, escopada ao usuario logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID
+```
+
+Exemplo:
+
+```txt
+GET /companies/550e8400-e29b-41d4-a716-446655440000
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "ownerUserId": "user_id",
+    "name": "Cliente Exemplo LTDA",
+    "tradeName": "Cliente Exemplo",
+    "document": "12.345.678/0001-90",
+    "industry": "Servicos",
+    "website": "https://clienteexemplo.com.br",
+    "notes": "Cliente criado para teste no Diagnostico 360.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:00:00.000Z"
+  }
+}
+```
+
+Resposta quando nao encontrada:
+
+```json
+{
+  "error": {
+    "message": "Company not found",
+    "code": "COMPANY_NOT_FOUND"
+  }
+}
+```
+
+Essa resposta e usada quando:
+
+- a empresa nao existe;
+- a empresa existe, mas pertence a outro usuario.
+
+## Fluxo de Teste no Insomnia
+
+Crie um environment com:
+
+```json
+{
+  "base_url": "http://localhost:3333"
+}
+```
+
+Ordem recomendada das requisicoes:
+
+```txt
+1. GET  {{ base_url }}/health
+2. POST {{ base_url }}/api/auth/sign-up/email
+3. POST {{ base_url }}/api/auth/sign-in/email
+4. GET  {{ base_url }}/users/me
+5. POST {{ base_url }}/companies
+6. GET  {{ base_url }}/companies
+7. GET  {{ base_url }}/companies/:id
+```
+
+Checklist de cookies:
+
+- Mantenha a cookie jar do Insomnia habilitada.
+- Faca login antes de chamar rotas autenticadas.
+- Chame `/users/me` depois do login para confirmar que a sessao esta ativa.
+- Nao adicione headers `ownerUserId`, `userId` ou `role`.
+
+Headers recomendados para requisicoes JSON:
+
+```txt
+Content-Type: application/json
+Accept: application/json
+```
+
+## Erros Comuns
+
+### `UNAUTHORIZED`
+
+A requisicao nao possui cookie de sessao valido.
+
+Como resolver:
+
+```txt
+Faca login novamente e confirme que o Insomnia esta enviando o cookie salvo.
+```
+
+### `FORBIDDEN`
+
+O usuario autenticado nao possui permissao para executar a acao.
+
+Caso atual:
+
+```txt
+POST /companies exige role = admin.
+```
+
+### `VALIDATION_ERROR`
+
+O body ou os params falharam na validacao Zod.
+
+Causas comuns:
+
+- `name` ausente ao criar empresa;
+- `website` invalido;
+- UUID invalido em `/companies/:id`.
+
+### `COMPANY_NOT_FOUND`
+
+A empresa nao existe ou nao pertence ao usuario autenticado.
+
+### `ROUTE_NOT_FOUND`
+
+A rota ou o metodo HTTP nao existem na API.
+
+## Planejadas, Mas Ainda Nao Implementadas
+
+Estas rotas fazem parte da especificacao do produto, mas ainda nao foram implementadas:
+
+```txt
+PATCH  /companies/:id
+DELETE /companies/:id
+POST   /diagnostics
+GET    /diagnostics/:id
+POST   /diagnostics/:id/answers
+POST   /diagnostics/:id/complete
+GET    /companies/:companyId/diagnostics
+GET    /diagnostics/:id/scores
+GET    /companies/:companyId/dashboard
+POST   /action-plans
+GET    /companies/:companyId/action-plans
+PATCH  /action-plans/:id
+PATCH  /action-plans/:id/status
+POST   /diagnostics/:id/ai-summary
+POST   /reports/diagnostic/:diagnosticId/pdf
+POST   /reports/diagnostic/:diagnosticId/excel
+```
