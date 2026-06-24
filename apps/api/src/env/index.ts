@@ -8,16 +8,11 @@ const envSchema = z.object({
     .default("development"),
   HOST: z.string().min(1).default("0.0.0.0"),
   PORT: z.coerce.number().int().positive().max(65_535).default(3333),
-  DATABASE_URL: z
-    .string()
-    .url()
-    .default("postgres://postgres:postgres@localhost:5432/diagnostico_360"),
-  BETTER_AUTH_SECRET: z
-    .string()
-    .min(32)
-    .default("diagnostico-360-development-secret-change-me"),
-  BETTER_AUTH_URL: z.string().url().default("http://localhost:3333"),
-  WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
+  DATABASE_URL: z.string().url(),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.string().url(),
+  WEB_ORIGIN: z.string().optional(),
+  WEB_ORIGINS: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -27,5 +22,25 @@ if (!parsedEnv.success) {
   process.exit(1);
 }
 
-export const env = parsedEnv.data;
+const webOriginsSource = parsedEnv.data.WEB_ORIGINS ?? parsedEnv.data.WEB_ORIGIN;
+const webOrigins = webOriginsSource
+  ?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const webOriginsSchema = z.array(z.string().url()).min(1);
+const parsedWebOrigins = webOriginsSchema.safeParse(webOrigins);
+
+if (!parsedWebOrigins.success) {
+  console.error("Invalid environment variables", {
+    WEB_ORIGINS: parsedWebOrigins.error.flatten().formErrors,
+  });
+  process.exit(1);
+}
+
+export const env = {
+  ...parsedEnv.data,
+  WEB_ORIGINS: parsedWebOrigins.data,
+};
+
 export type Env = typeof env;
