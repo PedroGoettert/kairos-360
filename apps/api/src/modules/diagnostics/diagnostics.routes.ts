@@ -4,6 +4,7 @@ import { requireAuth } from "../../auth/guards.js";
 import {
   createDiagnosticAnswerController,
   createDiagnosticController,
+  deleteDiagnosticAnswerController,
   getDiagnosticByIdController,
   listDiagnosticAnswersController,
   listDiagnosticsByCompanyController,
@@ -47,6 +48,13 @@ export async function diagnosticsRoutes(
       preHandler: requireAuth,
     },
     updateDiagnosticAnswerController,
+  );
+  server.delete(
+    "/diagnostic-answers/:id",
+    {
+      preHandler: requireAuth,
+    },
+    deleteDiagnosticAnswerController,
   );
   server.get(
     "/companies/:companyId/diagnostics",

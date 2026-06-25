@@ -435,6 +435,7 @@ GET /companies/:companyId/diagnostics
 POST /diagnostics/:id/answers
 GET /diagnostics/:id/answers
 PATCH /diagnostic-answers/:id
+DELETE /diagnostic-answers/:id
 ```
 
 - Modulo `diagnostic-questions` criado para leitura da configuracao do formulario:
@@ -461,7 +462,7 @@ completed_at = null
 ```
 
 - Respostas de diagnostico podem ser registradas em diagnosticos `draft`.
-- Respostas de diagnostico podem ser listadas e atualizadas enquanto o diagnostico estiver em `draft`.
+- Respostas de diagnostico podem ser listadas, atualizadas e removidas enquanto o diagnostico estiver em `draft`.
 - A API valida se o diagnostico pertence a uma empresa do usuario logado.
 - A API valida se a pergunta existe e esta ativa.
 - A API bloqueia respostas duplicadas para a mesma pergunta no mesmo diagnostico.
@@ -528,6 +529,7 @@ GET /companies/:companyId/diagnostics
 POST /diagnostics/:id/answers
 GET /diagnostics/:id/answers
 PATCH /diagnostic-answers/:id
+DELETE /diagnostic-answers/:id
 ```
 
 Ainda falta implementar:

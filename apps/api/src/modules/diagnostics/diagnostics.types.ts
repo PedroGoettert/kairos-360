@@ -55,3 +55,12 @@ export type UpdateDiagnosticAnswerResult =
   | {
       status: "answer_not_found" | "diagnostic_completed";
     };
+
+export type DeleteDiagnosticAnswerResult =
+  | {
+      status: "deleted";
+      answer: DiagnosticAnswer;
+    }
+  | {
+      status: "answer_not_found" | "diagnostic_completed";
+    };

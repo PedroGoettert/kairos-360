@@ -130,6 +130,7 @@ Comportamento atual:
 | POST | `/diagnostics/:id/answers` | Cookie | Registra uma resposta para uma pergunta do diagnostico. |
 | GET | `/diagnostics/:id/answers` | Cookie | Lista respostas registradas em um diagnostico. |
 | PATCH | `/diagnostic-answers/:id` | Cookie | Atualiza uma resposta de diagnostico em andamento. |
+| DELETE | `/diagnostic-answers/:id` | Cookie | Remove uma resposta de diagnostico em andamento. |
 
 ## Health
 
@@ -1058,6 +1059,50 @@ DIAGNOSTIC_ALREADY_COMPLETED
 VALIDATION_ERROR
 ```
 
+### DELETE `/diagnostic-answers/:id`
+
+Remove uma resposta de um diagnostico ainda em andamento.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID da resposta
+```
+
+Regras:
+
+- a resposta precisa pertencer a um diagnostico de uma empresa do usuario logado;
+- diagnosticos em status `completed` nao podem ter respostas removidas.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "880e8400-e29b-41d4-a716-446655440000",
+    "diagnosticId": "660e8400-e29b-41d4-a716-446655440000",
+    "questionId": "770e8400-e29b-41d4-a716-446655440000",
+    "score": 7,
+    "comment": "Comentario revisado pelo consultor.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:10:00.000Z"
+  }
+}
+```
+
+Erros esperados:
+
+```txt
+DIAGNOSTIC_ANSWER_NOT_FOUND
+DIAGNOSTIC_ALREADY_COMPLETED
+```
+
 ## Fluxo de Teste no Insomnia
 
 Crie um environment com:
@@ -1090,8 +1135,9 @@ Ordem recomendada das requisicoes:
 17. POST {{ base_url }}/diagnostics/:id/answers
 18. GET  {{ base_url }}/diagnostics/:id/answers
 19. PATCH {{ base_url }}/diagnostic-answers/:id
-20. POST {{ base_url }}/auth/sign-out
-21. GET  {{ base_url }}/users/me
+20. DELETE {{ base_url }}/diagnostic-answers/:id
+21. POST {{ base_url }}/auth/sign-out
+22. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:

@@ -12,6 +12,7 @@ import {
 import {
   createDiagnosticAnswer,
   createDiagnostic,
+  deleteDiagnosticAnswer,
   getDiagnosticById,
   listDiagnosticAnswers,
   listDiagnosticsByCompany,
@@ -168,6 +169,39 @@ export async function updateDiagnosticAnswerController(
   const result = await updateDiagnosticAnswer(currentUser.id, id, input);
 
   if (result.status === "updated") {
+    return reply.send({
+      data: result.answer,
+    });
+  }
+
+  if (result.status === "answer_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic answer not found",
+        code: "DIAGNOSTIC_ANSWER_NOT_FOUND",
+      },
+    });
+  }
+
+  if (result.status === "diagnostic_completed") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic is already completed",
+        code: "DIAGNOSTIC_ALREADY_COMPLETED",
+      },
+    });
+  }
+}
+
+export async function deleteDiagnosticAnswerController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = diagnosticAnswerParamsSchema.parse(request.params);
+  const result = await deleteDiagnosticAnswer(currentUser.id, id);
+
+  if (result.status === "deleted") {
     return reply.send({
       data: result.answer,
     });

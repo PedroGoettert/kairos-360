@@ -12,6 +12,7 @@ import { getCompanyById } from "../companies/companies.service.js";
 import type {
   CreateDiagnosticAnswerInput,
   CreateDiagnosticAnswerResult,
+  DeleteDiagnosticAnswerResult,
   CreateDiagnosticInput,
   Diagnostic,
   DiagnosticAnswersList,
@@ -255,6 +256,49 @@ export async function updateDiagnosticAnswer(
 
   return {
     status: "updated",
+    answer,
+  };
+}
+
+export async function deleteDiagnosticAnswer(
+  currentUserId: string,
+  answerId: string,
+): Promise<DeleteDiagnosticAnswerResult> {
+  const [answerWithDiagnostic] = await db
+    .select({
+      id: diagnosticAnswers.id,
+      status: diagnostics.status,
+    })
+    .from(diagnosticAnswers)
+    .innerJoin(diagnostics, eq(diagnosticAnswers.diagnosticId, diagnostics.id))
+    .innerJoin(companies, eq(diagnostics.companyId, companies.id))
+    .where(
+      and(
+        eq(diagnosticAnswers.id, answerId),
+        eq(companies.ownerUserId, currentUserId),
+      ),
+    )
+    .limit(1);
+
+  if (!answerWithDiagnostic) {
+    return { status: "answer_not_found" };
+  }
+
+  if (answerWithDiagnostic.status === "completed") {
+    return { status: "diagnostic_completed" };
+  }
+
+  const [answer] = await db
+    .delete(diagnosticAnswers)
+    .where(eq(diagnosticAnswers.id, answerId))
+    .returning();
+
+  if (!answer) {
+    throw new Error("Diagnostic answer deletion failed");
+  }
+
+  return {
+    status: "deleted",
     answer,
   };
 }
