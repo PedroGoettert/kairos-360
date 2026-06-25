@@ -122,6 +122,8 @@ Comportamento atual:
 | DELETE | `/companies/:id` | Cookie, role `admin` | Remove uma empresa do usuario logado. |
 | GET | `/diagnostic-areas` | Cookie | Lista areas do diagnostico com perguntas ativas. |
 | POST | `/diagnostic-areas/:areaId/questions` | Cookie, role `admin` | Cria uma pergunta em uma area do diagnostico. |
+| PATCH | `/diagnostic-questions/:id` | Cookie, role `admin` | Atualiza texto, descricao ou ordem de uma pergunta. |
+| PATCH | `/diagnostic-questions/:id/status` | Cookie, role `admin` | Ativa ou desativa uma pergunta. |
 | POST | `/diagnostics` | Cookie | Cria um diagnostico para uma empresa do usuario logado. |
 | GET | `/diagnostics/:id` | Cookie | Busca um diagnostico do usuario logado. |
 | GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos de uma empresa do usuario logado. |
@@ -667,6 +669,64 @@ FORBIDDEN
 VALIDATION_ERROR
 ```
 
+### PATCH `/diagnostic-questions/:id`
+
+Atualiza texto, descricao ou ordem de uma pergunta do diagnostico.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+role = admin obrigatoria
+```
+
+Path params:
+
+```txt
+id: UUID da pergunta
+```
+
+Body:
+
+```json
+{
+  "question": "A empresa acompanha metas comerciais semanalmente?",
+  "description": "Avalia rotina de acompanhamento das metas comerciais.",
+  "displayOrder": 5
+}
+```
+
+Regras:
+
+- envie pelo menos um campo;
+- nao e permitido repetir o mesmo texto em outra pergunta da mesma area;
+- esta rota nao muda a area da pergunta.
+
+### PATCH `/diagnostic-questions/:id/status`
+
+Ativa ou desativa uma pergunta do diagnostico.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+role = admin obrigatoria
+```
+
+Body:
+
+```json
+{
+  "isActive": false
+}
+```
+
+Observacao:
+
+```txt
+Perguntas desativadas deixam de aparecer em GET /diagnostic-areas, mas respostas antigas continuam preservadas.
+```
+
 ## Diagnostics
 
 Diagnosticos representam a aplicacao do Diagnostico 360 em uma empresa.
@@ -1022,14 +1082,16 @@ Ordem recomendada das requisicoes:
 9. DELETE {{ base_url }}/companies/:id
 10. GET  {{ base_url }}/diagnostic-areas
 11. POST {{ base_url }}/diagnostic-areas/:areaId/questions
-12. POST {{ base_url }}/diagnostics
-13. GET  {{ base_url }}/diagnostics/:id
-14. GET  {{ base_url }}/companies/:companyId/diagnostics
-15. POST {{ base_url }}/diagnostics/:id/answers
-16. GET  {{ base_url }}/diagnostics/:id/answers
-17. PATCH {{ base_url }}/diagnostic-answers/:id
-18. POST {{ base_url }}/auth/sign-out
-19. GET  {{ base_url }}/users/me
+12. PATCH {{ base_url }}/diagnostic-questions/:id
+13. PATCH {{ base_url }}/diagnostic-questions/:id/status
+14. POST {{ base_url }}/diagnostics
+15. GET  {{ base_url }}/diagnostics/:id
+16. GET  {{ base_url }}/companies/:companyId/diagnostics
+17. POST {{ base_url }}/diagnostics/:id/answers
+18. GET  {{ base_url }}/diagnostics/:id/answers
+19. PATCH {{ base_url }}/diagnostic-answers/:id
+20. POST {{ base_url }}/auth/sign-out
+21. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:

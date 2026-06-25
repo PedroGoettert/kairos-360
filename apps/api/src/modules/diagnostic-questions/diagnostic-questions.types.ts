@@ -5,12 +5,24 @@ import type {
   diagnosticAreasWithQuestionsSchema,
   diagnosticAreaWithQuestionsSchema,
   diagnosticAreaParamsSchema,
+  diagnosticQuestionParamsSchema,
   diagnosticQuestionSchema,
+  updateDiagnosticQuestionSchema,
+  updateDiagnosticQuestionStatusSchema,
 } from "./diagnostic-questions.schemas.js";
 
 export type DiagnosticAreaParams = z.infer<typeof diagnosticAreaParamsSchema>;
+export type DiagnosticQuestionParams = z.infer<
+  typeof diagnosticQuestionParamsSchema
+>;
 export type CreateDiagnosticQuestionInput = z.infer<
   typeof createDiagnosticQuestionSchema
+>;
+export type UpdateDiagnosticQuestionInput = z.infer<
+  typeof updateDiagnosticQuestionSchema
+>;
+export type UpdateDiagnosticQuestionStatusInput = z.infer<
+  typeof updateDiagnosticQuestionStatusSchema
 >;
 export type DiagnosticQuestion = z.infer<typeof diagnosticQuestionSchema>;
 export type DiagnosticAreaWithQuestions = z.infer<
@@ -27,4 +39,13 @@ export type CreateDiagnosticQuestionResult =
     }
   | {
       status: "area_not_found" | "question_already_exists";
+    };
+
+export type UpdateDiagnosticQuestionResult =
+  | {
+      status: "updated";
+      question: DiagnosticQuestion;
+    }
+  | {
+      status: "question_not_found" | "question_already_exists";
     };

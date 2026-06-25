@@ -4,6 +4,8 @@ import { requireAuth, requireRole } from "../../auth/guards.js";
 import {
   createDiagnosticQuestionController,
   listDiagnosticAreasWithQuestionsController,
+  updateDiagnosticQuestionController,
+  updateDiagnosticQuestionStatusController,
 } from "./diagnostic-questions.controller.js";
 
 export async function diagnosticQuestionsRoutes(
@@ -22,5 +24,19 @@ export async function diagnosticQuestionsRoutes(
       preHandler: [requireAuth, requireRole("admin")],
     },
     createDiagnosticQuestionController,
+  );
+  server.patch(
+    "/diagnostic-questions/:id",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    updateDiagnosticQuestionController,
+  );
+  server.patch(
+    "/diagnostic-questions/:id/status",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    updateDiagnosticQuestionStatusController,
   );
 }

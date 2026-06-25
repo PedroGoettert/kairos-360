@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
 
 import { db } from "../../database/index.js";
 import {
@@ -10,6 +10,9 @@ import type {
   CreateDiagnosticQuestionResult,
   DiagnosticAreasWithQuestions,
   DiagnosticQuestion,
+  UpdateDiagnosticQuestionInput,
+  UpdateDiagnosticQuestionResult,
+  UpdateDiagnosticQuestionStatusInput,
 } from "./diagnostic-questions.types.js";
 
 export async function listDiagnosticAreasWithQuestions(): Promise<DiagnosticAreasWithQuestions> {
@@ -115,6 +118,95 @@ export async function createDiagnosticQuestion(
 
   return {
     status: "created",
+    question,
+  };
+}
+
+export async function updateDiagnosticQuestion(
+  questionId: string,
+  input: UpdateDiagnosticQuestionInput,
+): Promise<UpdateDiagnosticQuestionResult> {
+  const [existingQuestion] = await db
+    .select({
+      id: diagnosticQuestions.id,
+      areaId: diagnosticQuestions.areaId,
+    })
+    .from(diagnosticQuestions)
+    .where(eq(diagnosticQuestions.id, questionId))
+    .limit(1);
+
+  if (!existingQuestion) {
+    return { status: "question_not_found" };
+  }
+
+  if (input.question !== undefined) {
+    const [duplicateQuestion] = await db
+      .select({
+        id: diagnosticQuestions.id,
+      })
+      .from(diagnosticQuestions)
+      .where(
+        and(
+          eq(diagnosticQuestions.areaId, existingQuestion.areaId),
+          eq(diagnosticQuestions.question, input.question),
+          ne(diagnosticQuestions.id, questionId),
+        ),
+      )
+      .limit(1);
+
+    if (duplicateQuestion) {
+      return { status: "question_already_exists" };
+    }
+  }
+
+  const [question] = await db
+    .update(diagnosticQuestions)
+    .set(input)
+    .where(eq(diagnosticQuestions.id, questionId))
+    .returning({
+      id: diagnosticQuestions.id,
+      areaId: diagnosticQuestions.areaId,
+      question: diagnosticQuestions.question,
+      description: diagnosticQuestions.description,
+      displayOrder: diagnosticQuestions.displayOrder,
+      isActive: diagnosticQuestions.isActive,
+    });
+
+  if (!question) {
+    throw new Error("Diagnostic question update failed");
+  }
+
+  return {
+    status: "updated",
+    question,
+  };
+}
+
+export async function updateDiagnosticQuestionStatus(
+  questionId: string,
+  input: UpdateDiagnosticQuestionStatusInput,
+): Promise<UpdateDiagnosticQuestionResult> {
+  const [question] = await db
+    .update(diagnosticQuestions)
+    .set({
+      isActive: input.isActive,
+    })
+    .where(eq(diagnosticQuestions.id, questionId))
+    .returning({
+      id: diagnosticQuestions.id,
+      areaId: diagnosticQuestions.areaId,
+      question: diagnosticQuestions.question,
+      description: diagnosticQuestions.description,
+      displayOrder: diagnosticQuestions.displayOrder,
+      isActive: diagnosticQuestions.isActive,
+    });
+
+  if (!question) {
+    return { status: "question_not_found" };
+  }
+
+  return {
+    status: "updated",
     question,
   };
 }
