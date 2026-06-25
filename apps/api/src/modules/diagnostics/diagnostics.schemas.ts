@@ -14,6 +14,10 @@ export const diagnosticParamsSchema = z.object({
   id: z.uuid(),
 });
 
+export const diagnosticAnswerParamsSchema = z.object({
+  id: z.uuid(),
+});
+
 export const companyDiagnosticsParamsSchema = z.object({
   companyId: z.uuid(),
 });
@@ -29,6 +33,15 @@ export const createDiagnosticAnswerSchema = z.object({
   score: z.int().min(0).max(10),
   comment: optionalTextSchema,
 });
+
+export const updateDiagnosticAnswerSchema = z
+  .object({
+    score: z.int().min(0).max(10).optional(),
+    comment: optionalTextSchema,
+  })
+  .refine((input) => input.score !== undefined || input.comment !== undefined, {
+    message: "At least one field must be provided",
+  });
 
 export const diagnosticSchema = z.object({
   id: z.uuid(),
@@ -53,3 +66,23 @@ export const diagnosticAnswerSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const diagnosticAnswerWithQuestionSchema = diagnosticAnswerSchema.extend({
+  question: z.object({
+    id: z.uuid(),
+    areaId: z.uuid(),
+    question: z.string(),
+    description: z.string().nullable(),
+    displayOrder: z.number().int(),
+    area: z.object({
+      id: z.uuid(),
+      name: z.string(),
+      slug: z.string(),
+      displayOrder: z.number().int(),
+    }),
+  }),
+});
+
+export const diagnosticAnswersListSchema = z.array(
+  diagnosticAnswerWithQuestionSchema,
+);

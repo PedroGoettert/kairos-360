@@ -126,6 +126,8 @@ Comportamento atual:
 | GET | `/diagnostics/:id` | Cookie | Busca um diagnostico do usuario logado. |
 | GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos de uma empresa do usuario logado. |
 | POST | `/diagnostics/:id/answers` | Cookie | Registra uma resposta para uma pergunta do diagnostico. |
+| GET | `/diagnostics/:id/answers` | Cookie | Lista respostas registradas em um diagnostico. |
+| PATCH | `/diagnostic-answers/:id` | Cookie | Atualiza uma resposta de diagnostico em andamento. |
 
 ## Health
 
@@ -893,6 +895,109 @@ DIAGNOSTIC_ANSWER_ALREADY_EXISTS
 VALIDATION_ERROR
 ```
 
+### GET `/diagnostics/:id/answers`
+
+Lista as respostas registradas em um diagnostico do usuario logado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": [
+    {
+      "id": "880e8400-e29b-41d4-a716-446655440000",
+      "diagnosticId": "660e8400-e29b-41d4-a716-446655440000",
+      "questionId": "770e8400-e29b-41d4-a716-446655440000",
+      "score": 8,
+      "comment": "Processo comercial bem definido.",
+      "createdAt": "2026-06-24T10:00:00.000Z",
+      "updatedAt": "2026-06-24T10:00:00.000Z",
+      "question": {
+        "id": "770e8400-e29b-41d4-a716-446655440000",
+        "areaId": "990e8400-e29b-41d4-a716-446655440000",
+        "question": "A empresa possui posicionamento claro para seu publico-alvo?",
+        "description": "Avalia clareza de proposta de valor, nicho e mensagem.",
+        "displayOrder": 1,
+        "area": {
+          "id": "990e8400-e29b-41d4-a716-446655440000",
+          "name": "Marketing",
+          "slug": "marketing",
+          "displayOrder": 1
+        }
+      }
+    }
+  ]
+}
+```
+
+### PATCH `/diagnostic-answers/:id`
+
+Atualiza uma resposta de um diagnostico ainda em andamento.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID da resposta
+```
+
+Body:
+
+```json
+{
+  "score": 7,
+  "comment": "Comentario revisado pelo consultor."
+}
+```
+
+Regras:
+
+- envie pelo menos `score` ou `comment`;
+- `score` deve ser um numero inteiro entre 0 e 10;
+- a resposta precisa pertencer a um diagnostico de uma empresa do usuario logado;
+- diagnosticos em status `completed` nao podem ter respostas alteradas.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "880e8400-e29b-41d4-a716-446655440000",
+    "diagnosticId": "660e8400-e29b-41d4-a716-446655440000",
+    "questionId": "770e8400-e29b-41d4-a716-446655440000",
+    "score": 7,
+    "comment": "Comentario revisado pelo consultor.",
+    "createdAt": "2026-06-24T10:00:00.000Z",
+    "updatedAt": "2026-06-24T10:10:00.000Z"
+  }
+}
+```
+
+Erros esperados:
+
+```txt
+DIAGNOSTIC_ANSWER_NOT_FOUND
+DIAGNOSTIC_ALREADY_COMPLETED
+VALIDATION_ERROR
+```
+
 ## Fluxo de Teste no Insomnia
 
 Crie um environment com:
@@ -921,8 +1026,10 @@ Ordem recomendada das requisicoes:
 13. GET  {{ base_url }}/diagnostics/:id
 14. GET  {{ base_url }}/companies/:companyId/diagnostics
 15. POST {{ base_url }}/diagnostics/:id/answers
-16. POST {{ base_url }}/auth/sign-out
-17. GET  {{ base_url }}/users/me
+16. GET  {{ base_url }}/diagnostics/:id/answers
+17. PATCH {{ base_url }}/diagnostic-answers/:id
+18. POST {{ base_url }}/auth/sign-out
+19. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:

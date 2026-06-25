@@ -1,9 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 
 import { db } from "../../database/index.js";
 import {
   companies,
   diagnosticAnswers,
+  diagnosticAreas,
   diagnosticQuestions,
   diagnostics,
 } from "../../database/schema/index.js";
@@ -13,7 +14,10 @@ import type {
   CreateDiagnosticAnswerResult,
   CreateDiagnosticInput,
   Diagnostic,
+  DiagnosticAnswersList,
   DiagnosticsList,
+  UpdateDiagnosticAnswerInput,
+  UpdateDiagnosticAnswerResult,
 } from "./diagnostics.types.js";
 
 export async function createDiagnostic(
@@ -154,6 +158,103 @@ export async function createDiagnosticAnswer(
 
   return {
     status: "created",
+    answer,
+  };
+}
+
+export async function listDiagnosticAnswers(
+  currentUserId: string,
+  diagnosticId: string,
+): Promise<DiagnosticAnswersList | null> {
+  const diagnostic = await getDiagnosticById(currentUserId, diagnosticId);
+
+  if (!diagnostic) {
+    return null;
+  }
+
+  const rows = await db
+    .select({
+      id: diagnosticAnswers.id,
+      diagnosticId: diagnosticAnswers.diagnosticId,
+      questionId: diagnosticAnswers.questionId,
+      score: diagnosticAnswers.score,
+      comment: diagnosticAnswers.comment,
+      createdAt: diagnosticAnswers.createdAt,
+      updatedAt: diagnosticAnswers.updatedAt,
+      question: {
+        id: diagnosticQuestions.id,
+        areaId: diagnosticQuestions.areaId,
+        question: diagnosticQuestions.question,
+        description: diagnosticQuestions.description,
+        displayOrder: diagnosticQuestions.displayOrder,
+      },
+      area: {
+        id: diagnosticAreas.id,
+        name: diagnosticAreas.name,
+        slug: diagnosticAreas.slug,
+        displayOrder: diagnosticAreas.displayOrder,
+      },
+    })
+    .from(diagnosticAnswers)
+    .innerJoin(
+      diagnosticQuestions,
+      eq(diagnosticAnswers.questionId, diagnosticQuestions.id),
+    )
+    .innerJoin(diagnosticAreas, eq(diagnosticQuestions.areaId, diagnosticAreas.id))
+    .where(eq(diagnosticAnswers.diagnosticId, diagnosticId))
+    .orderBy(asc(diagnosticAreas.displayOrder), asc(diagnosticQuestions.displayOrder));
+
+  return rows.map(({ area, question, ...answer }) => ({
+    ...answer,
+    question: {
+      ...question,
+      area,
+    },
+  }));
+}
+
+export async function updateDiagnosticAnswer(
+  currentUserId: string,
+  answerId: string,
+  input: UpdateDiagnosticAnswerInput,
+): Promise<UpdateDiagnosticAnswerResult> {
+  const [answerWithDiagnostic] = await db
+    .select({
+      id: diagnosticAnswers.id,
+      diagnosticId: diagnosticAnswers.diagnosticId,
+      status: diagnostics.status,
+    })
+    .from(diagnosticAnswers)
+    .innerJoin(diagnostics, eq(diagnosticAnswers.diagnosticId, diagnostics.id))
+    .innerJoin(companies, eq(diagnostics.companyId, companies.id))
+    .where(
+      and(
+        eq(diagnosticAnswers.id, answerId),
+        eq(companies.ownerUserId, currentUserId),
+      ),
+    )
+    .limit(1);
+
+  if (!answerWithDiagnostic) {
+    return { status: "answer_not_found" };
+  }
+
+  if (answerWithDiagnostic.status === "completed") {
+    return { status: "diagnostic_completed" };
+  }
+
+  const [answer] = await db
+    .update(diagnosticAnswers)
+    .set(input)
+    .where(eq(diagnosticAnswers.id, answerId))
+    .returning();
+
+  if (!answer) {
+    throw new Error("Diagnostic answer update failed");
+  }
+
+  return {
+    status: "updated",
     answer,
   };
 }

@@ -5,13 +5,17 @@ import {
   companyDiagnosticsParamsSchema,
   createDiagnosticAnswerSchema,
   createDiagnosticSchema,
+  diagnosticAnswerParamsSchema,
   diagnosticParamsSchema,
+  updateDiagnosticAnswerSchema,
 } from "./diagnostics.schemas.js";
 import {
   createDiagnosticAnswer,
   createDiagnostic,
   getDiagnosticById,
+  listDiagnosticAnswers,
   listDiagnosticsByCompany,
+  updateDiagnosticAnswer,
 } from "./diagnostics.service.js";
 
 export async function createDiagnosticController(
@@ -127,6 +131,62 @@ export async function createDiagnosticAnswerController(
       error: {
         message: "Diagnostic answer already exists",
         code: "DIAGNOSTIC_ANSWER_ALREADY_EXISTS",
+      },
+    });
+  }
+}
+
+export async function listDiagnosticAnswersController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = diagnosticParamsSchema.parse(request.params);
+  const answers = await listDiagnosticAnswers(currentUser.id, id);
+
+  if (!answers) {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic not found",
+        code: "DIAGNOSTIC_NOT_FOUND",
+      },
+    });
+  }
+
+  return reply.send({
+    data: answers,
+  });
+}
+
+export async function updateDiagnosticAnswerController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = diagnosticAnswerParamsSchema.parse(request.params);
+  const input = updateDiagnosticAnswerSchema.parse(request.body);
+  const result = await updateDiagnosticAnswer(currentUser.id, id, input);
+
+  if (result.status === "updated") {
+    return reply.send({
+      data: result.answer,
+    });
+  }
+
+  if (result.status === "answer_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic answer not found",
+        code: "DIAGNOSTIC_ANSWER_NOT_FOUND",
+      },
+    });
+  }
+
+  if (result.status === "diagnostic_completed") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic is already completed",
+        code: "DIAGNOSTIC_ALREADY_COMPLETED",
       },
     });
   }

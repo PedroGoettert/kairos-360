@@ -5,7 +5,9 @@ import {
   createDiagnosticAnswerController,
   createDiagnosticController,
   getDiagnosticByIdController,
+  listDiagnosticAnswersController,
   listDiagnosticsByCompanyController,
+  updateDiagnosticAnswerController,
 } from "./diagnostics.controller.js";
 
 export async function diagnosticsRoutes(
@@ -31,6 +33,20 @@ export async function diagnosticsRoutes(
       preHandler: requireAuth,
     },
     createDiagnosticAnswerController,
+  );
+  server.get(
+    "/diagnostics/:id/answers",
+    {
+      preHandler: requireAuth,
+    },
+    listDiagnosticAnswersController,
+  );
+  server.patch(
+    "/diagnostic-answers/:id",
+    {
+      preHandler: requireAuth,
+    },
+    updateDiagnosticAnswerController,
   );
   server.get(
     "/companies/:companyId/diagnostics",
