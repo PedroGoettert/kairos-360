@@ -120,6 +120,7 @@ Comportamento atual:
 | GET | `/companies/:id` | Cookie | Busca uma empresa do usuario logado. |
 | PATCH | `/companies/:id` | Cookie, role `admin` | Atualiza uma empresa do usuario logado. |
 | DELETE | `/companies/:id` | Cookie, role `admin` | Remove uma empresa do usuario logado. |
+| GET | `/diagnostic-areas` | Cookie | Lista areas do diagnostico com perguntas ativas. |
 | POST | `/diagnostics` | Cookie | Cria um diagnostico para uma empresa do usuario logado. |
 | GET | `/diagnostics/:id` | Cookie | Busca um diagnostico do usuario logado. |
 | GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos de uma empresa do usuario logado. |
@@ -548,6 +549,51 @@ Resposta quando nao encontrada:
 }
 ```
 
+## Diagnostic Areas
+
+Areas e perguntas compoem o formulario do Diagnostico 360.
+
+### GET `/diagnostic-areas`
+
+Lista areas ativas do diagnostico com suas perguntas ativas.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": [
+    {
+      "id": "990e8400-e29b-41d4-a716-446655440000",
+      "name": "Marketing",
+      "slug": "marketing",
+      "description": null,
+      "displayOrder": 1,
+      "questions": [
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440000",
+          "areaId": "990e8400-e29b-41d4-a716-446655440000",
+          "question": "A empresa possui posicionamento claro para seu publico-alvo?",
+          "description": "Avalia clareza de proposta de valor, nicho e mensagem.",
+          "displayOrder": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
+Use o campo `questions[].id` como `questionId` ao registrar respostas em:
+
+```txt
+POST /diagnostics/:id/answers
+```
+
 ## Diagnostics
 
 Diagnosticos representam a aplicacao do Diagnostico 360 em uma empresa.
@@ -798,12 +844,13 @@ Ordem recomendada das requisicoes:
 7. GET  {{ base_url }}/companies/:id
 8. PATCH {{ base_url }}/companies/:id
 9. DELETE {{ base_url }}/companies/:id
-10. POST {{ base_url }}/diagnostics
-11. GET  {{ base_url }}/diagnostics/:id
-12. GET  {{ base_url }}/companies/:companyId/diagnostics
-13. POST {{ base_url }}/diagnostics/:id/answers
-14. POST {{ base_url }}/auth/sign-out
-15. GET  {{ base_url }}/users/me
+10. GET  {{ base_url }}/diagnostic-areas
+11. POST {{ base_url }}/diagnostics
+12. GET  {{ base_url }}/diagnostics/:id
+13. GET  {{ base_url }}/companies/:companyId/diagnostics
+14. POST {{ base_url }}/diagnostics/:id/answers
+15. POST {{ base_url }}/auth/sign-out
+16. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:

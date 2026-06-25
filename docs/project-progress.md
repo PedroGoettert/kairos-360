@@ -425,12 +425,25 @@ apps/api/src/modules/diagnostics/
 - Endpoints iniciais implementados:
 
 ```txt
+GET /diagnostic-areas
 POST /diagnostics
 GET /diagnostics/:id
 GET /companies/:companyId/diagnostics
 POST /diagnostics/:id/answers
 ```
 
+- Modulo `diagnostic-questions` criado para leitura da configuracao do formulario:
+
+```txt
+apps/api/src/modules/diagnostic-questions/
+  diagnostic-questions.routes.ts
+  diagnostic-questions.controller.ts
+  diagnostic-questions.service.ts
+  diagnostic-questions.schemas.ts
+  diagnostic-questions.types.ts
+```
+
+- `GET /diagnostic-areas` retorna areas ativas com perguntas ativas, permitindo descobrir `questionId` para enviar respostas.
 - Todo diagnostico pertence a uma empresa.
 - A API valida se a empresa pertence ao usuario logado antes de criar/listar/buscar diagnosticos.
 - Diagnosticos nascem com:
@@ -497,6 +510,7 @@ Paramos na implementacao de finalizacao e scoring do modulo `diagnostics`.
 Ja existe:
 
 ```txt
+GET /diagnostic-areas
 POST /diagnostics
 GET /diagnostics/:id
 GET /companies/:companyId/diagnostics
