@@ -6,6 +6,7 @@ import type {
 import { fromNodeHeaders } from "better-auth/node";
 
 import { auth } from "../auth/index.js";
+import { requireAuth } from "../auth/guards.js";
 
 async function dispatchAuthRequest(
   request: FastifyRequest,
@@ -46,7 +47,13 @@ export const authPlugin: FastifyPluginAsync = async (server) => {
     },
   });
 
-  server.post("/auth/sign-out", async (request, reply) => {
-    return dispatchAuthRequest(request, reply, "/api/auth/sign-out");
-  });
+  server.post(
+    "/auth/sign-out",
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
+      return dispatchAuthRequest(request, reply, "/api/auth/sign-out");
+    },
+  );
 };
