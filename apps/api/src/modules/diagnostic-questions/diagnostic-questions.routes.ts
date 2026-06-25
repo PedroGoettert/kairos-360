@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { requireAuth, requireRole } from "../../auth/guards.js";
 import {
   createDiagnosticQuestionController,
+  getDiagnosticAreaByIdController,
   listDiagnosticAreasWithQuestionsController,
   updateDiagnosticQuestionController,
   updateDiagnosticQuestionStatusController,
@@ -17,6 +18,13 @@ export async function diagnosticQuestionsRoutes(
       preHandler: requireAuth,
     },
     listDiagnosticAreasWithQuestionsController,
+  );
+  server.get(
+    "/diagnostic-areas/:areaId",
+    {
+      preHandler: requireAuth,
+    },
+    getDiagnosticAreaByIdController,
   );
   server.post(
     "/diagnostic-areas/:areaId/questions",

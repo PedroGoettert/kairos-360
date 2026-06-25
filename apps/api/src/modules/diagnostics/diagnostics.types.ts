@@ -7,7 +7,9 @@ import type {
   diagnosticAnswerParamsSchema,
   diagnosticAnswerSchema,
   diagnosticAnswersListSchema,
+  diagnosticHealthClassificationSchema,
   diagnosticParamsSchema,
+  diagnosticScoresSummarySchema,
   diagnosticSchema,
   diagnosticStatusSchema,
   diagnosticsListSchema,
@@ -33,6 +35,12 @@ export type Diagnostic = z.infer<typeof diagnosticSchema>;
 export type DiagnosticsList = z.infer<typeof diagnosticsListSchema>;
 export type DiagnosticAnswer = z.infer<typeof diagnosticAnswerSchema>;
 export type DiagnosticAnswersList = z.infer<typeof diagnosticAnswersListSchema>;
+export type DiagnosticHealthClassification = z.infer<
+  typeof diagnosticHealthClassificationSchema
+>;
+export type DiagnosticScoresSummary = z.infer<
+  typeof diagnosticScoresSummarySchema
+>;
 
 export type CreateDiagnosticAnswerResult =
   | {
@@ -63,4 +71,25 @@ export type DeleteDiagnosticAnswerResult =
     }
   | {
       status: "answer_not_found" | "diagnostic_completed";
+    };
+
+export type CompleteDiagnosticResult =
+  | {
+      status: "completed";
+      summary: DiagnosticScoresSummary;
+    }
+  | {
+      status:
+        | "diagnostic_not_found"
+        | "diagnostic_completed"
+        | "insufficient_answers";
+    };
+
+export type GetDiagnosticScoresResult =
+  | {
+      status: "found";
+      summary: DiagnosticScoresSummary;
+    }
+  | {
+      status: "diagnostic_not_found" | "diagnostic_not_completed";
     };

@@ -10,10 +10,12 @@ import {
   updateDiagnosticAnswerSchema,
 } from "./diagnostics.schemas.js";
 import {
+  completeDiagnostic,
   createDiagnosticAnswer,
   createDiagnostic,
   deleteDiagnosticAnswer,
   getDiagnosticById,
+  getDiagnosticScores,
   listDiagnosticAnswers,
   listDiagnosticsByCompany,
   updateDiagnosticAnswer,
@@ -221,6 +223,81 @@ export async function deleteDiagnosticAnswerController(
       error: {
         message: "Diagnostic is already completed",
         code: "DIAGNOSTIC_ALREADY_COMPLETED",
+      },
+    });
+  }
+}
+
+export async function completeDiagnosticController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = diagnosticParamsSchema.parse(request.params);
+  const result = await completeDiagnostic(currentUser.id, id);
+
+  if (result.status === "completed") {
+    return reply.send({
+      data: result.summary,
+    });
+  }
+
+  if (result.status === "diagnostic_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic not found",
+        code: "DIAGNOSTIC_NOT_FOUND",
+      },
+    });
+  }
+
+  if (result.status === "diagnostic_completed") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic is already completed",
+        code: "DIAGNOSTIC_ALREADY_COMPLETED",
+      },
+    });
+  }
+
+  if (result.status === "insufficient_answers") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic has no answers to score",
+        code: "DIAGNOSTIC_INSUFFICIENT_ANSWERS",
+      },
+    });
+  }
+}
+
+export async function getDiagnosticScoresController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const currentUser = getRequiredCurrentUser(request);
+  const { id } = diagnosticParamsSchema.parse(request.params);
+  const result = await getDiagnosticScores(currentUser.id, id);
+
+  if (result.status === "found") {
+    return reply.send({
+      data: result.summary,
+    });
+  }
+
+  if (result.status === "diagnostic_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic not found",
+        code: "DIAGNOSTIC_NOT_FOUND",
+      },
+    });
+  }
+
+  if (result.status === "diagnostic_not_completed") {
+    return reply.status(409).send({
+      error: {
+        message: "Diagnostic scores are not available yet",
+        code: "DIAGNOSTIC_NOT_COMPLETED",
       },
     });
   }

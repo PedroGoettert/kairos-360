@@ -9,6 +9,7 @@ import {
 } from "./diagnostic-questions.schemas.js";
 import {
   createDiagnosticQuestion,
+  getDiagnosticAreaById,
   listDiagnosticAreasWithQuestions,
   updateDiagnosticQuestion,
   updateDiagnosticQuestionStatus,
@@ -23,6 +24,29 @@ export async function listDiagnosticAreasWithQuestionsController(
   return reply.send({
     data: areas,
   });
+}
+
+export async function getDiagnosticAreaByIdController(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const { areaId } = diagnosticAreaParamsSchema.parse(request.params);
+  const result = await getDiagnosticAreaById(areaId);
+
+  if (result.status === "found") {
+    return reply.send({
+      data: result.area,
+    });
+  }
+
+  if (result.status === "area_not_found") {
+    return reply.status(404).send({
+      error: {
+        message: "Diagnostic area not found",
+        code: "DIAGNOSTIC_AREA_NOT_FOUND",
+      },
+    });
+  }
 }
 
 export async function createDiagnosticQuestionController(

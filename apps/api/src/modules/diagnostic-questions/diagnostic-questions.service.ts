@@ -8,6 +8,7 @@ import {
 import type {
   CreateDiagnosticQuestionInput,
   CreateDiagnosticQuestionResult,
+  GetDiagnosticAreaByIdResult,
   DiagnosticAreasWithQuestions,
   DiagnosticQuestion,
   UpdateDiagnosticQuestionInput,
@@ -57,6 +58,51 @@ export async function listDiagnosticAreasWithQuestions(): Promise<DiagnosticArea
     ...area,
     questions: questionsByAreaId.get(area.id) ?? [],
   }));
+}
+
+export async function getDiagnosticAreaById(
+  areaId: string,
+): Promise<GetDiagnosticAreaByIdResult> {
+  const [area] = await db
+    .select({
+      id: diagnosticAreas.id,
+      name: diagnosticAreas.name,
+      slug: diagnosticAreas.slug,
+      description: diagnosticAreas.description,
+      displayOrder: diagnosticAreas.displayOrder,
+    })
+    .from(diagnosticAreas)
+    .where(and(eq(diagnosticAreas.id, areaId), eq(diagnosticAreas.isActive, true)))
+    .limit(1);
+
+  if (!area) {
+    return { status: "area_not_found" };
+  }
+
+  const questions = await db
+    .select({
+      id: diagnosticQuestions.id,
+      areaId: diagnosticQuestions.areaId,
+      question: diagnosticQuestions.question,
+      description: diagnosticQuestions.description,
+      displayOrder: diagnosticQuestions.displayOrder,
+    })
+    .from(diagnosticQuestions)
+    .where(
+      and(
+        eq(diagnosticQuestions.areaId, areaId),
+        eq(diagnosticQuestions.isActive, true),
+      ),
+    )
+    .orderBy(asc(diagnosticQuestions.displayOrder));
+
+  return {
+    status: "found",
+    area: {
+      ...area,
+      questions,
+    },
+  };
 }
 
 export async function createDiagnosticQuestion(

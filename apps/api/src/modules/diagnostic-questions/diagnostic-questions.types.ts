@@ -49,3 +49,12 @@ export type UpdateDiagnosticQuestionResult =
   | {
       status: "question_not_found" | "question_already_exists";
     };
+
+export type GetDiagnosticAreaByIdResult =
+  | {
+      status: "found";
+      area: DiagnosticAreaWithQuestions;
+    }
+  | {
+      status: "area_not_found";
+    };

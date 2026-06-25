@@ -86,3 +86,25 @@ export const diagnosticAnswerWithQuestionSchema = diagnosticAnswerSchema.extend(
 export const diagnosticAnswersListSchema = z.array(
   diagnosticAnswerWithQuestionSchema,
 );
+
+export const diagnosticHealthClassificationSchema = z.enum([
+  "critical",
+  "attention",
+  "healthy",
+]);
+
+export const diagnosticAreaScoreSchema = z.object({
+  areaId: z.uuid(),
+  areaName: z.string(),
+  areaSlug: z.string(),
+  score: z.number(),
+});
+
+export const diagnosticScoresSummarySchema = z.object({
+  diagnosticId: z.uuid(),
+  generalScore: z.number(),
+  healthClassification: diagnosticHealthClassificationSchema,
+  mainBottleneck: diagnosticAreaScoreSchema,
+  secondPriority: diagnosticAreaScoreSchema.nullable(),
+  scores: z.array(diagnosticAreaScoreSchema),
+});

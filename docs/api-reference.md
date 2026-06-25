@@ -121,6 +121,7 @@ Comportamento atual:
 | PATCH | `/companies/:id` | Cookie, role `admin` | Atualiza uma empresa do usuario logado. |
 | DELETE | `/companies/:id` | Cookie, role `admin` | Remove uma empresa do usuario logado. |
 | GET | `/diagnostic-areas` | Cookie | Lista areas do diagnostico com perguntas ativas. |
+| GET | `/diagnostic-areas/:areaId` | Cookie | Busca uma area ativa do diagnostico com suas perguntas ativas. |
 | POST | `/diagnostic-areas/:areaId/questions` | Cookie, role `admin` | Cria uma pergunta em uma area do diagnostico. |
 | PATCH | `/diagnostic-questions/:id` | Cookie, role `admin` | Atualiza texto, descricao ou ordem de uma pergunta. |
 | PATCH | `/diagnostic-questions/:id/status` | Cookie, role `admin` | Ativa ou desativa uma pergunta. |
@@ -131,6 +132,8 @@ Comportamento atual:
 | GET | `/diagnostics/:id/answers` | Cookie | Lista respostas registradas em um diagnostico. |
 | PATCH | `/diagnostic-answers/:id` | Cookie | Atualiza uma resposta de diagnostico em andamento. |
 | DELETE | `/diagnostic-answers/:id` | Cookie | Remove uma resposta de diagnostico em andamento. |
+| POST | `/diagnostics/:id/complete` | Cookie | Finaliza o diagnostico, calcula scores e persiste o resultado. |
+| GET | `/diagnostics/:id/scores` | Cookie | Retorna os scores persistidos de um diagnostico finalizado. |
 
 ## Health
 
@@ -600,6 +603,51 @@ Use o campo `questions[].id` como `questionId` ao registrar respostas em:
 POST /diagnostics/:id/answers
 ```
 
+### GET `/diagnostic-areas/:areaId`
+
+Busca uma area ativa especifica do diagnostico com suas perguntas ativas.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+areaId: UUID
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "990e8400-e29b-41d4-a716-446655440000",
+    "name": "Marketing",
+    "slug": "marketing",
+    "description": null,
+    "displayOrder": 1,
+    "questions": [
+      {
+        "id": "770e8400-e29b-41d4-a716-446655440000",
+        "areaId": "990e8400-e29b-41d4-a716-446655440000",
+        "question": "A empresa possui posicionamento claro para seu publico-alvo?",
+        "description": "Avalia clareza de proposta de valor, nicho e mensagem.",
+        "displayOrder": 1
+      }
+    ]
+  }
+}
+```
+
+Erro esperado:
+
+```txt
+DIAGNOSTIC_AREA_NOT_FOUND
+```
+
 ### POST `/diagnostic-areas/:areaId/questions`
 
 Cria uma pergunta em uma area ativa do diagnostico.
@@ -1059,6 +1107,145 @@ DIAGNOSTIC_ALREADY_COMPLETED
 VALIDATION_ERROR
 ```
 
+### POST `/diagnostics/:id/complete`
+
+Finaliza um diagnostico em andamento, calcula os scores e persiste o resultado na tabela `diagnostic_scores`.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID do diagnostico
+```
+
+Body:
+
+```json
+{}
+```
+
+Regras:
+
+- o diagnostico precisa pertencer a uma empresa do usuario logado;
+- o diagnostico precisa estar em status `draft`;
+- precisa existir pelo menos uma resposta registrada;
+- ao finalizar, o diagnostico passa para `status = completed`;
+- respostas de diagnosticos finalizados nao podem mais ser alteradas ou removidas.
+
+Calculos feitos pela API:
+
+- score por area: media das respostas daquela area;
+- score geral: media dos scores por area;
+- gargalo principal: area com menor score;
+- segunda prioridade: segunda area com menor score;
+- classificacao de saude:
+
+```txt
+0 a 4.9   = critical
+5 a 7.4   = attention
+7.5 a 10  = healthy
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "diagnosticId": "660e8400-e29b-41d4-a716-446655440000",
+    "generalScore": 7.22,
+    "healthClassification": "attention",
+    "mainBottleneck": {
+      "areaId": "990e8400-e29b-41d4-a716-446655440000",
+      "areaName": "Financeiro",
+      "areaSlug": "financeiro",
+      "score": 5.67
+    },
+    "secondPriority": {
+      "areaId": "991e8400-e29b-41d4-a716-446655440000",
+      "areaName": "Comercial",
+      "areaSlug": "comercial",
+      "score": 6.33
+    },
+    "scores": [
+      {
+        "areaId": "991e8400-e29b-41d4-a716-446655440000",
+        "areaName": "Comercial",
+        "areaSlug": "comercial",
+        "score": 6.33
+      }
+    ]
+  }
+}
+```
+
+Erros esperados:
+
+```txt
+DIAGNOSTIC_NOT_FOUND
+DIAGNOSTIC_ALREADY_COMPLETED
+DIAGNOSTIC_INSUFFICIENT_ANSWERS
+```
+
+### GET `/diagnostics/:id/scores`
+
+Retorna os scores persistidos de um diagnostico finalizado.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+```
+
+Path params:
+
+```txt
+id: UUID do diagnostico
+```
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "diagnosticId": "660e8400-e29b-41d4-a716-446655440000",
+    "generalScore": 7.22,
+    "healthClassification": "attention",
+    "mainBottleneck": {
+      "areaId": "990e8400-e29b-41d4-a716-446655440000",
+      "areaName": "Financeiro",
+      "areaSlug": "financeiro",
+      "score": 5.67
+    },
+    "secondPriority": {
+      "areaId": "991e8400-e29b-41d4-a716-446655440000",
+      "areaName": "Comercial",
+      "areaSlug": "comercial",
+      "score": 6.33
+    },
+    "scores": [
+      {
+        "areaId": "991e8400-e29b-41d4-a716-446655440000",
+        "areaName": "Comercial",
+        "areaSlug": "comercial",
+        "score": 6.33
+      }
+    ]
+  }
+}
+```
+
+Erros esperados:
+
+```txt
+DIAGNOSTIC_NOT_FOUND
+DIAGNOSTIC_NOT_COMPLETED
+```
+
 ### DELETE `/diagnostic-answers/:id`
 
 Remove uma resposta de um diagnostico ainda em andamento.
@@ -1126,18 +1313,21 @@ Ordem recomendada das requisicoes:
 8. PATCH {{ base_url }}/companies/:id
 9. DELETE {{ base_url }}/companies/:id
 10. GET  {{ base_url }}/diagnostic-areas
-11. POST {{ base_url }}/diagnostic-areas/:areaId/questions
-12. PATCH {{ base_url }}/diagnostic-questions/:id
-13. PATCH {{ base_url }}/diagnostic-questions/:id/status
-14. POST {{ base_url }}/diagnostics
-15. GET  {{ base_url }}/diagnostics/:id
-16. GET  {{ base_url }}/companies/:companyId/diagnostics
-17. POST {{ base_url }}/diagnostics/:id/answers
-18. GET  {{ base_url }}/diagnostics/:id/answers
-19. PATCH {{ base_url }}/diagnostic-answers/:id
-20. DELETE {{ base_url }}/diagnostic-answers/:id
-21. POST {{ base_url }}/auth/sign-out
-22. GET  {{ base_url }}/users/me
+11. GET  {{ base_url }}/diagnostic-areas/:areaId
+12. POST {{ base_url }}/diagnostic-areas/:areaId/questions
+13. PATCH {{ base_url }}/diagnostic-questions/:id
+14. PATCH {{ base_url }}/diagnostic-questions/:id/status
+15. POST {{ base_url }}/diagnostics
+16. GET  {{ base_url }}/diagnostics/:id
+17. GET  {{ base_url }}/companies/:companyId/diagnostics
+18. POST {{ base_url }}/diagnostics/:id/answers
+19. GET  {{ base_url }}/diagnostics/:id/answers
+20. PATCH {{ base_url }}/diagnostic-answers/:id
+21. DELETE {{ base_url }}/diagnostic-answers/:id
+22. POST {{ base_url }}/diagnostics/:id/complete
+23. GET  {{ base_url }}/diagnostics/:id/scores
+24. POST {{ base_url }}/auth/sign-out
+25. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:
@@ -1146,6 +1336,7 @@ Checklist de cookies:
 - Faca login antes de chamar rotas autenticadas.
 - Chame `/users/me` depois do login para confirmar que a sessao esta ativa.
 - Nao adicione headers `ownerUserId`, `userId` ou `role`.
+- Para testar `DELETE /diagnostic-answers/:id`, use um diagnostico ainda em `draft`; depois de `POST /diagnostics/:id/complete`, respostas ficam bloqueadas.
 
 Headers recomendados para requisicoes JSON:
 
@@ -1204,8 +1395,6 @@ A rota ou o metodo HTTP nao existem na API.
 Estas rotas fazem parte da especificacao do produto, mas ainda nao foram implementadas:
 
 ```txt
-POST   /diagnostics/:id/complete
-GET    /diagnostics/:id/scores
 GET    /companies/:companyId/dashboard
 POST   /action-plans
 GET    /companies/:companyId/action-plans

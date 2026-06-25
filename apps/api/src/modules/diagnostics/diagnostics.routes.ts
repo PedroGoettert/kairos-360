@@ -2,10 +2,12 @@ import type { FastifyInstance } from "fastify";
 
 import { requireAuth } from "../../auth/guards.js";
 import {
+  completeDiagnosticController,
   createDiagnosticAnswerController,
   createDiagnosticController,
   deleteDiagnosticAnswerController,
   getDiagnosticByIdController,
+  getDiagnosticScoresController,
   listDiagnosticAnswersController,
   listDiagnosticsByCompanyController,
   updateDiagnosticAnswerController,
@@ -41,6 +43,20 @@ export async function diagnosticsRoutes(
       preHandler: requireAuth,
     },
     listDiagnosticAnswersController,
+  );
+  server.post(
+    "/diagnostics/:id/complete",
+    {
+      preHandler: requireAuth,
+    },
+    completeDiagnosticController,
+  );
+  server.get(
+    "/diagnostics/:id/scores",
+    {
+      preHandler: requireAuth,
+    },
+    getDiagnosticScoresController,
   );
   server.patch(
     "/diagnostic-answers/:id",

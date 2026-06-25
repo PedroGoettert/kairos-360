@@ -15,7 +15,7 @@ packages/
 docs/
 ```
 
-A API possui fundacao funcional com Fastify, TypeScript, Drizzle, PostgreSQL, Better Auth, roles de usuario, preHandlers de autenticacao, CRUD de empresas e fundacao do modulo de diagnosticos.
+A API possui fundacao funcional com Fastify, TypeScript, Drizzle, PostgreSQL, Better Auth, roles de usuario, preHandlers de autenticacao, CRUD de empresas e modulo de diagnosticos com respostas, finalizacao e scoring.
 
 ## O que ja foi feito
 
@@ -426,6 +426,7 @@ apps/api/src/modules/diagnostics/
 
 ```txt
 GET /diagnostic-areas
+GET /diagnostic-areas/:areaId
 POST /diagnostic-areas/:areaId/questions
 PATCH /diagnostic-questions/:id
 PATCH /diagnostic-questions/:id/status
@@ -467,6 +468,28 @@ completed_at = null
 - A API valida se a pergunta existe e esta ativa.
 - A API bloqueia respostas duplicadas para a mesma pergunta no mesmo diagnostico.
 - A API bloqueia novas respostas em diagnosticos ja finalizados.
+- Diagnosticos podem ser finalizados por:
+
+```txt
+POST /diagnostics/:id/complete
+```
+
+- A finalizacao calcula e persiste scores por area na tabela `diagnostic_scores`.
+- O score geral e calculado pela media dos scores das areas respondidas.
+- A API identifica gargalo principal e segunda prioridade pelas areas com menor score.
+- A classificacao de saude segue as regras do produto:
+
+```txt
+0 a 4.9   = critical
+5 a 7.4   = attention
+7.5 a 10  = healthy
+```
+
+- Scores de diagnosticos finalizados podem ser consultados por:
+
+```txt
+GET /diagnostics/:id/scores
+```
 
 Commits relacionados:
 
@@ -514,12 +537,13 @@ GET /companies/:id
 
 ## Onde paramos
 
-Paramos na implementacao de finalizacao e scoring do modulo `diagnostics`.
+Paramos depois da implementacao de finalizacao e scoring do modulo `diagnostics`.
 
 Ja existe:
 
 ```txt
 GET /diagnostic-areas
+GET /diagnostic-areas/:areaId
 POST /diagnostic-areas/:areaId/questions
 PATCH /diagnostic-questions/:id
 PATCH /diagnostic-questions/:id/status
@@ -530,37 +554,21 @@ POST /diagnostics/:id/answers
 GET /diagnostics/:id/answers
 PATCH /diagnostic-answers/:id
 DELETE /diagnostic-answers/:id
-```
-
-Ainda falta implementar:
-
-```txt
 POST /diagnostics/:id/complete
 GET /diagnostics/:id/scores
+```
+
+Ainda falta implementar a proxima camada de leitura consolidada:
+
+```txt
+GET /companies/:companyId/dashboard
 ```
 
 ## Proximos passos recomendados
 
-### 1. Finalizacao e scoring
+### 1. Dashboard
 
-Criar endpoints:
-
-```txt
-POST /diagnostics/:id/complete
-GET /diagnostics/:id/scores
-```
-
-Objetivo:
-
-- calcular score por area;
-- calcular score geral;
-- identificar gargalo principal;
-- identificar segunda prioridade;
-- marcar diagnostico como `completed`.
-
-### 2. Dashboard
-
-Depois de scoring:
+Criar endpoint:
 
 ```txt
 GET /companies/:companyId/dashboard
@@ -574,7 +582,7 @@ Deve exibir:
 - evolucao mensal;
 - status dos planos de acao.
 
-### 3. Planos de acao
+### 2. Planos de acao
 
 Criar modulo de action plans:
 
@@ -585,7 +593,7 @@ PATCH /action-plans/:id
 PATCH /action-plans/:id/status
 ```
 
-### 4. IA, relatorios e CRM
+### 3. IA, relatorios e CRM
 
 Somente depois do core:
 
@@ -597,11 +605,10 @@ Somente depois do core:
 ## Ordem recomendada atual
 
 ```txt
-1. Finalizacao do diagnostico e scoring
-2. Dashboard
-3. Action plans
-4. IA
-5. Relatorios
-6. CRM
-7. Integracoes
+1. Dashboard
+2. Action plans
+3. IA
+4. Relatorios
+5. CRM
+6. Integracoes
 ```
