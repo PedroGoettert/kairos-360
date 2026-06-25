@@ -426,6 +426,7 @@ apps/api/src/modules/diagnostics/
 
 ```txt
 GET /diagnostic-areas
+POST /diagnostic-areas/:areaId/questions
 POST /diagnostics
 GET /diagnostics/:id
 GET /companies/:companyId/diagnostics
@@ -444,6 +445,7 @@ apps/api/src/modules/diagnostic-questions/
 ```
 
 - `GET /diagnostic-areas` retorna areas ativas com perguntas ativas, permitindo descobrir `questionId` para enviar respostas.
+- `POST /diagnostic-areas/:areaId/questions` permite que usuarios `admin` criem perguntas em areas ativas.
 - Todo diagnostico pertence a uma empresa.
 - A API valida se a empresa pertence ao usuario logado antes de criar/listar/buscar diagnosticos.
 - Diagnosticos nascem com:
@@ -511,6 +513,7 @@ Ja existe:
 
 ```txt
 GET /diagnostic-areas
+POST /diagnostic-areas/:areaId/questions
 POST /diagnostics
 GET /diagnostics/:id
 GET /companies/:companyId/diagnostics

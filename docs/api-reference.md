@@ -121,6 +121,7 @@ Comportamento atual:
 | PATCH | `/companies/:id` | Cookie, role `admin` | Atualiza uma empresa do usuario logado. |
 | DELETE | `/companies/:id` | Cookie, role `admin` | Remove uma empresa do usuario logado. |
 | GET | `/diagnostic-areas` | Cookie | Lista areas do diagnostico com perguntas ativas. |
+| POST | `/diagnostic-areas/:areaId/questions` | Cookie, role `admin` | Cria uma pergunta em uma area do diagnostico. |
 | POST | `/diagnostics` | Cookie | Cria um diagnostico para uma empresa do usuario logado. |
 | GET | `/diagnostics/:id` | Cookie | Busca um diagnostico do usuario logado. |
 | GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos de uma empresa do usuario logado. |
@@ -594,6 +595,76 @@ Use o campo `questions[].id` como `questionId` ao registrar respostas em:
 POST /diagnostics/:id/answers
 ```
 
+### POST `/diagnostic-areas/:areaId/questions`
+
+Cria uma pergunta em uma area ativa do diagnostico.
+
+Autenticacao:
+
+```txt
+Cookie de sessao obrigatorio
+role = admin obrigatoria
+```
+
+Path params:
+
+```txt
+areaId: UUID
+```
+
+Body:
+
+```json
+{
+  "question": "A empresa possui metas comerciais mensais definidas?",
+  "description": "Avalia clareza das metas comerciais por periodo.",
+  "displayOrder": 4
+}
+```
+
+Campos obrigatorios:
+
+```txt
+question
+```
+
+Campos opcionais:
+
+```txt
+description
+displayOrder
+```
+
+Observacoes:
+
+- se `displayOrder` nao for enviado, a API usa a proxima ordem disponivel na area;
+- nao e permitido criar duas perguntas com o mesmo texto na mesma area;
+- a area precisa existir e estar ativa.
+
+Resposta esperada:
+
+```json
+{
+  "data": {
+    "id": "770e8400-e29b-41d4-a716-446655440000",
+    "areaId": "990e8400-e29b-41d4-a716-446655440000",
+    "question": "A empresa possui metas comerciais mensais definidas?",
+    "description": "Avalia clareza das metas comerciais por periodo.",
+    "displayOrder": 4,
+    "isActive": true
+  }
+}
+```
+
+Erros esperados:
+
+```txt
+DIAGNOSTIC_AREA_NOT_FOUND
+DIAGNOSTIC_QUESTION_ALREADY_EXISTS
+FORBIDDEN
+VALIDATION_ERROR
+```
+
 ## Diagnostics
 
 Diagnosticos representam a aplicacao do Diagnostico 360 em uma empresa.
@@ -845,12 +916,13 @@ Ordem recomendada das requisicoes:
 8. PATCH {{ base_url }}/companies/:id
 9. DELETE {{ base_url }}/companies/:id
 10. GET  {{ base_url }}/diagnostic-areas
-11. POST {{ base_url }}/diagnostics
-12. GET  {{ base_url }}/diagnostics/:id
-13. GET  {{ base_url }}/companies/:companyId/diagnostics
-14. POST {{ base_url }}/diagnostics/:id/answers
-15. POST {{ base_url }}/auth/sign-out
-16. GET  {{ base_url }}/users/me
+11. POST {{ base_url }}/diagnostic-areas/:areaId/questions
+12. POST {{ base_url }}/diagnostics
+13. GET  {{ base_url }}/diagnostics/:id
+14. GET  {{ base_url }}/companies/:companyId/diagnostics
+15. POST {{ base_url }}/diagnostics/:id/answers
+16. POST {{ base_url }}/auth/sign-out
+17. GET  {{ base_url }}/users/me
 ```
 
 Checklist de cookies:

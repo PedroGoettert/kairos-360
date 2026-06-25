@@ -1,7 +1,10 @@
 import type { FastifyInstance } from "fastify";
 
-import { requireAuth } from "../../auth/guards.js";
-import { listDiagnosticAreasWithQuestionsController } from "./diagnostic-questions.controller.js";
+import { requireAuth, requireRole } from "../../auth/guards.js";
+import {
+  createDiagnosticQuestionController,
+  listDiagnosticAreasWithQuestionsController,
+} from "./diagnostic-questions.controller.js";
 
 export async function diagnosticQuestionsRoutes(
   server: FastifyInstance,
@@ -12,5 +15,12 @@ export async function diagnosticQuestionsRoutes(
       preHandler: requireAuth,
     },
     listDiagnosticAreasWithQuestionsController,
+  );
+  server.post(
+    "/diagnostic-areas/:areaId/questions",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    createDiagnosticQuestionController,
   );
 }

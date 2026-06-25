@@ -1,11 +1,30 @@
 import { z } from "zod";
 
+const optionalTextSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .optional()
+  .nullable()
+  .transform((value) => value ?? null);
+
+export const diagnosticAreaParamsSchema = z.object({
+  areaId: z.uuid(),
+});
+
+export const createDiagnosticQuestionSchema = z.object({
+  question: z.string().trim().min(1),
+  description: optionalTextSchema,
+  displayOrder: z.int().positive().optional(),
+});
+
 export const diagnosticQuestionSchema = z.object({
   id: z.uuid(),
   areaId: z.uuid(),
   question: z.string(),
   description: z.string().nullable(),
   displayOrder: z.number().int(),
+  isActive: z.boolean().optional(),
 });
 
 export const diagnosticAreaWithQuestionsSchema = z.object({
