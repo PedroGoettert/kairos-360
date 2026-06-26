@@ -1,6 +1,21 @@
-# Progresso do Projeto
+# Progresso do Projeto — Kairos 360
 
-Este documento registra o estado atual do Diagnostico 360 e onde o desenvolvimento parou.
+Este documento registra o estado atual do Kairos 360 e onde o desenvolvimento parou.
+
+## Reposicionamento do Produto
+
+O Kairos 360 foi reposicionado de **sistema de diagnóstico manual por questionário** para **SaaS de diagnóstico contínuo da saúde empresarial**.
+
+Isso significa:
+
+- O **diagnóstico manual (questionário 360°)** continua existindo como **baseline inicial**
+- O core do produto passa a ser a **ingestão contínua de dados** de CRM, WhatsApp, Meta Ads, atendimento, comercial, financeiro e outras fontes
+- Os **scores evoluem continuamente** com base em dados reais, não apenas em respostas de questionário
+- O sistema processa dados em: **Business Events → Business Metrics → Business Signals → Insights**
+- **Alertas** são gerados automaticamente quando sinais indicam risco ou oportunidade
+- A **IA** atua como **camada interpretativa** sobre dados calculados pelo backend
+- **Integrações externas** são modeladas como **Data Sources** (fontes de dados)
+- **Tempo real** é tratado como **evolução futura**, não requisito do MVP
 
 ## Estado atual
 
@@ -13,18 +28,18 @@ Drizzle
 PostgreSQL
 Better Auth
 CRUD de empresas
-Diagnostico com template global + copia editavel por empresa
+Diagnóstico com template global + cópia editável por empresa
 Scoring por empresa
 ```
 
-## O que ja existe
+## O que já existe
 
-### Fundacao
+### Fundação
 
 - Monorepo com `apps/api`, `apps/web`, `packages/shared` e `docs`.
 - PostgreSQL via Docker Compose.
 - Better Auth configurado.
-- Roles de usuario:
+- Roles de usuário:
 
 ```txt
 admin
@@ -32,7 +47,7 @@ consultant
 viewer
 ```
 
-- Endpoint de usuario autenticado:
+- Endpoint de usuário autenticado:
 
 ```txt
 GET /users/me
@@ -40,7 +55,7 @@ GET /users/me
 
 ### Empresas
 
-- Modulo `companies` completo:
+- Módulo `companies` completo:
 
 ```txt
 POST   /companies
@@ -50,11 +65,11 @@ PATCH  /companies/:id
 DELETE /companies/:id
 ```
 
-- Toda empresa pertence ao usuario autenticado por `owner_user_id`.
+- Toda empresa pertence ao usuário autenticado por `owner_user_id`.
 
-### Novo modelo de diagnostico
+### Novo modelo de diagnóstico
 
-O modelo antigo de `areas` e `perguntas` globais foi substituido por:
+O modelo antigo de `areas` e `perguntas` globais foi substituído por:
 
 ```txt
 diagnostic_templates
@@ -73,9 +88,9 @@ diagnostics
 Regra principal:
 
 ```txt
-Template e global.
-Empresa recebe uma copia propria e editavel.
-Diagnostico responde apenas a estrutura da empresa.
+Template é global.
+Empresa recebe uma cópia própria e editável.
+Diagnóstico responde apenas à estrutura da empresa.
 ```
 
 ### Rotas de templates
@@ -98,7 +113,7 @@ POST /companies/:companyId/diagnostic-areas
 POST /company-diagnostic-areas/:id/questions
 ```
 
-### Rotas do diagnostico
+### Rotas do diagnóstico
 
 ```txt
 POST   /diagnostics
@@ -108,15 +123,15 @@ POST   /diagnostics/:id/answers
 GET    /diagnostics/:id/answers
 PATCH  /diagnostic-answers/:id
 DELETE /diagnostic-answers/:id
-POST   /diagnostics/:id/complete
+POST   /iagnostics/:id/complete
 GET    /diagnostics/:id/scores
 ```
 
 ### Scoring
 
-- Score da area: media das respostas daquela area da empresa.
-- Score geral: media dos scores das areas respondidas.
-- Classificacao:
+- Score da área: média das respostas daquela área da empresa.
+- Score geral: média dos scores das áreas respondidas.
+- Classificação:
 
 ```txt
 0 a 4.9   = critical
@@ -124,8 +139,8 @@ GET    /diagnostics/:id/scores
 7.5 a 10  = healthy
 ```
 
-- O principal gargalo e a area com menor score.
-- A segunda prioridade e a segunda menor area.
+- O principal gargalo é a área com menor score.
+- A segunda prioridade é a segunda menor área.
 
 ## Banco de dados
 
@@ -141,8 +156,8 @@ GET    /diagnostics/:id/scores
 ### O que a migration `0003_polite_dazzler.sql` faz
 
 - Cria tabelas de templates.
-- Cria tabelas de areas e perguntas por empresa.
-- Mantem `diagnostics`, `diagnostic_answers` e `diagnostic_scores`.
+- Cria tabelas de áreas e perguntas por empresa.
+- Mantém `diagnostics`, `diagnostic_answers` e `diagnostic_scores`.
 - Faz `answers` apontarem para `company_diagnostic_questions`.
 - Faz `scores` apontarem para `company_diagnostic_areas`.
 
@@ -150,11 +165,11 @@ GET    /diagnostics/:id/scores
 
 O seed foi adaptado para o novo modelo e agora cria:
 
-- 3 usuarios
+- 3 usuários
 - 3 empresas
-- 1 template padrao
-- copia do template para as empresas
-- diagnosticos ficticios
+- 1 template padrão
+- cópia do template para as empresas
+- diagnósticos fictícios
 - respostas e scores coerentes com a estrutura da empresa
 
 Credenciais locais:
@@ -165,7 +180,7 @@ consultora@kairos.local / Kairos@123456
 viewer@kairos.local     / Kairos@123456
 ```
 
-## Validacoes feitas
+## Validações feitas
 
 ```txt
 pnpm.cmd --filter api exec tsc --noEmit
@@ -176,22 +191,22 @@ docker compose exec -T postgres pg_isready -U postgres -d diagnostico_360
 
 ## Onde paramos
 
-Paramos com o novo modelo de diagnostico flexivel implementado no backend e no banco.
+Paramos com o novo modelo de diagnóstico flexível implementado no backend e no banco.
 
-O fluxo core agora e:
+O fluxo core atual é:
 
 ```txt
 1. Criar empresa
 2. Criar ou listar template
 3. Aplicar template na empresa
-4. Ajustar areas e perguntas da empresa
-5. Criar diagnostico
+4. Ajustar áreas e perguntas da empresa
+5. Criar diagnóstico (baseline manual)
 6. Responder perguntas da empresa
-7. Finalizar diagnostico
+7. Finalizar diagnóstico
 8. Ler scores
 ```
 
-## Proximo passo recomendado
+## Próximos passos recomendados
 
 ### 1. Dashboard
 
@@ -203,15 +218,15 @@ GET /companies/:companyId/dashboard
 
 Esse endpoint deve ler o novo modelo por empresa e exibir:
 
-- saude geral
+- saúde geral
 - gargalo principal
 - segunda prioridade
-- evolucao mensal
-- status dos planos de acao
+- evolução mensal
+- status dos planos de ação
 
-### 2. Rotas de edicao da estrutura da empresa
+### 2. Rotas de edição da estrutura da empresa
 
-Para completar a flexibilidade prometida, ainda faltam as rotas de manutencao:
+Para completar a flexibilidade prometida, ainda faltam as rotas de manutenção:
 
 ```txt
 PATCH /company-diagnostic-areas/:id
@@ -228,3 +243,50 @@ GET  /companies/:companyId/action-plans
 PATCH /action-plans/:id
 PATCH /action-plans/:id/status
 ```
+
+### 4. Data Sources (camada de configuração)
+
+Após action plans, implementar a camada de **Data Sources**:
+
+```txt
+POST /companies/:companyId/data-sources
+GET  /companies/:companyId/data-sources
+GET  /companies/:companyId/data-sources/:key
+PATCH /companies/:companyId/data-sources/:key
+DELETE /companies/:companyId/data-sources/:key
+POST /companies/:companyId/data-sources/:key/sync
+```
+
+### 5. Data Ingestion
+
+Implementar ingestão batch/scheduled:
+
+```txt
+POST /data-ingestion/:sourceKey (webhook genérico)
+GET  /companies/:companyId/data-ingestion-logs
+```
+
+### 6. Business Events, Signals e Alerts
+
+Camada de processamento contínuo:
+
+```txt
+Business Events: GET /companies/:companyId/business-events
+Business Signals: GET /companies/:companyId/business-signals
+Alerts: GET /companies/:companyId/alerts, PATCH /alerts/:id/acknowledge, PATCH /alerts/:id/resolve
+```
+
+### 7. Insights Engine
+
+Combinar regras + IA para gerar insights baseados em dados contínuos:
+
+```txt
+POST /companies/:companyId/ai/insights
+GET  /companies/:companyId/insights
+```
+
+### 8. CRM, Meta Ads, WhatsApp
+
+Integrações como data sources, seguindo a ordem de prioridade definida no AGENTS.md.
+
+**Real-time processing é evolução futura.**

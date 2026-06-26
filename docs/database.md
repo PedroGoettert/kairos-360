@@ -1,4 +1,4 @@
-# Banco, Schemas e Sincronização
+# Banco, Schemas e Sincronização — Kairos 360
 
 ## ORM oficial
 
@@ -18,11 +18,21 @@ apps/api/src/database/schema/
 schema/
   users.ts
   companies.ts
-  diagnostic-areas.ts
-  diagnostic-questions.ts
+  diagnostic-templates.ts
+  diagnostic-template-areas.ts
+  diagnostic-template-questions.ts
+  company-diagnostic-areas.ts
+  company-diagnostic-questions.ts
   diagnostics.ts
   diagnostic-answers.ts
   diagnostic-scores.ts
+  data-sources.ts
+  data-ingestion-logs.ts
+  business-events.ts
+  business-signals.ts
+  alerts.ts
+  insights.ts
+  metrics-history.ts
   leads.ts
   lead-notes.ts
   lead-tasks.ts
@@ -33,6 +43,68 @@ schema/
   ai-outputs.ts
   index.ts
 ```
+
+## Descrição dos schemas
+
+### Núcleo do sistema
+
+| Schema | Descrição |
+|---|---|
+| `users` | Usuários do sistema (admin, consultant, viewer) |
+| `companies` | Empresas clientes, vinculadas a um owner_user_id |
+
+### Diagnóstico Manual (Baseline)
+
+| Schema | Descrição |
+|---|---|
+| `diagnostic-templates` | Templates globais de diagnóstico (criados por admin) |
+| `diagnostic-template-areas` | Áreas dentro de um template |
+| `diagnostic-template-questions` | Perguntas dentro de uma área do template |
+| `company-diagnostic-areas` | Cópia editável das áreas do template para uma empresa |
+| `company-diagnostic-questions` | Cópia editável das perguntas para uma empresa |
+| `diagnostics` | Diagnósticos realizados em uma empresa |
+| `diagnostic-answers` | Respostas do diagnóstico, vinculadas às perguntas da empresa |
+| `diagnostic-scores` | Scores calculados por área e geral do diagnóstico |
+
+### Ingestão e Processamento Contínuo
+
+| Schema | Descrição |
+|---|---|
+| `data-sources` | Fontes de dados configuradas por empresa (Meta Ads, WhatsApp, CRM, etc.) |
+| `data-ingestion-logs` | Log de cada tentativa de ingestão (webhook recebido, scheduler executado, etc.) |
+| `business-events` | Eventos de negócio normalizados provenientes das fontes de dados |
+| `business-signals` | Sinais derivados de eventos e métricas |
+| `alerts` | Alertas disparados quando sinais ultrapassam thresholds |
+| `insights` | Insights gerados por regras ou IA |
+| `metrics-history` | Série temporal de métricas calculadas |
+
+### CRM
+
+| Schema | Descrição |
+|---|---|
+| `leads` | Leads no pipeline de CRM |
+| `lead-notes` | Notas associadas a um lead |
+| `lead-tasks` | Tarefas associadas a um lead |
+
+### Campanhas e Criativos
+
+| Schema | Descrição |
+|---|---|
+| `campaigns` | Campanhas de marketing |
+| `creatives` | Criativos (anúncios, peças) vinculados a campanhas |
+
+### Planos de Ação
+
+| Schema | Descrição |
+|---|---|
+| `action-plans` | Planos de ação vinculados a uma empresa |
+
+### Relatórios e IA
+
+| Schema | Descrição |
+|---|---|
+| `reports` | Relatórios gerados (PDF, Excel) |
+| `ai-outputs` | Saídas da IA (resumo executivo, recomendações, etc.) |
 
 ## Regra de exportação
 
@@ -46,6 +118,12 @@ Exemplo:
 export { users } from './users';
 export { companies } from './companies';
 export { diagnostics } from './diagnostics';
+export { dataSources } from './data-sources';
+export { businessEvents } from './business-events';
+export { businessSignals } from './business-signals';
+export { alerts } from './alerts';
+export { insights } from './insights';
+export { metricsHistory } from './metrics-history';
 ```
 
 ## Fluxo obrigatório ao alterar banco

@@ -1,4 +1,4 @@
-# AGENTS.md — Diagnóstico 360
+# AGENTS.md — Kairos 360
 
 ## Mandatory Reading
 
@@ -16,27 +16,34 @@ These documents are considered part of the project specification.
 
 ## Project overview
 
-This repository contains the Diagnóstico 360 platform, an internal business diagnostic system for Kairos.
+This repository contains the **Kairos 360** platform, a **SaaS de diagnóstico contínuo da saúde empresarial** for Kairos.
 
-The product helps consultants:
+The product helps consultants and businesses:
 
-- Register companies and clients.
-- Apply a 360° business diagnostic.
-- Calculate scores by area.
-- Identify bottlenecks.
+- Establish a **baseline** via manual 360° diagnostic questionnaire.
+- **Ingest data continuously** from CRM, WhatsApp, Meta Ads, Facebook, customer service, sales, finance, and other sources.
+- Process raw data into **business events**, **business metrics**, **business signals**, and **insights**.
+- Calculate and track **health scores** that evolve over time — not just snapshots.
+- Identify **bottlenecks** and **trends** through continuous data analysis.
+- Trigger **alerts** when signals indicate risk or opportunity.
+- Use **AI as an interpretation layer** to explain what the numbers mean.
 - Manage leads in a CRM.
 - Track campaigns and creatives.
 - Generate action plans.
 - Generate reports.
-- Use AI to interpret business data and suggest recommendations.
 
 Main business flow:
 
-Lead enters → Kairos registers the company → Consultant applies Diagnóstico 360 → System calculates scores → Dashboard displays bottlenecks → AI generates an executive diagnosis → Consultant creates action plans → Reports are generated.
+```
+Lead enters → Kairos registers the company → Consultant applies baseline 360° diagnostic
+→ System calculates initial scores → Data sources connect (CRM, WhatsApp, Meta Ads, etc.)
+→ Data ingestion runs continuously → Business events are normalized
+→ Metrics are calculated → Signals are derived → AI interprets signals
+→ Dashboard displays health, trends, bottlenecks, and alerts
+→ Consultant creates action plans → Reports are generated
+```
 
 ## Repository structure
-
-Expected structure:
 
 ```txt
 diagnostico-360/
@@ -194,6 +201,19 @@ Responsibilities:
 
 Do not put business logic inside controllers.
 
+### Additional modules (beyond the core MVP)
+
+As the product evolves toward continuous diagnostics, these modules will be added:
+
+| Module | Purpose |
+|---|---|
+| `data-ingestion` | Webhooks, schedulers, normalizers for external data sources |
+| `business-events` | Normalized event store (every external interaction becomes an event) |
+| `business-signals` | Signal derivation from events and metrics |
+| `business-alerts` | Alert rules, triggering, acknowledgement |
+| `insights` | AI-generated and rule-based insights |
+| `data-sources` | Source configuration, tokens, status per company |
+
 ## Database rules
 
 Schemas must live in:
@@ -212,6 +232,13 @@ diagnostic-questions.ts
 diagnostics.ts
 diagnostic-answers.ts
 diagnostic-scores.ts
+data-sources.ts
+data-ingestion-logs.ts
+business-events.ts
+business-signals.ts
+alerts.ts
+insights.ts
+metrics-history.ts
 leads.ts
 lead-notes.ts
 lead-tasks.ts
@@ -291,7 +318,11 @@ apps/web/src/features/
 ├── crm/
 ├── action-plans/
 ├── reports/
-└── ai/
+├── ai/
+├── signals/
+├── alerts/
+├── insights/
+└── data-sources/
 ```
 
 Each feature may contain:
@@ -311,6 +342,8 @@ Every async screen must handle loading, error, empty state and success.
 ## Business rules
 
 The system is multi-company. Every relevant business record must be linked to a company.
+
+### Baseline Diagnostic (manual questionnaire)
 
 Default diagnostic areas:
 
@@ -340,37 +373,47 @@ Main bottleneck: area with the lowest score.
 
 Second priority: area with the second lowest score.
 
-CRM pipeline:
+### Continuous Diagnostics
+
+Beyond the baseline, scores are continuously updated from:
+
+- Business events (sales closed, support tickets, campaign results, etc.)
+- Derived metrics (conversion rate, average ticket, NPS, response time, etc.)
+- Business signals (trend deviations, anomalies, thresholds exceeded)
+
+The system maintains:
+
+- **Current score**: weighted combination of baseline + metric evidence.
+- **Score history**: time-series of all score changes.
+- **Score trend**: direction (improving, stable, declining).
+
+### Signals and Alerts
+
+A **signal** is a derived indicator from one or more metrics. Examples:
+
+- `conversion_rate_dropped`: conversion rate fell > 15% in 30 days.
+- `support_volume_spike`: ticket volume > 2σ above mean.
+- `campaign_roi_declining`: ROI declining for 2 consecutive months.
+
+An **alert** is a signal that crossed a notification threshold.
+
+Alerts have statuses:
 
 ```txt
-lead
-diagnostic
-meeting
-proposal
-closed
-implementation
-lost
+active
+acknowledged
+resolved
 ```
 
-Every CRM stage change must create a history entry.
-
-Action plan statuses:
-
-```txt
-not_started
-in_progress
-completed
-```
-
-## AI rules
+### AI interpretation layer
 
 AI must interpret system data. AI must not invent metrics.
 
 Backend calculates numbers. AI explains and recommends based on the numbers.
 
-AI inputs may include diagnostic scores, diagnostic answers, consultant comments, CRM data, campaign data and conversion data.
+AI inputs may include diagnostic scores, diagnostic answers, consultant comments, CRM data, campaign data, conversion data, business signals, alerts, and metric history.
 
-AI outputs may include executive summary, main bottleneck, second priority, probable cause, risks, recommendations and suggested action plans.
+AI outputs may include executive summary, main bottleneck, second priority, probable cause, risks, recommendations, suggested action plans, and signal interpretation.
 
 Prefer structured JSON responses.
 
@@ -385,6 +428,9 @@ Allowed examples:
 ```txt
 feat(companies): create companies module
 feat(diagnostics): implement diagnostic scoring
+feat(data-ingestion): add whatsapp webhook handler
+feat(signals): implement conversion rate signal derivation
+feat(alerts): add alert triggering engine
 fix(auth): correct session validation
 refactor(crm): simplify lead service
 docs(project): update architecture documentation
@@ -421,17 +467,25 @@ Implement in this order:
 8. Better Auth
 9. Users
 10. Companies
-11. Diagnostic 360
-12. Scoring
+11. Baseline Diagnostic 360 (manual questionnaire)
+12. Scoring engine
 13. Dashboard
 14. Action plans
 15. AI diagnostic summary
 16. Reports
-17. CRM
-18. Meta Ads
-19. WhatsApp
+17. Data sources (configuration layer)
+18. Data ingestion (webhooks, schedulers)
+19. Business events (normalization layer)
+20. Business signals (derivation engine)
+21. Alerts (triggering and notification)
+22. Insights engine (rule-based + AI)
+23. CRM
+24. Meta Ads (as data source)
+25. WhatsApp (as data source)
 
-Do not start external integrations before the core system is working.
+**Real-time processing is a future evolution, not an MVP requirement.**
+
+Do not start external integrations before the core data ingestion and signal layers are working.
 
 ## Documentation routing
 
@@ -447,7 +501,7 @@ Use these docs when deeper context is needed:
 
 When information conflicts, prefer this order:
 
-1. User’s latest instruction.
+1. User's latest instruction.
 2. `AGENTS.md`.
 3. More specific docs inside `docs/`.
 4. Existing code conventions.
