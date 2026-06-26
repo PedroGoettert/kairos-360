@@ -1,0 +1,921 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-06-25T18:00:00.000Z",
+  "__export_source": "Codex for Diagnostico 360",
+  "resources": [
+    {
+      "_id": "wrk_d360_api_v2",
+      "_type": "workspace",
+      "parentId": null,
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "Diagnostico 360 API V2",
+      "description": "Fluxo com templates globais, copia por empresa e diagnostico da empresa."
+    },
+    {
+      "_id": "env_d360_v2_base",
+      "_type": "environment",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:3333",
+        "user_name": "Admin Kairos",
+        "user_email": "admin@kairos.com",
+        "user_password": "12345678",
+        "company_id": "",
+        "template_id": "",
+        "template_area_id": "",
+        "company_area_id": "",
+        "company_question_id": "",
+        "diagnostic_id": ""
+      }
+    },
+    {
+      "_id": "jar_d360_v2_default",
+      "_type": "cookie_jar",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "Default Jar",
+      "cookies": []
+    },
+    {
+      "_id": "fld_v2_health",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "01 - Health"
+    },
+    {
+      "_id": "fld_v2_auth",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "02 - Auth"
+    },
+    {
+      "_id": "fld_v2_users",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "03 - Users"
+    },
+    {
+      "_id": "fld_v2_companies",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "04 - Companies"
+    },
+    {
+      "_id": "fld_v2_templates",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "05 - Diagnostic Templates"
+    },
+    {
+      "_id": "fld_v2_company_setup",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "06 - Company Diagnostic Setup"
+    },
+    {
+      "_id": "fld_v2_diagnostics",
+      "_type": "request_group",
+      "parentId": "wrk_d360_api_v2",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "07 - Diagnostics"
+    },
+    {
+      "_id": "req_v2_health",
+      "_type": "request",
+      "parentId": "fld_v2_health",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Health",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_sign_up",
+      "_type": "request",
+      "parentId": "fld_v2_auth",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Sign Up",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/sign-up/email",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"{{ _.user_name }}\",\n  \"email\": \"{{ _.user_email }}\",\n  \"password\": \"{{ _.user_password }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -2000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_sign_in",
+      "_type": "request",
+      "parentId": "fld_v2_auth",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Sign In",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/sign-in/email",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.user_email }}\",\n  \"password\": \"{{ _.user_password }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1900,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_get_session",
+      "_type": "request",
+      "parentId": "fld_v2_auth",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Session",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/auth/get-session",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1800,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_sign_out",
+      "_type": "request",
+      "parentId": "fld_v2_auth",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Sign Out",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/sign-out",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1700,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_users_me",
+      "_type": "request",
+      "parentId": "fld_v2_users",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Users Me",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users/me",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -3000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_companies_create",
+      "_type": "request",
+      "parentId": "fld_v2_companies",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Companies",
+      "method": "POST",
+      "url": "{{ _.base_url }}/companies",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Cliente Exemplo LTDA\",\n  \"tradeName\": \"Cliente Exemplo\",\n  \"document\": \"12.345.678/0001-90\",\n  \"industry\": \"Servicos\",\n  \"website\": \"https://clienteexemplo.com.br\",\n  \"notes\": \"Cliente criado para teste.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -4000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_companies_list",
+      "_type": "request",
+      "parentId": "fld_v2_companies",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Companies",
+      "method": "GET",
+      "url": "{{ _.base_url }}/companies",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -3900,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_companies_get_by_id",
+      "_type": "request",
+      "parentId": "fld_v2_companies",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Company By Id",
+      "method": "GET",
+      "url": "{{ _.base_url }}/companies/{{ _.company_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -3800,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_templates_list",
+      "_type": "request",
+      "parentId": "fld_v2_templates",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Diagnostic Templates",
+      "method": "GET",
+      "url": "{{ _.base_url }}/diagnostic-templates",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -5000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_templates_get_by_id",
+      "_type": "request",
+      "parentId": "fld_v2_templates",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Diagnostic Template By Id",
+      "method": "GET",
+      "url": "{{ _.base_url }}/diagnostic-templates/{{ _.template_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -4900,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_templates_create",
+      "_type": "request",
+      "parentId": "fld_v2_templates",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Diagnostic Template",
+      "method": "POST",
+      "url": "{{ _.base_url }}/diagnostic-templates",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Diagnostico Padrao\",\n  \"slug\": \"diagnostico-padrao\",\n  \"description\": \"Template base do Diagnostico 360.\",\n  \"isDefault\": true\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -4800,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_template_areas_create",
+      "_type": "request",
+      "parentId": "fld_v2_templates",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Template Area",
+      "method": "POST",
+      "url": "{{ _.base_url }}/diagnostic-templates/{{ _.template_id }}/areas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Marketing\",\n  \"slug\": \"marketing\",\n  \"description\": \"Area de marketing.\",\n  \"displayOrder\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -4700,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_template_questions_create",
+      "_type": "request",
+      "parentId": "fld_v2_templates",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Template Question",
+      "method": "POST",
+      "url": "{{ _.base_url }}/diagnostic-template-areas/{{ _.template_area_id }}/questions",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"question\": \"A empresa possui posicionamento claro para seu publico-alvo?\",\n  \"description\": \"Avalia proposta de valor e clareza de mercado.\",\n  \"displayOrder\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -4600,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_company_apply_template",
+      "_type": "request",
+      "parentId": "fld_v2_company_setup",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Apply Template To Company",
+      "method": "POST",
+      "url": "{{ _.base_url }}/companies/{{ _.company_id }}/diagnostic-setup/from-template",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"templateId\": \"{{ _.template_id }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_company_areas_list",
+      "_type": "request",
+      "parentId": "fld_v2_company_setup",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Company Diagnostic Areas",
+      "method": "GET",
+      "url": "{{ _.base_url }}/companies/{{ _.company_id }}/diagnostic-areas",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -5900,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_company_area_get_by_id",
+      "_type": "request",
+      "parentId": "fld_v2_company_setup",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Company Diagnostic Area By Id",
+      "method": "GET",
+      "url": "{{ _.base_url }}/company-diagnostic-areas/{{ _.company_area_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -5800,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_company_area_create",
+      "_type": "request",
+      "parentId": "fld_v2_company_setup",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Company Diagnostic Area",
+      "method": "POST",
+      "url": "{{ _.base_url }}/companies/{{ _.company_id }}/diagnostic-areas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Operacao\",\n  \"slug\": \"operacao\",\n  \"description\": \"Area adicional da empresa.\",\n  \"displayOrder\": 4\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -5700,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_company_question_create",
+      "_type": "request",
+      "parentId": "fld_v2_company_setup",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Company Diagnostic Question",
+      "method": "POST",
+      "url": "{{ _.base_url }}/company-diagnostic-areas/{{ _.company_area_id }}/questions",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"question\": \"A empresa tem rotina de controle operacional semanal?\",\n  \"description\": \"Avalia acompanhamento da operacao.\",\n  \"displayOrder\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -5600,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_create",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Diagnostics",
+      "method": "POST",
+      "url": "{{ _.base_url }}/diagnostics",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"companyId\": \"{{ _.company_id }}\",\n  \"title\": \"Diagnostico inicial\",\n  \"notes\": \"Primeira avaliacao do cliente.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -7000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_get_by_id",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Diagnostic By Id",
+      "method": "GET",
+      "url": "{{ _.base_url }}/diagnostics/{{ _.diagnostic_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6900,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_list_by_company",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Diagnostics By Company",
+      "method": "GET",
+      "url": "{{ _.base_url }}/companies/{{ _.company_id }}/diagnostics",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6800,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_create_answer",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Diagnostic Answer",
+      "method": "POST",
+      "url": "{{ _.base_url }}/diagnostics/{{ _.diagnostic_id }}/answers",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"questionId\": \"{{ _.company_question_id }}\",\n  \"score\": 8,\n  \"comment\": \"Processo comercial bem definido.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6700,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_list_answers",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Diagnostic Answers",
+      "method": "GET",
+      "url": "{{ _.base_url }}/diagnostics/{{ _.diagnostic_id }}/answers",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6600,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_complete",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "POST Complete Diagnostic",
+      "method": "POST",
+      "url": "{{ _.base_url }}/diagnostics/{{ _.diagnostic_id }}/complete",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6500,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    },
+    {
+      "_id": "req_v2_diagnostics_scores",
+      "_type": "request",
+      "parentId": "fld_v2_diagnostics",
+      "modified": 1782400800000,
+      "created": 1782400800000,
+      "name": "GET Diagnostic Scores",
+      "method": "GET",
+      "url": "{{ _.base_url }}/diagnostics/{{ _.diagnostic_id }}/scores",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -6400,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "settingCookies": []
+    }
+  ]
+}

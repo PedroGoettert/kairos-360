@@ -3,9 +3,9 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "../../database/index.js";
 import {
   companies,
+  companyDiagnosticAreas,
+  companyDiagnosticQuestions,
   diagnosticAnswers,
-  diagnosticAreas,
-  diagnosticQuestions,
   diagnosticScores,
   diagnostics,
 } from "../../database/schema/index.js";
@@ -14,8 +14,8 @@ import type {
   CompleteDiagnosticResult,
   CreateDiagnosticAnswerInput,
   CreateDiagnosticAnswerResult,
-  DeleteDiagnosticAnswerResult,
   CreateDiagnosticInput,
+  DeleteDiagnosticAnswerResult,
   Diagnostic,
   DiagnosticAnswersList,
   DiagnosticHealthClassification,
@@ -116,13 +116,19 @@ export async function createDiagnosticAnswer(
 
   const [question] = await db
     .select({
-      id: diagnosticQuestions.id,
+      id: companyDiagnosticQuestions.id,
     })
-    .from(diagnosticQuestions)
+    .from(companyDiagnosticQuestions)
+    .innerJoin(
+      companyDiagnosticAreas,
+      eq(companyDiagnosticQuestions.companyAreaId, companyDiagnosticAreas.id),
+    )
     .where(
       and(
-        eq(diagnosticQuestions.id, input.questionId),
-        eq(diagnosticQuestions.isActive, true),
+        eq(companyDiagnosticQuestions.id, input.questionId),
+        eq(companyDiagnosticQuestions.isActive, true),
+        eq(companyDiagnosticAreas.companyId, diagnostic.companyId),
+        eq(companyDiagnosticAreas.isActive, true),
       ),
     )
     .limit(1);
@@ -188,27 +194,33 @@ export async function listDiagnosticAnswers(
       createdAt: diagnosticAnswers.createdAt,
       updatedAt: diagnosticAnswers.updatedAt,
       question: {
-        id: diagnosticQuestions.id,
-        areaId: diagnosticQuestions.areaId,
-        question: diagnosticQuestions.question,
-        description: diagnosticQuestions.description,
-        displayOrder: diagnosticQuestions.displayOrder,
+        id: companyDiagnosticQuestions.id,
+        areaId: companyDiagnosticQuestions.companyAreaId,
+        question: companyDiagnosticQuestions.question,
+        description: companyDiagnosticQuestions.description,
+        displayOrder: companyDiagnosticQuestions.displayOrder,
       },
       area: {
-        id: diagnosticAreas.id,
-        name: diagnosticAreas.name,
-        slug: diagnosticAreas.slug,
-        displayOrder: diagnosticAreas.displayOrder,
+        id: companyDiagnosticAreas.id,
+        name: companyDiagnosticAreas.name,
+        slug: companyDiagnosticAreas.slug,
+        displayOrder: companyDiagnosticAreas.displayOrder,
       },
     })
     .from(diagnosticAnswers)
     .innerJoin(
-      diagnosticQuestions,
-      eq(diagnosticAnswers.questionId, diagnosticQuestions.id),
+      companyDiagnosticQuestions,
+      eq(diagnosticAnswers.questionId, companyDiagnosticQuestions.id),
     )
-    .innerJoin(diagnosticAreas, eq(diagnosticQuestions.areaId, diagnosticAreas.id))
+    .innerJoin(
+      companyDiagnosticAreas,
+      eq(companyDiagnosticQuestions.companyAreaId, companyDiagnosticAreas.id),
+    )
     .where(eq(diagnosticAnswers.diagnosticId, diagnosticId))
-    .orderBy(asc(diagnosticAreas.displayOrder), asc(diagnosticQuestions.displayOrder));
+    .orderBy(
+      asc(companyDiagnosticAreas.displayOrder),
+      asc(companyDiagnosticQuestions.displayOrder),
+    );
 
   return rows.map(({ area, question, ...answer }) => ({
     ...answer,
@@ -227,7 +239,6 @@ export async function updateDiagnosticAnswer(
   const [answerWithDiagnostic] = await db
     .select({
       id: diagnosticAnswers.id,
-      diagnosticId: diagnosticAnswers.diagnosticId,
       status: diagnostics.status,
     })
     .from(diagnosticAnswers)
@@ -372,15 +383,18 @@ export async function getDiagnosticScores(
   const scores = await db
     .select({
       areaId: diagnosticScores.areaId,
-      areaName: diagnosticAreas.name,
-      areaSlug: diagnosticAreas.slug,
-      areaDisplayOrder: diagnosticAreas.displayOrder,
+      areaName: companyDiagnosticAreas.name,
+      areaSlug: companyDiagnosticAreas.slug,
+      areaDisplayOrder: companyDiagnosticAreas.displayOrder,
       score: diagnosticScores.score,
     })
     .from(diagnosticScores)
-    .innerJoin(diagnosticAreas, eq(diagnosticScores.areaId, diagnosticAreas.id))
+    .innerJoin(
+      companyDiagnosticAreas,
+      eq(diagnosticScores.areaId, companyDiagnosticAreas.id),
+    )
     .where(eq(diagnosticScores.diagnosticId, diagnosticId))
-    .orderBy(asc(diagnosticAreas.displayOrder));
+    .orderBy(asc(companyDiagnosticAreas.displayOrder));
 
   if (scores.length === 0) {
     return { status: "diagnostic_not_completed" };
@@ -413,18 +427,21 @@ async function getDiagnosticScoreInputs(
 ): Promise<Array<DiagnosticScoreInput>> {
   return db
     .select({
-      areaId: diagnosticAreas.id,
-      areaName: diagnosticAreas.name,
-      areaSlug: diagnosticAreas.slug,
-      areaDisplayOrder: diagnosticAreas.displayOrder,
+      areaId: companyDiagnosticAreas.id,
+      areaName: companyDiagnosticAreas.name,
+      areaSlug: companyDiagnosticAreas.slug,
+      areaDisplayOrder: companyDiagnosticAreas.displayOrder,
       score: diagnosticAnswers.score,
     })
     .from(diagnosticAnswers)
     .innerJoin(
-      diagnosticQuestions,
-      eq(diagnosticAnswers.questionId, diagnosticQuestions.id),
+      companyDiagnosticQuestions,
+      eq(diagnosticAnswers.questionId, companyDiagnosticQuestions.id),
     )
-    .innerJoin(diagnosticAreas, eq(diagnosticQuestions.areaId, diagnosticAreas.id))
+    .innerJoin(
+      companyDiagnosticAreas,
+      eq(companyDiagnosticQuestions.companyAreaId, companyDiagnosticAreas.id),
+    )
     .where(eq(diagnosticAnswers.diagnosticId, diagnosticId));
 }
 

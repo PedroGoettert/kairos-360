@@ -1,18 +1,29 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 
 import { auth } from "../auth/index.js";
 import { db, sql } from "./index.js";
 import {
   companies,
+  companyDiagnosticAreas,
+  companyDiagnosticQuestions,
   diagnosticAnswers,
-  diagnosticAreas,
-  diagnosticQuestions,
   diagnosticScores,
+  diagnosticTemplateAreas,
+  diagnosticTemplateQuestions,
+  diagnosticTemplates,
   diagnostics,
   user as users,
 } from "./schema/index.js";
 
 const seedPassword = "Kairos@123456";
+
+const defaultTemplate = {
+  name: "Diagnostico Padrao",
+  slug: "diagnostico-padrao",
+  description:
+    "Template base do Diagnostico 360 com areas padrao e perguntas iniciais.",
+  isDefault: true,
+} as const;
 
 const seedUsers = [
   {
@@ -104,7 +115,8 @@ const seedQuestionsByArea: Record<
       description: "Avalia controle operacional e melhoria continua.",
     },
     {
-      question: "A operacao consegue absorver aumento de demanda sem perda de qualidade?",
+      question:
+        "A operacao consegue absorver aumento de demanda sem perda de qualidade?",
       description: "Avalia capacidade de escala.",
     },
   ],
@@ -165,6 +177,16 @@ const seedQuestionsByArea: Record<
     },
   ],
 };
+
+const defaultAreas = [
+  { name: "Marketing", slug: "marketing" },
+  { name: "Comercial", slug: "comercial" },
+  { name: "Operacao", slug: "operacao" },
+  { name: "Financeiro", slug: "financeiro" },
+  { name: "Gestao", slug: "gestao" },
+  { name: "Atendimento", slug: "atendimento" },
+  { name: "Recursos Humanos", slug: "recursos-humanos" },
+] as const;
 
 const scoreProfiles = [
   {
@@ -245,10 +267,7 @@ async function ensureUser(seedUser: SeedUser) {
   return user;
 }
 
-async function ensureCompany(
-  seedCompany: SeedCompany,
-  ownerUserId: string,
-) {
+async function ensureCompany(seedCompany: SeedCompany, ownerUserId: string) {
   const [existingCompany] = await db
     .select()
     .from(companies)
@@ -300,69 +319,164 @@ async function ensureCompany(
   return company;
 }
 
-async function ensureQuestions() {
-  const areas = await db.select().from(diagnosticAreas);
-  const questionsByAreaSlug = new Map<
-    string,
-    Array<typeof diagnosticQuestions.$inferSelect>
-  >();
+async function ensureDefaultTemplate() {
+  const [existingTemplate] = await db
+    .select()
+    .from(diagnosticTemplates)
+    .where(eq(diagnosticTemplates.slug, defaultTemplate.slug))
+    .limit(1);
 
-  for (const area of areas) {
-    const seedQuestions = seedQuestionsByArea[area.slug] ?? [];
-    const areaQuestions = [];
+  const template =
+    existingTemplate ??
+    (
+      await db
+        .insert(diagnosticTemplates)
+        .values(defaultTemplate)
+        .returning()
+    )[0];
 
-    for (const [index, seedQuestion] of seedQuestions.entries()) {
+  if (!template) {
+    throw new Error("Failed to seed default diagnostic template");
+  }
+
+  for (const [index, areaSeed] of defaultAreas.entries()) {
+    const [existingArea] = await db
+      .select()
+      .from(diagnosticTemplateAreas)
+      .where(
+        and(
+          eq(diagnosticTemplateAreas.templateId, template.id),
+          eq(diagnosticTemplateAreas.slug, areaSeed.slug),
+        ),
+      )
+      .limit(1);
+
+    const area =
+      existingArea ??
+      (
+        await db
+          .insert(diagnosticTemplateAreas)
+          .values({
+            templateId: template.id,
+            name: areaSeed.name,
+            slug: areaSeed.slug,
+            description: null,
+            displayOrder: index + 1,
+          })
+          .returning()
+      )[0];
+
+    if (!area) {
+      throw new Error(`Failed to seed template area ${areaSeed.slug}`);
+    }
+
+    const questions = seedQuestionsByArea[areaSeed.slug] ?? [];
+
+    for (const [questionIndex, questionSeed] of questions.entries()) {
       const [existingQuestion] = await db
         .select()
-        .from(diagnosticQuestions)
+        .from(diagnosticTemplateQuestions)
         .where(
           and(
-            eq(diagnosticQuestions.areaId, area.id),
-            eq(diagnosticQuestions.question, seedQuestion.question),
+            eq(diagnosticTemplateQuestions.templateAreaId, area.id),
+            eq(diagnosticTemplateQuestions.question, questionSeed.question),
           ),
         )
         .limit(1);
 
       if (existingQuestion) {
-        const [question] = await db
-          .update(diagnosticQuestions)
+        await db
+          .update(diagnosticTemplateQuestions)
           .set({
-            description: seedQuestion.description,
-            displayOrder: index + 1,
-            isActive: true,
+            description: questionSeed.description,
+            displayOrder: questionIndex + 1,
           })
-          .where(eq(diagnosticQuestions.id, existingQuestion.id))
-          .returning();
-
-        if (!question) {
-          throw new Error(`Failed to update question ${seedQuestion.question}`);
-        }
-
-        areaQuestions.push(question);
+          .where(eq(diagnosticTemplateQuestions.id, existingQuestion.id));
         continue;
       }
 
-      const [question] = await db
-        .insert(diagnosticQuestions)
-        .values({
-          areaId: area.id,
-          question: seedQuestion.question,
-          description: seedQuestion.description,
-          displayOrder: index + 1,
-        })
-        .returning();
-
-      if (!question) {
-        throw new Error(`Failed to seed question ${seedQuestion.question}`);
-      }
-
-      areaQuestions.push(question);
+      await db.insert(diagnosticTemplateQuestions).values({
+        templateAreaId: area.id,
+        question: questionSeed.question,
+        description: questionSeed.description,
+        displayOrder: questionIndex + 1,
+      });
     }
-
-    questionsByAreaSlug.set(area.slug, areaQuestions);
   }
 
-  return questionsByAreaSlug;
+  return template;
+}
+
+async function ensureCompanyDiagnosticSetup(
+  companyId: string,
+  templateId: string,
+) {
+  const [existingArea] = await db
+    .select({
+      id: companyDiagnosticAreas.id,
+    })
+    .from(companyDiagnosticAreas)
+    .where(eq(companyDiagnosticAreas.companyId, companyId))
+    .limit(1);
+
+  if (existingArea) {
+    return;
+  }
+
+  const templateAreas = await db
+    .select()
+    .from(diagnosticTemplateAreas)
+    .where(eq(diagnosticTemplateAreas.templateId, templateId))
+    .orderBy(asc(diagnosticTemplateAreas.displayOrder));
+
+  const templateQuestions = await db
+    .select()
+    .from(diagnosticTemplateQuestions)
+    .where(inArray(diagnosticTemplateQuestions.templateAreaId, templateAreas.map((area) => area.id)))
+    .orderBy(
+      asc(diagnosticTemplateQuestions.templateAreaId),
+      asc(diagnosticTemplateQuestions.displayOrder),
+    );
+
+  const areaIdMap = new Map<string, string>();
+
+  for (const templateArea of templateAreas) {
+    const [companyArea] = await db
+      .insert(companyDiagnosticAreas)
+      .values({
+        companyId,
+        templateAreaId: templateArea.id,
+        name: templateArea.name,
+        slug: templateArea.slug,
+        description: templateArea.description,
+        displayOrder: templateArea.displayOrder,
+      })
+      .returning();
+
+    if (!companyArea) {
+      throw new Error(
+        `Failed to create company diagnostic area ${templateArea.slug}`,
+      );
+    }
+
+    areaIdMap.set(templateArea.id, companyArea.id);
+  }
+
+  for (const templateQuestion of templateQuestions) {
+    const companyAreaId = areaIdMap.get(templateQuestion.templateAreaId);
+
+    if (!companyAreaId) {
+      continue;
+    }
+
+    await db.insert(companyDiagnosticQuestions).values({
+      companyAreaId,
+      templateQuestionId: templateQuestion.id,
+      question: templateQuestion.question,
+      description: templateQuestion.description,
+      displayOrder: templateQuestion.displayOrder,
+    });
+  }
 }
 
 async function ensureDiagnostic(
@@ -417,10 +531,46 @@ async function ensureDiagnostic(
 }
 
 async function replaceDiagnosticAnswers(
+  companyId: string,
   diagnosticId: string,
-  questionsByAreaSlug: Map<string, Array<typeof diagnosticQuestions.$inferSelect>>,
   areaScores: Record<string, readonly number[]>,
 ) {
+  const areas = await db
+    .select()
+    .from(companyDiagnosticAreas)
+    .where(eq(companyDiagnosticAreas.companyId, companyId))
+    .orderBy(asc(companyDiagnosticAreas.displayOrder));
+
+  const areaIds = areas.map((area) => area.id);
+  const questions =
+    areaIds.length === 0
+      ? []
+      : await db
+          .select()
+          .from(companyDiagnosticQuestions)
+          .where(
+            and(
+              eq(companyDiagnosticQuestions.isActive, true),
+              inArray(companyDiagnosticQuestions.companyAreaId, areaIds),
+            ),
+          )
+          .orderBy(
+            asc(companyDiagnosticQuestions.companyAreaId),
+            asc(companyDiagnosticQuestions.displayOrder),
+          );
+
+  const questionsByAreaSlug = new Map<
+    string,
+    Array<typeof companyDiagnosticQuestions.$inferSelect>
+  >();
+
+  for (const area of areas) {
+    questionsByAreaSlug.set(
+      area.slug,
+      questions.filter((question) => question.companyAreaId === area.id),
+    );
+  }
+
   await db
     .delete(diagnosticAnswers)
     .where(eq(diagnosticAnswers.diagnosticId, diagnosticId));
@@ -429,8 +579,14 @@ async function replaceDiagnosticAnswers(
     .where(eq(diagnosticScores.diagnosticId, diagnosticId));
 
   for (const [areaSlug, scores] of Object.entries(areaScores)) {
-    const questions = questionsByAreaSlug.get(areaSlug) ?? [];
-    const answerValues = questions.map((question, index) => ({
+    const area = areas.find((companyArea) => companyArea.slug === areaSlug);
+    const areaQuestions = questionsByAreaSlug.get(areaSlug) ?? [];
+
+    if (!area) {
+      continue;
+    }
+
+    const answerValues = areaQuestions.map((question, index) => ({
       diagnosticId,
       questionId: question.id,
       score: scores[index] ?? scores.at(-1) ?? 0,
@@ -441,9 +597,7 @@ async function replaceDiagnosticAnswers(
       await db.insert(diagnosticAnswers).values(answerValues);
     }
 
-    const areaId = questions[0]?.areaId;
-
-    if (!areaId || scores.length === 0) {
+    if (scores.length === 0) {
       continue;
     }
 
@@ -452,7 +606,7 @@ async function replaceDiagnosticAnswers(
 
     await db.insert(diagnosticScores).values({
       diagnosticId,
-      areaId,
+      areaId: area.id,
       score: Number(averageScore.toFixed(2)),
     });
   }
@@ -466,6 +620,7 @@ async function main() {
     seededUsers.set(seedUser.email, user);
   }
 
+  const template = await ensureDefaultTemplate();
   const seededCompanies = [];
 
   for (const seedCompany of seedCompanies) {
@@ -476,10 +631,9 @@ async function main() {
     }
 
     const company = await ensureCompany(seedCompany, owner.id);
+    await ensureCompanyDiagnosticSetup(company.id, template.id);
     seededCompanies.push({ company, owner });
   }
-
-  const questionsByAreaSlug = await ensureQuestions();
 
   for (const [index, profile] of scoreProfiles.entries()) {
     const seededCompany = seededCompanies[index];
@@ -497,8 +651,8 @@ async function main() {
     );
 
     await replaceDiagnosticAnswers(
+      seededCompany.company.id,
       diagnostic.id,
-      questionsByAreaSlug,
       profile.areaScores,
     );
   }
@@ -518,6 +672,7 @@ async function main() {
   console.log("Seed completed successfully.");
   console.log(`Users: ${seedUsers.length}`);
   console.log(`Companies: ${seedCompanies.length}`);
+  console.log(`Default template: ${defaultTemplate.name}`);
   console.log(`Default password: ${seedPassword}`);
 }
 

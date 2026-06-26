@@ -1,200 +1,30 @@
 # Progresso do Projeto
 
-Este documento registra o que ja foi configurado no Diagnostico 360 e onde o desenvolvimento parou.
+Este documento registra o estado atual do Diagnostico 360 e onde o desenvolvimento parou.
 
 ## Estado atual
 
-O projeto esta organizado como monorepo com:
+O backend segue com:
 
 ```txt
-apps/
-  api/
-  web/
-packages/
-  shared/
-docs/
+Fastify
+TypeScript
+Drizzle
+PostgreSQL
+Better Auth
+CRUD de empresas
+Diagnostico com template global + copia editavel por empresa
+Scoring por empresa
 ```
 
-A API possui fundacao funcional com Fastify, TypeScript, Drizzle, PostgreSQL, Better Auth, roles de usuario, preHandlers de autenticacao, CRUD de empresas e modulo de diagnosticos com respostas, finalizacao e scoring.
+## O que ja existe
 
-## O que ja foi feito
+### Fundacao
 
-### Fundacao do monorepo
-
-- Estrutura base criada com `apps/api`, `apps/web`, `packages/shared` e `docs`.
-- Workspace configurado com `pnpm-workspace.yaml`.
-- Scripts raiz configurados para web, api, build e lint.
-- Docker Compose configurado com PostgreSQL.
-- Documentacao inicial criada em `docs/`.
-- `AGENTS.md` criado com regras de arquitetura, stack, fluxo de desenvolvimento e prioridade de implementacao.
-
-Commits relacionados:
-
-```txt
-9810b62 chore(project): initialize monorepo foundation
-5bde250 docs(agents): add mandatory docs reading instructions
-```
-
-### Fundacao da API
-
-- API configurada com Node 24, TypeScript, ESM e `@tsconfig/node24`.
-- Fastify configurado em `apps/api/src/server.ts`.
-- Carregamento e validacao de ambiente com Zod em `apps/api/src/env/index.ts`.
-- Estrutura inicial de plugins criada em `apps/api/src/plugins`.
-- Rota de health check criada:
-
-```txt
-GET /health
-```
-
-Resposta esperada:
-
-```json
-{
-  "data": {
-    "status": "ok"
-  }
-}
-```
-
-Commit relacionado:
-
-```txt
-110f90f build(api): configure fastify foundation
-```
-
-### Banco de dados e Drizzle
-
-- PostgreSQL configurado via `docker-compose.yml`.
-- Drizzle ORM configurado.
-- `drizzle-kit` configurado.
-- Arquivo `apps/api/drizzle.config.ts` criado.
-- Conexao inicial com o banco criada em:
-
-```txt
-apps/api/src/database/index.ts
-```
-
-- Estrutura de schema padronizada em:
-
-```txt
-apps/api/src/database/schema/
-```
-
-- Scripts adicionados na API:
-
-```txt
-pnpm --filter api db:generate
-pnpm --filter api db:migrate
-pnpm --filter api db:studio
-pnpm --filter api db:seed
-```
-
-Commit relacionado:
-
-```txt
-6960378 build(database): configure drizzle foundation
-```
-
-### Seed local
-
-- Script de seed criado em:
-
-```txt
-apps/api/src/database/seed.ts
-```
-
-- O seed cria dados ficticios para desenvolvimento local:
-
-```txt
-3 usuarios com contas Better Auth
-3 empresas
-21 perguntas de diagnostico
-4 diagnosticos
-63 respostas
-21 scores por area
-```
-
-- Credenciais locais:
-
-```txt
-admin@kairos.local      / Kairos@123456
-consultora@kairos.local / Kairos@123456
-viewer@kairos.local     / Kairos@123456
-```
-
-### Better Auth
-
-- Better Auth configurado com Drizzle Adapter e PostgreSQL.
-- CORS configurado para frontend separado.
-- Plugin de auth criado e registrado no Fastify.
-- Rota base do Better Auth registrada:
-
-```txt
-/api/auth/*
-```
-
-- Auth configurado em:
-
-```txt
-apps/api/src/auth/index.ts
-```
-
-- Tabelas padrao da Better Auth geradas:
-
-```txt
-user
-session
-account
-verification
-```
-
-- Migration inicial criada e aplicada:
-
-```txt
-apps/api/src/database/migrations/0000_broad_peter_quill.sql
-```
-
-- Endpoints Better Auth ja testados:
-
-```txt
-POST /api/auth/sign-up/email
-POST /api/auth/sign-in/email
-GET /api/auth/get-session
-```
-
-Commit relacionado:
-
-```txt
-cd3eb60 build(auth): configure better auth foundation
-```
-
-### Usuarios, roles e autenticacao interna
-
-- Helper de sessao criado em:
-
-```txt
-apps/api/src/auth/session.ts
-```
-
-- Modulo `users` criado seguindo a arquitetura definida:
-
-```txt
-apps/api/src/modules/users/
-  users.routes.ts
-  users.controller.ts
-  users.service.ts
-  users.schemas.ts
-  users.types.ts
-```
-
-- Endpoint criado:
-
-```txt
-GET /users/me
-```
-
-- Roles de usuario adicionadas:
+- Monorepo com `apps/api`, `apps/web`, `packages/shared` e `docs`.
+- PostgreSQL via Docker Compose.
+- Better Auth configurado.
+- Roles de usuario:
 
 ```txt
 admin
@@ -202,150 +32,15 @@ consultant
 viewer
 ```
 
-- Novos usuarios nascem como `admin`.
-- `GET /users/me` retorna a role do usuario.
-- PreHandlers de autenticacao/autorizacao criados em:
+- Endpoint de usuario autenticado:
 
 ```txt
-apps/api/src/auth/guards.ts
+GET /users/me
 ```
 
-Guards atuais:
+### Empresas
 
-```txt
-requireAuth
-requireRole
-getRequiredCurrentUser
-```
-
-- `FastifyRequest` foi tipado com `currentUser` em:
-
-```txt
-apps/api/src/types/fastify.d.ts
-```
-
-- Rota de logoff criada:
-
-```txt
-POST /auth/sign-out
-```
-
-Commits relacionados:
-
-```txt
-7ed73aa feat(users): add current user endpoint
-6cc284c feat(companies): add companies module with user roles
-5d45854 refactor(auth): add auth prehandlers
-f45f70c feat(auth): add sign out route
-```
-
-### Variaveis de ambiente
-
-- `apps/api/.env` local criado e mantido fora do Git.
-- `apps/api/.env.example` mantido como modelo versionado.
-- Defaults sensiveis removidos do Zod.
-- Variaveis obrigatorias validadas na inicializacao da API.
-- `WEB_ORIGINS` configurado para aceitar multiplas origins separadas por virgula.
-- `WEB_ORIGIN` ainda e aceito como fallback temporario.
-
-Variaveis atuais da API:
-
-```env
-NODE_ENV=development
-HOST=0.0.0.0
-PORT=3333
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/diagnostico_360
-BETTER_AUTH_SECRET=change-me-at-least-32-characters
-BETTER_AUTH_URL=http://localhost:3333
-WEB_ORIGINS=http://localhost:3000,http://localhost:3333,http://127.0.0.1:3333
-```
-
-Commit relacionado:
-
-```txt
-d136090 build(env): require api environment variables
-```
-
-### Atualizacao de padrao Zod
-
-- Schemas atualizados para usar helpers top-level do Zod 4.
-- Exemplos:
-
-```ts
-z.url()
-z.email()
-```
-
-Em vez de:
-
-```ts
-z.string().url()
-z.string().email()
-```
-
-Commit relacionado:
-
-```txt
-a39ab84 refactor(api): use zod top-level string formats
-```
-
-### Documentacao de API
-
-- Referencia de API criada em:
-
-```txt
-docs/api-reference.md
-```
-
-- A documentacao descreve:
-  - execucao local;
-  - padrao de resposta;
-  - autenticacao por cookie;
-  - roles;
-  - rotas implementadas;
-  - fluxo de teste no Insomnia;
-  - erros comuns;
-  - rotas planejadas.
-
-Commit relacionado:
-
-```txt
-4bb754f docs(api): add API route reference
-```
-
-### Modulo de empresas
-
-- Modulo `companies` criado seguindo a arquitetura definida:
-
-```txt
-apps/api/src/modules/companies/
-  companies.routes.ts
-  companies.controller.ts
-  companies.service.ts
-  companies.schemas.ts
-  companies.types.ts
-```
-
-- Schema Drizzle criado em:
-
-```txt
-apps/api/src/database/schema/companies.ts
-```
-
-- Migration criada:
-
-```txt
-apps/api/src/database/migrations/0001_clear_warhawk.sql
-```
-
-- Cada empresa pertence ao usuario que criou a conta:
-
-```txt
-user 1:N companies
-companies.owner_user_id -> user.id
-```
-
-- CRUD completo implementado:
+- Modulo `companies` completo:
 
 ```txt
 POST   /companies
@@ -355,129 +50,73 @@ PATCH  /companies/:id
 DELETE /companies/:id
 ```
 
-- Escrita em empresas exige `role = admin`.
-- Todas as operacoes sao escopadas por `ownerUserId`.
+- Toda empresa pertence ao usuario autenticado por `owner_user_id`.
 
-Commits relacionados:
+### Novo modelo de diagnostico
 
-```txt
-6cc284c feat(companies): add companies module with user roles
-3129712 feat(companies): complete companies CRUD
-```
-
-### Fundacao do Diagnostico 360
-
-- Schemas Drizzle criados:
+O modelo antigo de `areas` e `perguntas` globais foi substituido por:
 
 ```txt
-apps/api/src/database/schema/diagnostic-areas.ts
-apps/api/src/database/schema/diagnostic-questions.ts
-apps/api/src/database/schema/diagnostics.ts
-apps/api/src/database/schema/diagnostic-answers.ts
-apps/api/src/database/schema/diagnostic-scores.ts
-```
+diagnostic_templates
+  -> diagnostic_template_areas
+    -> diagnostic_template_questions
 
-- Migration criada e aplicada localmente:
+companies
+  -> company_diagnostic_areas
+    -> company_diagnostic_questions
 
-```txt
-apps/api/src/database/migrations/0003_mean_gressill.sql
-```
-
-- Tabelas criadas:
-
-```txt
-diagnostic_areas
-diagnostic_questions
 diagnostics
-diagnostic_answers
-diagnostic_scores
+  -> diagnostic_answers
+  -> diagnostic_scores
 ```
 
-- Areas padrao inseridas pela migration:
+Regra principal:
 
 ```txt
-Marketing
-Comercial
-Operacao
-Financeiro
-Gestao
-Atendimento
-Recursos Humanos
+Template e global.
+Empresa recebe uma copia propria e editavel.
+Diagnostico responde apenas a estrutura da empresa.
 ```
 
-- Constraint criada para respostas futuras:
+### Rotas de templates
 
 ```txt
-diagnostic_answers.score >= 0 AND diagnostic_answers.score <= 10
+GET  /diagnostic-templates
+GET  /diagnostic-templates/:id
+POST /diagnostic-templates
+POST /diagnostic-templates/:id/areas
+POST /diagnostic-template-areas/:id/questions
 ```
 
-- Modulo `diagnostics` criado:
+### Rotas da estrutura da empresa
 
 ```txt
-apps/api/src/modules/diagnostics/
-  diagnostics.routes.ts
-  diagnostics.controller.ts
-  diagnostics.service.ts
-  diagnostics.schemas.ts
-  diagnostics.types.ts
+POST /companies/:companyId/diagnostic-setup/from-template
+GET  /companies/:companyId/diagnostic-areas
+GET  /company-diagnostic-areas/:id
+POST /companies/:companyId/diagnostic-areas
+POST /company-diagnostic-areas/:id/questions
 ```
 
-- Endpoints iniciais implementados:
+### Rotas do diagnostico
 
 ```txt
-GET /diagnostic-areas
-GET /diagnostic-areas/:areaId
-POST /diagnostic-areas/:areaId/questions
-PATCH /diagnostic-questions/:id
-PATCH /diagnostic-questions/:id/status
-POST /diagnostics
-GET /diagnostics/:id
-GET /companies/:companyId/diagnostics
-POST /diagnostics/:id/answers
-GET /diagnostics/:id/answers
-PATCH /diagnostic-answers/:id
+POST   /diagnostics
+GET    /diagnostics/:id
+GET    /companies/:companyId/diagnostics
+POST   /diagnostics/:id/answers
+GET    /diagnostics/:id/answers
+PATCH  /diagnostic-answers/:id
 DELETE /diagnostic-answers/:id
+POST   /diagnostics/:id/complete
+GET    /diagnostics/:id/scores
 ```
 
-- Modulo `diagnostic-questions` criado para leitura da configuracao do formulario:
+### Scoring
 
-```txt
-apps/api/src/modules/diagnostic-questions/
-  diagnostic-questions.routes.ts
-  diagnostic-questions.controller.ts
-  diagnostic-questions.service.ts
-  diagnostic-questions.schemas.ts
-  diagnostic-questions.types.ts
-```
-
-- `GET /diagnostic-areas` retorna areas ativas com perguntas ativas, permitindo descobrir `questionId` para enviar respostas.
-- `POST /diagnostic-areas/:areaId/questions` permite que usuarios `admin` criem perguntas em areas ativas.
-- Perguntas podem ser editadas e ativadas/desativadas por usuarios `admin`.
-- Todo diagnostico pertence a uma empresa.
-- A API valida se a empresa pertence ao usuario logado antes de criar/listar/buscar diagnosticos.
-- Diagnosticos nascem com:
-
-```txt
-status = draft
-completed_at = null
-```
-
-- Respostas de diagnostico podem ser registradas em diagnosticos `draft`.
-- Respostas de diagnostico podem ser listadas, atualizadas e removidas enquanto o diagnostico estiver em `draft`.
-- A API valida se o diagnostico pertence a uma empresa do usuario logado.
-- A API valida se a pergunta existe e esta ativa.
-- A API bloqueia respostas duplicadas para a mesma pergunta no mesmo diagnostico.
-- A API bloqueia novas respostas em diagnosticos ja finalizados.
-- Diagnosticos podem ser finalizados por:
-
-```txt
-POST /diagnostics/:id/complete
-```
-
-- A finalizacao calcula e persiste scores por area na tabela `diagnostic_scores`.
-- O score geral e calculado pela media dos scores das areas respondidas.
-- A API identifica gargalo principal e segunda prioridade pelas areas com menor score.
-- A classificacao de saude segue as regras do produto:
+- Score da area: media das respostas daquela area da empresa.
+- Score geral: media dos scores das areas respondidas.
+- Classificacao:
 
 ```txt
 0 a 4.9   = critical
@@ -485,130 +124,107 @@ POST /diagnostics/:id/complete
 7.5 a 10  = healthy
 ```
 
-- Scores de diagnosticos finalizados podem ser consultados por:
+- O principal gargalo e a area com menor score.
+- A segunda prioridade e a segunda menor area.
+
+## Banco de dados
+
+### Migrations atuais
 
 ```txt
-GET /diagnostics/:id/scores
+0000_broad_peter_quill.sql
+0001_clear_warhawk.sql
+0002_supreme_blindfold.sql
+0003_polite_dazzler.sql
 ```
 
-Commits relacionados:
+### O que a migration `0003_polite_dazzler.sql` faz
+
+- Cria tabelas de templates.
+- Cria tabelas de areas e perguntas por empresa.
+- Mantem `diagnostics`, `diagnostic_answers` e `diagnostic_scores`.
+- Faz `answers` apontarem para `company_diagnostic_questions`.
+- Faz `scores` apontarem para `company_diagnostic_areas`.
+
+## Seed local
+
+O seed foi adaptado para o novo modelo e agora cria:
+
+- 3 usuarios
+- 3 empresas
+- 1 template padrao
+- copia do template para as empresas
+- diagnosticos ficticios
+- respostas e scores coerentes com a estrutura da empresa
+
+Credenciais locais:
 
 ```txt
-feat(diagnostics): create diagnostics foundation
-feat(diagnostics): add diagnostic answers endpoint
+admin@kairos.local      / Kairos@123456
+consultora@kairos.local / Kairos@123456
+viewer@kairos.local     / Kairos@123456
 ```
 
-## Validacoes ja realizadas
-
-Durante a configuracao e evolucao do backend, foram validados:
+## Validacoes feitas
 
 ```txt
 pnpm.cmd --filter api exec tsc --noEmit
 pnpm.cmd --filter api build
-pnpm.cmd --filter api db:generate
 pnpm.cmd --filter api db:migrate
-docker compose up -d
 docker compose exec -T postgres pg_isready -U postgres -d diagnostico_360
 ```
 
-Tambem foram testados em momentos anteriores:
-
-```txt
-GET /health
-POST /api/auth/sign-up/email
-POST /api/auth/sign-in/email
-GET /api/auth/get-session
-GET /users/me
-POST /companies
-GET /companies
-GET /companies/:id
-```
-
-## Observacoes importantes
-
-- O arquivo real `apps/api/.env` nao deve ser commitado.
-- O arquivo `apps/api/.env.example` deve continuar versionado como modelo.
-- A tabela de autenticacao criada pela Better Auth chama-se `user`, no singular.
-- A role padrao de novos usuarios e `admin`.
-- O vinculo atual de empresa e `companies.owner_user_id -> user.id`.
-- Ainda nao existe tabela `company_members`; se houver equipes por cliente, esta sera uma evolucao futura.
-- O PostgreSQL roda via Docker Compose usando o banco `diagnostico_360`.
-- A API usa a porta `3333` por padrao.
-
 ## Onde paramos
 
-Paramos depois da implementacao de finalizacao e scoring do modulo `diagnostics`.
+Paramos com o novo modelo de diagnostico flexivel implementado no backend e no banco.
 
-Ja existe:
-
-```txt
-GET /diagnostic-areas
-GET /diagnostic-areas/:areaId
-POST /diagnostic-areas/:areaId/questions
-PATCH /diagnostic-questions/:id
-PATCH /diagnostic-questions/:id/status
-POST /diagnostics
-GET /diagnostics/:id
-GET /companies/:companyId/diagnostics
-POST /diagnostics/:id/answers
-GET /diagnostics/:id/answers
-PATCH /diagnostic-answers/:id
-DELETE /diagnostic-answers/:id
-POST /diagnostics/:id/complete
-GET /diagnostics/:id/scores
-```
-
-Ainda falta implementar a proxima camada de leitura consolidada:
+O fluxo core agora e:
 
 ```txt
-GET /companies/:companyId/dashboard
+1. Criar empresa
+2. Criar ou listar template
+3. Aplicar template na empresa
+4. Ajustar areas e perguntas da empresa
+5. Criar diagnostico
+6. Responder perguntas da empresa
+7. Finalizar diagnostico
+8. Ler scores
 ```
 
-## Proximos passos recomendados
+## Proximo passo recomendado
 
 ### 1. Dashboard
 
-Criar endpoint:
+Criar:
 
 ```txt
 GET /companies/:companyId/dashboard
 ```
 
-Deve exibir:
+Esse endpoint deve ler o novo modelo por empresa e exibir:
 
-- saude geral;
-- principal gargalo;
-- segunda prioridade;
-- evolucao mensal;
-- status dos planos de acao.
+- saude geral
+- gargalo principal
+- segunda prioridade
+- evolucao mensal
+- status dos planos de acao
 
-### 2. Planos de acao
+### 2. Rotas de edicao da estrutura da empresa
 
-Criar modulo de action plans:
+Para completar a flexibilidade prometida, ainda faltam as rotas de manutencao:
+
+```txt
+PATCH /company-diagnostic-areas/:id
+DELETE /company-diagnostic-areas/:id
+PATCH /company-diagnostic-questions/:id
+DELETE /company-diagnostic-questions/:id
+```
+
+### 3. Action plans
 
 ```txt
 POST /action-plans
-GET /companies/:companyId/action-plans
+GET  /companies/:companyId/action-plans
 PATCH /action-plans/:id
 PATCH /action-plans/:id/status
-```
-
-### 3. IA, relatorios e CRM
-
-Somente depois do core:
-
-- IA para resumo executivo;
-- relatorios PDF/Excel;
-- CRM;
-- integracoes externas.
-
-## Ordem recomendada atual
-
-```txt
-1. Dashboard
-2. Action plans
-3. IA
-4. Relatorios
-5. CRM
-6. Integracoes
 ```

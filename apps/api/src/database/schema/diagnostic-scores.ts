@@ -7,7 +7,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { diagnosticAreas } from "./diagnostic-areas.js";
+import { companyDiagnosticAreas } from "./company-diagnostic-areas.js";
 import { diagnostics } from "./diagnostics.js";
 
 export const diagnosticScores = pgTable(
@@ -19,7 +19,7 @@ export const diagnosticScores = pgTable(
       .references(() => diagnostics.id, { onDelete: "cascade" }),
     areaId: uuid("area_id")
       .notNull()
-      .references(() => diagnosticAreas.id, { onDelete: "restrict" }),
+      .references(() => companyDiagnosticAreas.id, { onDelete: "restrict" }),
     score: doublePrecision("score").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

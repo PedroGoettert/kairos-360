@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-import { diagnosticQuestions } from "./diagnostic-questions.js";
+import { companyDiagnosticQuestions } from "./company-diagnostic-areas.js";
 import { diagnostics } from "./diagnostics.js";
 
 export const diagnosticAnswers = pgTable(
@@ -22,7 +22,7 @@ export const diagnosticAnswers = pgTable(
       .references(() => diagnostics.id, { onDelete: "cascade" }),
     questionId: uuid("question_id")
       .notNull()
-      .references(() => diagnosticQuestions.id, { onDelete: "restrict" }),
+      .references(() => companyDiagnosticQuestions.id, { onDelete: "restrict" }),
     score: integer("score").notNull(),
     comment: text("comment"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
