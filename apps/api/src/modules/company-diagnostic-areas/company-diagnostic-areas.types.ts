@@ -9,6 +9,8 @@ import type {
   companyDiagnosticQuestionSchema,
   createCompanyDiagnosticAreaSchema,
   createCompanyDiagnosticQuestionSchema,
+  updateCompanyDiagnosticAreaSchema,
+  updateCompanyDiagnosticQuestionSchema,
 } from "./company-diagnostic-areas.schemas.js";
 
 export type CompanyDiagnosticAreasCompanyParams = z.infer<
@@ -25,6 +27,12 @@ export type CreateCompanyDiagnosticAreaInput = z.infer<
 >;
 export type CreateCompanyDiagnosticQuestionInput = z.infer<
   typeof createCompanyDiagnosticQuestionSchema
+>;
+export type UpdateCompanyDiagnosticAreaInput = z.infer<
+  typeof updateCompanyDiagnosticAreaSchema
+>;
+export type UpdateCompanyDiagnosticQuestionInput = z.infer<
+  typeof updateCompanyDiagnosticQuestionSchema
 >;
 export type CompanyDiagnosticQuestion = z.infer<
   typeof companyDiagnosticQuestionSchema
@@ -80,4 +88,38 @@ export type CreateCompanyDiagnosticQuestionResult =
     }
   | {
       status: "area_not_found" | "question_already_exists";
+    };
+
+export type UpdateCompanyDiagnosticAreaResult =
+  | {
+      status: "updated";
+      area: CompanyDiagnosticArea;
+    }
+  | {
+      status: "area_not_found" | "slug_already_exists";
+    };
+
+export type DeleteCompanyDiagnosticAreaResult =
+  | {
+      status: "deleted";
+    }
+  | {
+      status: "area_not_found";
+    };
+
+export type UpdateCompanyDiagnosticQuestionResult =
+  | {
+      status: "updated";
+      question: CompanyDiagnosticQuestion;
+    }
+  | {
+      status: "area_not_found" | "question_not_found";
+    };
+
+export type DeleteCompanyDiagnosticQuestionResult =
+  | {
+      status: "deleted";
+    }
+  | {
+      status: "question_not_found";
     };

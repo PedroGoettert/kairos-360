@@ -5,8 +5,12 @@ import {
   applyTemplateToCompanyController,
   createCompanyDiagnosticAreaController,
   createCompanyDiagnosticQuestionController,
+  deleteCompanyDiagnosticAreaController,
+  deleteCompanyDiagnosticQuestionController,
   getCompanyDiagnosticAreaByIdController,
   listCompanyDiagnosticAreasController,
+  updateCompanyDiagnosticAreaController,
+  updateCompanyDiagnosticQuestionController,
 } from "./company-diagnostic-areas.controller.js";
 
 export async function companyDiagnosticAreasRoutes(
@@ -46,5 +50,33 @@ export async function companyDiagnosticAreasRoutes(
       preHandler: [requireAuth, requireRole("admin")],
     },
     createCompanyDiagnosticQuestionController,
+  );
+  server.patch(
+    "/company-diagnostic-areas/:id",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    updateCompanyDiagnosticAreaController,
+  );
+  server.delete(
+    "/company-diagnostic-areas/:id",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    deleteCompanyDiagnosticAreaController,
+  );
+  server.patch(
+    "/company-diagnostic-questions/:id",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    updateCompanyDiagnosticQuestionController,
+  );
+  server.delete(
+    "/company-diagnostic-questions/:id",
+    {
+      preHandler: [requireAuth, requireRole("admin")],
+    },
+    deleteCompanyDiagnosticQuestionController,
   );
 }

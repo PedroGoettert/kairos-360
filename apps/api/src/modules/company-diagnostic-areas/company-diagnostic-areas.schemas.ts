@@ -33,6 +33,21 @@ export const createCompanyDiagnosticQuestionSchema = z.object({
   displayOrder: z.int().positive().optional(),
 });
 
+export const updateCompanyDiagnosticAreaSchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  slug: z.string().trim().min(1).optional(),
+  description: optionalTextSchema,
+  displayOrder: z.int().positive().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const updateCompanyDiagnosticQuestionSchema = z.object({
+  question: z.string().trim().min(1).optional(),
+  description: optionalTextSchema,
+  displayOrder: z.int().positive().optional(),
+  isActive: z.boolean().optional(),
+});
+
 export const companyDiagnosticQuestionSchema = z.object({
   id: z.uuid(),
   companyAreaId: z.uuid(),

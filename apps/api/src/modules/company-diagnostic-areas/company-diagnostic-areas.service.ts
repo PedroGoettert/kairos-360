@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 
 import { db } from "../../database/index.js";
 import {
@@ -20,8 +20,14 @@ import type {
   CreateCompanyDiagnosticAreaResult,
   CreateCompanyDiagnosticQuestionInput,
   CreateCompanyDiagnosticQuestionResult,
+  DeleteCompanyDiagnosticAreaResult,
+  DeleteCompanyDiagnosticQuestionResult,
   GetCompanyDiagnosticAreaByIdResult,
   ListCompanyDiagnosticAreasResult,
+  UpdateCompanyDiagnosticAreaInput,
+  UpdateCompanyDiagnosticAreaResult,
+  UpdateCompanyDiagnosticQuestionInput,
+  UpdateCompanyDiagnosticQuestionResult,
 } from "./company-diagnostic-areas.types.js";
 
 export async function listCompanyDiagnosticAreas(
@@ -392,4 +398,205 @@ async function getNextCompanyQuestionDisplayOrder(areaId: string): Promise<numbe
     .limit(1);
 
   return (lastQuestion?.displayOrder ?? 0) + 1;
+}
+
+export async function updateCompanyDiagnosticArea(
+  currentUserId: string,
+  areaId: string,
+  input: UpdateCompanyDiagnosticAreaInput,
+): Promise<UpdateCompanyDiagnosticAreaResult> {
+  const [area] = await db
+    .select({
+      id: companyDiagnosticAreas.id,
+      companyId: companyDiagnosticAreas.companyId,
+      slug: companyDiagnosticAreas.slug,
+    })
+    .from(companyDiagnosticAreas)
+    .innerJoin(
+      companies,
+      eq(companyDiagnosticAreas.companyId, companies.id),
+    )
+    .where(
+      and(
+        eq(companyDiagnosticAreas.id, areaId),
+        eq(companies.ownerUserId, currentUserId),
+      ),
+    )
+    .limit(1);
+
+  if (!area) {
+    return { status: "area_not_found" };
+  }
+
+  if (input.slug && input.slug !== area.slug) {
+    const [existingArea] = await db
+      .select({
+        id: companyDiagnosticAreas.id,
+      })
+      .from(companyDiagnosticAreas)
+      .where(
+        and(
+          eq(companyDiagnosticAreas.companyId, area.companyId),
+          eq(companyDiagnosticAreas.slug, input.slug),
+          ne(companyDiagnosticAreas.id, areaId),
+        ),
+      )
+      .limit(1);
+
+    if (existingArea) {
+      return { status: "slug_already_exists" };
+    }
+  }
+
+  const [updatedArea] = await db
+    .update(companyDiagnosticAreas)
+    .set(input)
+    .where(eq(companyDiagnosticAreas.id, areaId))
+    .returning();
+
+  if (!updatedArea) {
+    throw new Error("Company diagnostic area update failed");
+  }
+
+  const questions = await db
+    .select()
+    .from(companyDiagnosticQuestions)
+    .where(eq(companyDiagnosticQuestions.companyAreaId, areaId))
+    .orderBy(asc(companyDiagnosticQuestions.displayOrder));
+
+  return {
+    status: "updated",
+    area: {
+      ...updatedArea,
+      questions: questions.map((q) => ({
+        id: q.id,
+        companyAreaId: q.companyAreaId,
+        question: q.question,
+        description: q.description,
+        displayOrder: q.displayOrder,
+        isActive: q.isActive,
+      })),
+    },
+  };
+}
+
+export async function deleteCompanyDiagnosticArea(
+  currentUserId: string,
+  areaId: string,
+): Promise<DeleteCompanyDiagnosticAreaResult> {
+  const [area] = await db
+    .select({
+      id: companyDiagnosticAreas.id,
+    })
+    .from(companyDiagnosticAreas)
+    .innerJoin(
+      companies,
+      eq(companyDiagnosticAreas.companyId, companies.id),
+    )
+    .where(
+      and(
+        eq(companyDiagnosticAreas.id, areaId),
+        eq(companies.ownerUserId, currentUserId),
+      ),
+    )
+    .limit(1);
+
+  if (!area) {
+    return { status: "area_not_found" };
+  }
+
+  await db
+    .delete(companyDiagnosticAreas)
+    .where(eq(companyDiagnosticAreas.id, areaId));
+
+  return { status: "deleted" };
+}
+
+export async function updateCompanyDiagnosticQuestion(
+  currentUserId: string,
+  questionId: string,
+  input: UpdateCompanyDiagnosticQuestionInput,
+): Promise<UpdateCompanyDiagnosticQuestionResult> {
+  const [question] = await db
+    .select({
+      id: companyDiagnosticQuestions.id,
+    })
+    .from(companyDiagnosticQuestions)
+    .innerJoin(
+      companyDiagnosticAreas,
+      eq(companyDiagnosticQuestions.companyAreaId, companyDiagnosticAreas.id),
+    )
+    .innerJoin(
+      companies,
+      eq(companyDiagnosticAreas.companyId, companies.id),
+    )
+    .where(
+      and(
+        eq(companyDiagnosticQuestions.id, questionId),
+        eq(companies.ownerUserId, currentUserId),
+      ),
+    )
+    .limit(1);
+
+  if (!question) {
+    return { status: "question_not_found" };
+  }
+
+  const [updatedQuestion] = await db
+    .update(companyDiagnosticQuestions)
+    .set(input)
+    .where(eq(companyDiagnosticQuestions.id, questionId))
+    .returning({
+      id: companyDiagnosticQuestions.id,
+      companyAreaId: companyDiagnosticQuestions.companyAreaId,
+      question: companyDiagnosticQuestions.question,
+      description: companyDiagnosticQuestions.description,
+      displayOrder: companyDiagnosticQuestions.displayOrder,
+      isActive: companyDiagnosticQuestions.isActive,
+    });
+
+  if (!updatedQuestion) {
+    throw new Error("Company diagnostic question update failed");
+  }
+
+  return {
+    status: "updated",
+    question: updatedQuestion,
+  };
+}
+
+export async function deleteCompanyDiagnosticQuestion(
+  currentUserId: string,
+  questionId: string,
+): Promise<DeleteCompanyDiagnosticQuestionResult> {
+  const [question] = await db
+    .select({
+      id: companyDiagnosticQuestions.id,
+    })
+    .from(companyDiagnosticQuestions)
+    .innerJoin(
+      companyDiagnosticAreas,
+      eq(companyDiagnosticQuestions.companyAreaId, companyDiagnosticAreas.id),
+    )
+    .innerJoin(
+      companies,
+      eq(companyDiagnosticAreas.companyId, companies.id),
+    )
+    .where(
+      and(
+        eq(companyDiagnosticQuestions.id, questionId),
+        eq(companies.ownerUserId, currentUserId),
+      ),
+    )
+    .limit(1);
+
+  if (!question) {
+    return { status: "question_not_found" };
+  }
+
+  await db
+    .delete(companyDiagnosticQuestions)
+    .where(eq(companyDiagnosticQuestions.id, questionId));
+
+  return { status: "deleted" };
 }
