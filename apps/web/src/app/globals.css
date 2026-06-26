@@ -242,6 +242,24 @@ a {
   padding: 0 14px;
 }
 
+.logout-link {
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.logout-link:hover {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--danger);
+}
+
 .avatar {
   display: grid;
   width: 38px;

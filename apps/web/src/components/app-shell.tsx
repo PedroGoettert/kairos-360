@@ -55,6 +55,9 @@ export function AppShell({ activeNav, eyebrow, title, children }: AppShellProps)
             <button className="period-button" type="button">
               Junho 2026
             </button>
+            <Link className="logout-link" href="/logout">
+              Sair
+            </Link>
             <div className="avatar" aria-label="Consultor Pedro">
               P
             </div>
