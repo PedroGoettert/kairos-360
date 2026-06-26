@@ -1076,6 +1076,18 @@ a {
   margin-top: 4px;
 }
 
+.auth-switch {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin: 0;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--accent);
+  font-weight: 800;
+}
+
 @media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 1fr;

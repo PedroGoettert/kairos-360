@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -82,6 +83,10 @@ export function LoginForm({ redirectTo = "/dashboard" }: LoginFormProps) {
       <button className="primary-action auth-submit" disabled={isSubmitting} type="submit">
         {isSubmitting ? "Entrando..." : "Entrar"}
       </button>
+
+      <p className="auth-switch">
+        Ainda não tem acesso? <Link href="/signup">Criar usuário</Link>
+      </p>
     </form>
   );
 }
