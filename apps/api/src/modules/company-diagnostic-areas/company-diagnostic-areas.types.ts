@@ -105,9 +105,6 @@ export type UpdateCompanyDiagnosticAreaResult =
 
 export type DeleteCompanyDiagnosticAreaResult =
   | {
-      status: "deleted";
-    }
-  | {
       status: "deactivated";
     }
   | {
@@ -120,7 +117,7 @@ export type UpdateCompanyDiagnosticQuestionResult =
       question: CompanyDiagnosticQuestion;
     }
   | {
-      status: "area_not_found" | "question_not_found";
+      status: "question_not_found";
     };
 
 export type DeleteCompanyDiagnosticQuestionResult =

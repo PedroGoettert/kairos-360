@@ -218,14 +218,10 @@ export async function deleteCompanyDiagnosticAreaController(
   const { id } = companyDiagnosticAreaParamsSchema.parse(request.params);
   const result = await deleteCompanyDiagnosticArea(currentUser.id, id);
 
-  if (result.status === "deleted") {
-    return reply.status(204).send();
-  }
-
   if (result.status === "deactivated") {
     return reply.send({
       data: {
-        message: "Company diagnostic area has been deactivated due to existing scores",
+        message: "Company diagnostic area has been deactivated",
       },
     });
   }

@@ -6,7 +6,6 @@ import {
   companyDiagnosticQuestions,
   companies,
   diagnosticAnswers,
-  diagnosticScores,
   diagnosticTemplateAreas,
   diagnosticTemplateQuestions,
   diagnosticTemplates,
@@ -507,28 +506,12 @@ export async function deleteCompanyDiagnosticArea(
     return { status: "area_not_found" };
   }
 
-  const [existingScore] = await db
-    .select({
-      id: diagnosticScores.id,
-    })
-    .from(diagnosticScores)
-    .where(eq(diagnosticScores.areaId, areaId))
-    .limit(1);
-
-  if (existingScore) {
-    await db
-      .update(companyDiagnosticAreas)
-      .set({ isActive: false })
-      .where(eq(companyDiagnosticAreas.id, areaId));
-
-    return { status: "deactivated" };
-  }
-
   await db
-    .delete(companyDiagnosticAreas)
+    .update(companyDiagnosticAreas)
+    .set({ isActive: false })
     .where(eq(companyDiagnosticAreas.id, areaId));
 
-  return { status: "deleted" };
+  return { status: "deactivated" };
 }
 
 export async function updateCompanyDiagnosticQuestion(
