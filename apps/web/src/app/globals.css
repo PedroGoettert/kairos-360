@@ -608,6 +608,402 @@ a {
   display: none;
 }
 
+.clients-hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.primary-action {
+  min-height: 46px;
+  align-self: end;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #08080a;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 800;
+  padding: 0 18px;
+}
+
+.primary-action:disabled,
+.secondary-action:disabled,
+.ghost-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.new-client-flow {
+  display: grid;
+  justify-items: end;
+  margin: -4px 0 16px;
+}
+
+.client-create-panel {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin-top: 12px;
+  padding: 18px;
+}
+
+.ghost-action {
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.form-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-field span {
+  color: var(--muted);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.form-field.required span::after {
+  color: var(--accent);
+  content: " *";
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background-soft);
+  color: var(--text);
+  outline: none;
+  padding: 12px 13px;
+}
+
+.form-field input {
+  min-height: 42px;
+}
+
+.form-field textarea {
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: var(--accent);
+}
+
+.form-field input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.form-field small {
+  color: var(--danger);
+  font-size: 0.74rem;
+}
+
+.form-alert {
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-top: 14px;
+  padding: 11px 12px;
+}
+
+.form-alert.error {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.form-alert.success {
+  justify-self: stretch;
+  border: 1px solid rgba(34, 200, 112, 0.3);
+  background: rgba(34, 200, 112, 0.1);
+  color: var(--success);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.secondary-action {
+  min-height: 46px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 0 16px;
+}
+
+.client-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.72fr);
+  gap: 16px;
+}
+
+.client-list-panel {
+  min-height: 620px;
+}
+
+.client-panel-header {
+  margin-bottom: 14px;
+}
+
+.client-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.search-field span {
+  color: var(--muted);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.search-field input {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background-soft);
+  color: var(--text);
+  outline: none;
+  padding: 0 13px;
+}
+
+.search-field input::placeholder {
+  color: #686860;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  min-height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0 13px;
+}
+
+.filter-chip.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #08080a;
+}
+
+.client-table {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.client-table-head,
+.client-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) 88px 120px 132px 140px;
+  gap: 12px;
+  align-items: center;
+}
+
+.client-table-head {
+  min-height: 42px;
+  background: var(--background-soft);
+  color: var(--muted);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  padding: 0 14px;
+}
+
+.client-row {
+  min-height: 74px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  padding: 0 14px;
+}
+
+.client-row:hover,
+.client-row.active {
+  background: rgba(255, 107, 43, 0.07);
+}
+
+.client-company strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.94rem;
+}
+
+.client-company small {
+  display: block;
+  color: var(--muted);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  margin-top: 4px;
+}
+
+.client-score {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.96rem;
+}
+
+.client-detail-panel {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+}
+
+.client-status {
+  border-radius: 999px;
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.client-status.critical {
+  background: rgba(239, 68, 68, 0.14);
+  color: var(--danger);
+}
+
+.client-status.attention {
+  background: rgba(245, 197, 24, 0.14);
+  color: var(--warning);
+}
+
+.client-status.healthy {
+  background: rgba(34, 200, 112, 0.14);
+  color: var(--success);
+}
+
+.client-detail-score {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background-soft);
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.client-detail-score div:first-child {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.client-detail-score span,
+.detail-list span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.client-detail-score strong {
+  color: var(--text);
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.detail-list {
+  display: grid;
+  gap: 8px;
+}
+
+.detail-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.detail-list strong {
+  color: var(--text);
+  font-size: 0.84rem;
+  text-align: right;
+}
+
+.next-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.next-actions a {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background-soft);
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+.next-actions a::after {
+  color: var(--accent);
+  content: ">";
+  font-family: "DM Mono", ui-monospace, monospace;
+}
+
 @media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -626,8 +1022,13 @@ a {
   }
 
   .content-grid,
-  .lower-grid {
+  .lower-grid,
+  .client-layout {
     grid-template-columns: 1fr;
+  }
+
+  .client-detail-panel {
+    position: static;
   }
 
   .kpi-grid {
@@ -690,6 +1091,26 @@ a {
     border-radius: 18px;
   }
 
+  .clients-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-action {
+    justify-self: start;
+  }
+
+  .new-client-flow {
+    justify-items: start;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
   .score-orbit {
     width: 112px;
     height: 112px;
@@ -713,6 +1134,30 @@ a {
 
   .pipeline-row {
     grid-template-columns: 1fr;
+  }
+
+  .client-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .client-table {
+    border: 0;
+    border-radius: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .client-table-head {
+    display: none;
+  }
+
+  .client-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--background-soft);
+    padding: 14px;
   }
 }
 

@@ -1,4 +1,4 @@
-import { BrandLogo } from "@/components/brand-logo";
+import { AppShell } from "@/components/app-shell";
 
 type HealthStatus = "critical" | "attention" | "healthy";
 
@@ -102,15 +102,6 @@ const kpis = [
   { label: "Planos ativos", value: "12", sub: "7 em andamento", tone: "healthy" },
 ];
 
-const navItems = [
-  "Dashboard",
-  "Clientes",
-  "Diagnósticos",
-  "Planos",
-  "Relatórios",
-  "CRM",
-];
-
 const statusLabel: Record<ActionPlan["status"], string> = {
   completed: "Concluído",
   in_progress: "Em andamento",
@@ -127,47 +118,11 @@ export function DashboardOverview() {
   const maxPipelineValue = Math.max(...pipeline.map((stage) => stage.value));
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <BrandLogo />
-        <nav className="sidebar-nav" aria-label="Navegação principal">
-          {navItems.map((item) => (
-            <a
-              className={item === "Dashboard" ? "sidebar-link active" : "sidebar-link"}
-              href="/"
-              key={item}
-            >
-              <span className="sidebar-dot" />
-              {item}
-            </a>
-          ))}
-        </nav>
-        <div className="sidebar-card">
-          <div className="eyebrow">Próxima rotina</div>
-          <strong>Revisão executiva</strong>
-          <span>Hoje, 14:30</span>
-        </div>
-      </aside>
-
-      <main className="workspace">
-        <header className="topbar">
-          <div className="mobile-brand">
-            <BrandLogo compact />
-          </div>
-          <div>
-            <div className="eyebrow">Empresa selecionada</div>
-            <h1>Kairos Performance Lab</h1>
-          </div>
-          <div className="topbar-actions">
-            <button className="period-button" type="button">
-              Junho 2026
-            </button>
-            <div className="avatar" aria-label="Consultor Pedro">
-              P
-            </div>
-          </div>
-        </header>
-
+    <AppShell
+      activeNav="Dashboard"
+      eyebrow="Empresa selecionada"
+      title="Kairos Performance Lab"
+    >
         <section className="hero-panel">
           <div>
             <div className="badge">Diagnóstico 360 ativo</div>
@@ -311,16 +266,6 @@ export function DashboardOverview() {
             </div>
           </article>
         </section>
-      </main>
-
-      <nav className="bottom-nav" aria-label="Navegação mobile">
-        {navItems.slice(0, 4).map((item) => (
-          <a className={item === "Dashboard" ? "active" : ""} href="/" key={item}>
-            <span />
-            {item}
-          </a>
-        ))}
-      </nav>
-    </div>
+    </AppShell>
   );
 }
