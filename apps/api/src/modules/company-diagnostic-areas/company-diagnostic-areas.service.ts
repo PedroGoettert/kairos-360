@@ -5,6 +5,8 @@ import {
   companyDiagnosticAreas,
   companyDiagnosticQuestions,
   companies,
+  diagnosticAnswers,
+  diagnosticScores,
   diagnosticTemplateAreas,
   diagnosticTemplateQuestions,
   diagnosticTemplates,
@@ -505,6 +507,23 @@ export async function deleteCompanyDiagnosticArea(
     return { status: "area_not_found" };
   }
 
+  const [existingScore] = await db
+    .select({
+      id: diagnosticScores.id,
+    })
+    .from(diagnosticScores)
+    .where(eq(diagnosticScores.areaId, areaId))
+    .limit(1);
+
+  if (existingScore) {
+    await db
+      .update(companyDiagnosticAreas)
+      .set({ isActive: false })
+      .where(eq(companyDiagnosticAreas.id, areaId));
+
+    return { status: "deactivated" };
+  }
+
   await db
     .delete(companyDiagnosticAreas)
     .where(eq(companyDiagnosticAreas.id, areaId));
@@ -592,6 +611,23 @@ export async function deleteCompanyDiagnosticQuestion(
 
   if (!question) {
     return { status: "question_not_found" };
+  }
+
+  const [existingAnswer] = await db
+    .select({
+      id: diagnosticAnswers.id,
+    })
+    .from(diagnosticAnswers)
+    .where(eq(diagnosticAnswers.questionId, questionId))
+    .limit(1);
+
+  if (existingAnswer) {
+    await db
+      .update(companyDiagnosticQuestions)
+      .set({ isActive: false })
+      .where(eq(companyDiagnosticQuestions.id, questionId));
+
+    return { status: "deactivated" };
   }
 
   await db

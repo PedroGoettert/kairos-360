@@ -5,6 +5,7 @@ import {
   applyTemplateToCompanySchema,
   companyDiagnosticAreaParamsSchema,
   companyDiagnosticAreasCompanyParamsSchema,
+  companyDiagnosticQuestionParamsSchema,
   createCompanyDiagnosticAreaSchema,
   createCompanyDiagnosticQuestionSchema,
   updateCompanyDiagnosticAreaSchema,
@@ -221,6 +222,14 @@ export async function deleteCompanyDiagnosticAreaController(
     return reply.status(204).send();
   }
 
+  if (result.status === "deactivated") {
+    return reply.send({
+      data: {
+        message: "Company diagnostic area has been deactivated due to existing scores",
+      },
+    });
+  }
+
   return reply.status(404).send({
     error: {
       message: "Company diagnostic area not found",
@@ -234,7 +243,7 @@ export async function updateCompanyDiagnosticQuestionController(
   reply: FastifyReply,
 ) {
   const currentUser = getRequiredCurrentUser(request);
-  const { id } = companyDiagnosticAreaParamsSchema.parse(request.params);
+  const { id } = companyDiagnosticQuestionParamsSchema.parse(request.params);
   const input = updateCompanyDiagnosticQuestionSchema.parse(request.body);
   const result = await updateCompanyDiagnosticQuestion(currentUser.id, id, input);
 
@@ -257,11 +266,19 @@ export async function deleteCompanyDiagnosticQuestionController(
   reply: FastifyReply,
 ) {
   const currentUser = getRequiredCurrentUser(request);
-  const { id } = companyDiagnosticAreaParamsSchema.parse(request.params);
+  const { id } = companyDiagnosticQuestionParamsSchema.parse(request.params);
   const result = await deleteCompanyDiagnosticQuestion(currentUser.id, id);
 
   if (result.status === "deleted") {
     return reply.status(204).send();
+  }
+
+  if (result.status === "deactivated") {
+    return reply.send({
+      data: {
+        message: "Company diagnostic question has been deactivated due to existing answers",
+      },
+    });
   }
 
   return reply.status(404).send({

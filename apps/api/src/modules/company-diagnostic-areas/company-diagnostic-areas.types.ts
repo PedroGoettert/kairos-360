@@ -6,6 +6,7 @@ import type {
   companyDiagnosticAreaSchema,
   companyDiagnosticAreasCompanyParamsSchema,
   companyDiagnosticAreasListSchema,
+  companyDiagnosticQuestionParamsSchema,
   companyDiagnosticQuestionSchema,
   createCompanyDiagnosticAreaSchema,
   createCompanyDiagnosticQuestionSchema,
@@ -18,6 +19,9 @@ export type CompanyDiagnosticAreasCompanyParams = z.infer<
 >;
 export type CompanyDiagnosticAreaParams = z.infer<
   typeof companyDiagnosticAreaParamsSchema
+>;
+export type CompanyDiagnosticQuestionParams = z.infer<
+  typeof companyDiagnosticQuestionParamsSchema
 >;
 export type ApplyTemplateToCompanyInput = z.infer<
   typeof applyTemplateToCompanySchema
@@ -104,6 +108,9 @@ export type DeleteCompanyDiagnosticAreaResult =
       status: "deleted";
     }
   | {
+      status: "deactivated";
+    }
+  | {
       status: "area_not_found";
     };
 
@@ -119,6 +126,9 @@ export type UpdateCompanyDiagnosticQuestionResult =
 export type DeleteCompanyDiagnosticQuestionResult =
   | {
       status: "deleted";
+    }
+  | {
+      status: "deactivated";
     }
   | {
       status: "question_not_found";
