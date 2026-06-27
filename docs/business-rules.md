@@ -1,188 +1,166 @@
-# Regras de Negócio — Kairos 360
+# Regras de Negocio - Kairos 360
 
 ## Objetivo
 
-A plataforma Kairos 360 é um SaaS de diagnóstico contínuo da saúde empresarial. O sistema deve transformar dados de múltiplas fontes (questionário manual, CRM, WhatsApp, Meta Ads, atendimento, comercial, financeiro) em scores de saúde, sinais, alertas e planos de ação executáveis.
+A plataforma Kairos 360 e um SaaS de diagnostico continuo da saude empresarial.
+O sistema deve ajudar uma empresa a monitorar **a propria operacao**.
 
-## Multiempresa
+Ele nao deve ser modelado como uma carteira de clientes de consultoria.
 
-O sistema deve ser multiempresa.
+## Tenant / Organization
 
-Cada cliente possui:
+O sistema e multi-tenant.
 
-- Diagnósticos (baseline manual)
-- Fontes de dados conectadas (data sources)
-- Eventos de negócio (business events)
-- Métricas históricas (metrics history)
-- Sinais (business signals)
-- Alertas (alerts)
-- Insights
-- Dashboard
-- Planos de ação
-- Relatórios
-- Histórico
+Cada conta representa uma organizacao.
 
-Todos os dados devem estar vinculados a uma empresa.
+Cada organizacao possui:
 
-## Diagnóstico Manual (Baseline Inicial)
+- usuarios
+- baseline manual
+- metricas manuais
+- dashboard
+- action plans
+- reports
+- no futuro: data sources, business events, metrics history, signals, alerts e insights
 
-O diagnóstico manual (questionário 360°) é a **baseline inicial** para empresas que ainda não possuem fontes de dados conectadas.
+Todos os dados devem estar vinculados a uma organizacao.
 
-O diagnóstico é composto por áreas.
+## Diagnostico Manual (Baseline Inicial)
 
-Áreas padrão:
+O diagnostico manual e a **baseline inicial** da propria organizacao.
+
+Ele serve para:
+
+- medir maturidade inicial
+- apontar gargalos iniciais
+- orientar os primeiros planos de acao
+
+Areas padrao:
 
 - Marketing
 - Comercial
-- Operação
+- Operacao
 - Financeiro
-- Gestão
+- Gestao
 - Atendimento
 - Recursos Humanos
 
-Cada área possui perguntas configuráveis.
+Cada area possui perguntas configuraveis.
 
 Cada pergunta recebe nota de 0 a 10.
 
-À medida que fontes de dados são conectadas e dados reais são ingeridos, os scores passam a refletir uma combinação ponderada da baseline com evidências de dados contínuos.
+## Operacao manual antes das integracoes
 
-## Diagnóstico Contínuo
+Antes de CRM, WhatsApp ou Facebook, o sistema deve continuar util.
 
-Além da baseline manual, os scores são continuamente atualizados a partir de:
+Por isso, o MVP deve aceitar:
 
-### Business Events (eventos de negócio)
+- baseline manual
+- metricas manuais
+- registros operacionais simples
+- dashboard com leitura consolidada
 
-Toda interação com fontes externas é normalizada em um evento de negócio.
+Essa camada manual nao e provisoria do ponto de vista do produto.
+Ela e uma fase legitima de uso.
+
+## Diagnostico Continuo
+
+Depois da baseline, a leitura de saude deve poder evoluir com:
+
+- metricas manuais
+- business events
+- data sources conectados
+
+## Business Events
+
+Toda interacao relevante deve poder ser modelada como evento.
 
 Exemplos:
 
-- `lead_created`: novo lead no CRM
-- `deal_won`: venda fechada
-- `support_ticket_opened`: ticket de suporte aberto
-- `campaign_click`: clique em campanha
-- `whatsapp_message_received`: mensagem recebida via WhatsApp
+- `lead_created`
+- `deal_won`
+- `invoice_paid`
+- `support_ticket_opened`
+- `campaign_click`
+- `whatsapp_message_received`
 
-### Business Metrics (métricas de negócio)
+## Business Metrics
 
-Métricas são calculadas a partir dos eventos.
+Metricas podem nascer de:
+
+- entrada manual
+- calculo interno
+- eventos ingeridos
 
 Exemplos:
 
-- Taxa de conversão de leads
-- Ticket médio
-- NPS derivado de interações
-- Taxa de resposta do atendimento
-- ROI de campanhas
-- Frequência de contato com cliente
-- Tempo médio de resposta
+- taxa de conversao
+- ticket medio
+- faturamento
+- tempo medio de resposta
+- volume de leads
 
-### Business Signals (sinais de negócio)
+## Business Signals
 
-Sinais são indicadores qualitativos derivados de métricas e eventos.
+Sinais sao indicadores derivados de metricas e eventos.
 
-Regras de derivação:
+Exemplos:
 
-- `conversion_rate_dropped`: taxa de conversão caiu > 15% em 30 dias
-- `support_volume_spike`: volume de tickets > 2 desvios padrão acima da média
-- `campaign_roi_declining`: ROI em declínio por 2 meses consecutivos
-- `response_time_increasing`: tempo de resposta aumentando por 3 meses consecutivos
-- `lead_volume_drop`: volume de leads caiu > 30% em relação ao mês anterior
+- queda de conversao
+- aumento de tickets
+- queda de faturamento
+- queda de ROI
 
-## Cálculo de Score
+## Calculo de Score
 
-### Baseline (diagnóstico manual)
+### Baseline manual
 
-Score da área = média das respostas da área.
+Score da area = media das respostas da area.
 
-Score geral (baseline) = média dos scores das áreas.
+Score geral do baseline = media dos scores das areas.
 
-### Score contínuo
+### Score operacional continuo
 
-O score contínuo combina:
+No futuro, o score continuo deve combinar:
 
-- Baseline manual (peso maior no início, reduz conforme dados são ingeridos)
-- Evidências de métricas (peso aumenta conforme mais dados são coletados)
-- Sinais (podem ajustar o score para cima ou para baixo)
+- baseline manual
+- metricas manuais ou conectadas
+- sinais derivados
 
-Score geral = weighted_average(baseline_score, metric_evidence, signal_adjustments)
+No MVP inicial, a parte garantida e:
 
-Score history: série temporal de todas as alterações de score.
+- score do baseline manual
 
-Score trend: direção (improving, stable, declining).
-
-## Classificação
+## Classificacao
 
 ```txt
-0 até 4.9  = critical / red
-5 até 7.4  = attention / yellow
-7.5 até 10 = healthy / green
+0 ate 4.9  = critical
+5 ate 7.4  = attention
+7.5 ate 10 = healthy
 ```
 
 ## Gargalos
 
-O principal gargalo é a área com menor score.
+O principal gargalo e a area com menor score.
 
-A segunda prioridade é a segunda área com menor score.
-
-O ranking deve ser ordenado do menor score para o maior.
-
-## Sinais e Alertas
-
-Um **sinal** é um indicador derivado de uma ou mais métricas.
-
-Um **alerta** é um sinal que cruzou um threshold configurado para notificação.
-
-Status de alerta:
-
-```txt
-active       = acabou de ser disparado, não tratado
-acknowledged = consultor já viu e reconheceu
-resolved     = causa foi tratada, sinal voltou ao normal
-```
-
-Regras de alerta:
-
-- Todo alerta deve ter um `rule_id` que define a condição de disparo
-- Thresholds devem ser configuráveis por empresa
-- Alertas resolvidos não devem ser reabertos automaticamente sem novo evento
-- O sistema pode agrupar alertas similares para evitar ruído
+A segunda prioridade e a segunda area com menor score.
 
 ## Dashboard
 
-Sempre exibir:
+O dashboard deve exibir, pelo menos:
 
-- Saúde geral (score geral + classificação)
-- Principal gargalo
-- Segunda prioridade
-- Score trend (melhorando, estável, declinando)
-- Últimos sinais e alertas ativos
-- Evolução mensal dos scores
-- Status dos planos de ação
+- saude geral
+- principal gargalo
+- segunda prioridade
+- status dos action plans
+- evolucao disponivel dos indicadores
 
-## CRM
-
-Pipeline padrão:
-
-```txt
-lead
-diagnostic
-meeting
-proposal
-closed
-implementation
-lost
-```
-
-Toda mudança de etapa deve gerar histórico.
-
-Dados do CRM também alimentam business events (ex: `lead_created`, `deal_won`).
-
-## Plano de Ação
+## Action Plans
 
 Todo plano deve possuir:
 
-- objetivo
-- responsável
+- titulo
+- responsavel
 - prazo
 - status
 
@@ -194,57 +172,54 @@ in_progress
 completed
 ```
 
-Planos de ação podem ser sugeridos pela IA e revisados pelo consultor.
+## Reports
 
-## Relatórios
+Relatorios devem apoiar a propria organizacao.
 
-Tipos:
+Tipos esperados:
 
-- Diagnóstico empresarial (baseline + score contínuo)
-- Evolução dos indicadores (métricas históricas)
-- Performance comercial
-- Performance de campanhas
-- Relatório de sinais e alertas
+- baseline manual
+- consolidado operacional
+- sinais e alertas
 
-Exportação:
+Exportacao:
 
 - PDF
 - Excel
 
-## Fontes de Dados (Data Sources)
+## Data Sources
 
-As integrações externas são modeladas como **fontes de dados**.
+As integracoes externas entram depois do fluxo manual.
 
-Cada fonte possui:
+Cada fonte deve possuir:
 
-- `key` identificador único (ex: `meta_ads`, `whatsapp`, `rd_station`)
-- `company_id`
-- `status` (connected, disconnected, error)
-- Configuração de autenticação
-- Metadados de sincronização
+- `key`
+- `organization_id`
+- `status`
+- configuracao
+- metadados de sincronizacao
 
-### Fase 1 (MVP)
+## Ordem pratica do produto
 
-- Meta Ads (como data source de campanhas)
-- WhatsApp (como data source de conversas)
+Fluxo correto:
 
-### Fase 2
+1. criar organizacao
+2. acessar o tenant
+3. rodar baseline manual
+4. registrar metricas manuais se necessario
+5. acompanhar dashboard
+6. criar action plans
+7. gerar reports
+8. conectar data sources depois
 
-- RD Station
-- Hubspot
-- Pipedrive
+## Tempo real como evolucao futura
 
-### Fase 3
+Processamento real-time e evolucao futura.
 
-- ERP
-- Sistemas financeiros
+No MVP:
 
-Não iniciar integrações de fase posterior antes das fases anteriores.
+- manual
+- batch
+- sob demanda
 
-Não iniciar integrações externas antes da camada de data ingestion e business events estar funcional.
-
-## Tempo Real como Evolução Futura
-
-Processamento real-time (streaming, filas, websockets) é evolução futura.
-
-No MVP, toda ingestão e processamento de dados é batch/scheduled.
+ja resolvem.

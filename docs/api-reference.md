@@ -1,9 +1,15 @@
 # Referencia da API
 
-Este documento descreve o fluxo atual da API do Diagnostico 360 com o novo modelo:
+## Aviso
+
+Esta referencia descreve majoritariamente o **estado atual legado** da API.
+
+O dominio atual implementado ainda usa `companies`, mas isso nao representa mais o modelo alvo do produto.
+
+Novo alvo:
 
 ```txt
-template global -> copia editavel por empresa -> diagnostico da empresa
+organization -> baseline manual -> metricas manuais -> dashboard -> action plans -> reports
 ```
 
 ## Execucao Local
@@ -14,353 +20,116 @@ Base URL local:
 http://localhost:3333
 ```
 
-Origem padrão do frontend:
-
-```txt
-http://localhost:3000
-```
-
-Configure a API com a origem exata do web:
-
-```env
-WEB_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-```
-
-Configure o frontend com:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3333
-```
-
-Subir PostgreSQL:
-
-```bash
-docker compose up -d
-```
-
-Aplicar migrations:
-
-```bash
-pnpm --filter api db:migrate
-```
-
-Popular dados ficticios:
-
-```bash
-pnpm --filter api db:seed
-```
-
-## Padrao de Resposta
-
-Sucesso:
-
-```json
-{
-  "data": {}
-}
-```
-
-Lista:
-
-```json
-{
-  "data": []
-}
-```
-
-Erro:
-
-```json
-{
-  "error": {
-    "message": "Error message",
-    "code": "ERROR_CODE"
-  }
-}
-```
-
 ## Autenticacao
 
 - A autenticacao e feita pelo Better Auth em `/api/auth/*`.
 - O usuario logado e identificado pelo cookie de sessao.
-- Chamadas feitas pelo navegador usam `credentials: "include"`.
-- No Insomnia, mantenha a cookie jar habilitada.
 
-## Rotas Implementadas
+## Endpoints atuais implementados
 
-| Metodo | Rota | Auth | Descricao |
-| --- | --- | --- | --- |
-| GET | `/health` | Nao | Health check. |
-| POST | `/api/auth/sign-up/email` | Nao | Cria usuario. |
-| POST | `/api/auth/sign-in/email` | Nao | Faz login. |
-| GET | `/api/auth/get-session` | Cookie | Retorna sessao bruta do Better Auth. |
-| POST | `/auth/sign-out` | Cookie | Encerra sessao. |
-| GET | `/users/me` | Cookie | Retorna usuario atual. |
-| POST | `/companies` | Cookie, role `admin` | Cria empresa. |
-| GET | `/companies` | Cookie | Lista empresas do usuario. |
-| GET | `/companies/:id` | Cookie | Busca empresa do usuario. |
-| PATCH | `/companies/:id` | Cookie, role `admin` | Atualiza empresa. |
-| DELETE | `/companies/:id` | Cookie, role `admin` | Remove empresa. |
-| GET | `/diagnostic-templates` | Cookie | Lista templates globais com areas e perguntas. |
-| GET | `/diagnostic-templates/:id` | Cookie | Busca template global especifico. |
-| POST | `/diagnostic-templates` | Cookie, role `admin` | Cria template global. |
-| POST | `/diagnostic-templates/:id/areas` | Cookie, role `admin` | Cria area em um template. |
-| POST | `/diagnostic-template-areas/:id/questions` | Cookie, role `admin` | Cria pergunta em uma area de template. |
-| POST | `/companies/:companyId/diagnostic-setup/from-template` | Cookie, role `admin` | Copia um template para a empresa. |
-| GET | `/companies/:companyId/diagnostic-areas` | Cookie | Lista areas e perguntas da empresa. |
-| GET | `/company-diagnostic-areas/:id` | Cookie | Busca uma area da empresa. |
-| POST | `/companies/:companyId/diagnostic-areas` | Cookie, role `admin` | Cria area propria da empresa. |
-| POST | `/company-diagnostic-areas/:id/questions` | Cookie, role `admin` | Cria pergunta propria da empresa. |
-| PATCH | `/company-diagnostic-areas/:id` | Cookie, role `admin` | Atualiza area propria da empresa. |
-| DELETE | `/company-diagnostic-areas/:id` | Cookie, role `admin` | Desativa area propria da empresa. |
-| PATCH | `/company-diagnostic-questions/:id` | Cookie, role `admin` | Atualiza pergunta propria da empresa. |
-| DELETE | `/company-diagnostic-questions/:id` | Cookie, role `admin` | Remove ou desativa pergunta propria da empresa. |
-| POST | `/diagnostics` | Cookie | Cria diagnostico para uma empresa. |
-| GET | `/diagnostics/:id` | Cookie | Busca diagnostico. |
-| GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos da empresa. |
-| POST | `/diagnostics/:id/answers` | Cookie | Cria resposta usando pergunta da empresa. |
-| GET | `/diagnostics/:id/answers` | Cookie | Lista respostas do diagnostico. |
-| PATCH | `/diagnostic-answers/:id` | Cookie | Atualiza resposta de diagnostico em draft. |
-| DELETE | `/diagnostic-answers/:id` | Cookie | Remove resposta de diagnostico em draft. |
-| POST | `/diagnostics/:id/complete` | Cookie | Finaliza e calcula scores. |
-| GET | `/diagnostics/:id/scores` | Cookie | Busca scores persistidos do diagnostico. |
-| GET | `/companies/:companyId/dashboard` | Cookie | Consolida a visao manual da empresa. |
-| POST | `/action-plans` | Cookie | Cria plano de acao manual. |
-| GET | `/companies/:companyId/action-plans` | Cookie | Lista planos de acao da empresa. |
-| PATCH | `/action-plans/:id` | Cookie | Atualiza dados principais do plano de acao. |
-| PATCH | `/action-plans/:id/status` | Cookie | Atualiza status do plano de acao. |
-| POST | `/reports/diagnostic/:diagnosticId/pdf` | Cookie | Gera snapshot estruturado do relatorio manual em formato PDF. |
-| POST | `/reports/diagnostic/:diagnosticId/excel` | Cookie | Gera snapshot estruturado do relatorio manual em formato Excel. |
-| GET | `/reports/:id` | Cookie | Busca um relatorio gerado. |
+### Auth
 
-## Modelo Atual
+- `POST /api/auth/sign-up/email`
+- `POST /api/auth/sign-in/email`
+- `GET /api/auth/get-session`
+- `POST /auth/sign-out`
+- `GET /users/me`
 
-Separacao de dados:
+### Dominio legado atual
 
-```txt
-diagnostic_templates
-  -> diagnostic_template_areas
-    -> diagnostic_template_questions
+- `POST /companies`
+- `GET /companies`
+- `GET /companies/:id`
+- `PATCH /companies/:id`
+- `DELETE /companies/:id`
 
-companies
-  -> company_diagnostic_areas
-    -> company_diagnostic_questions
-  -> diagnostics
-    -> diagnostic_answers
-    -> diagnostic_scores
-```
+- `GET /diagnostic-templates`
+- `GET /diagnostic-templates/:id`
+- `POST /diagnostic-templates`
+- `POST /diagnostic-templates/:id/areas`
+- `POST /diagnostic-template-areas/:id/questions`
 
-Regras:
+- `POST /companies/:companyId/diagnostic-setup/from-template`
+- `GET /companies/:companyId/diagnostic-areas`
+- `GET /company-diagnostic-areas/:id`
+- `POST /companies/:companyId/diagnostic-areas`
+- `POST /company-diagnostic-areas/:id/questions`
+- `PATCH /company-diagnostic-areas/:id`
+- `DELETE /company-diagnostic-areas/:id`
+- `PATCH /company-diagnostic-questions/:id`
+- `DELETE /company-diagnostic-questions/:id`
 
-- Template e global.
-- Empresa recebe uma copia editavel do template.
-- Diagnostico responde apenas perguntas da propria empresa.
-- Score e calculado apenas com areas da propria empresa.
+- `POST /diagnostics`
+- `GET /diagnostics/:id`
+- `GET /companies/:companyId/diagnostics`
+- `POST /diagnostics/:id/answers`
+- `GET /diagnostics/:id/answers`
+- `PATCH /diagnostic-answers/:id`
+- `DELETE /diagnostic-answers/:id`
+- `POST /diagnostics/:id/complete`
+- `GET /diagnostics/:id/scores`
 
-## Fluxo Principal
+- `GET /companies/:companyId/dashboard`
+- `POST /action-plans`
+- `GET /companies/:companyId/action-plans`
+- `PATCH /action-plans/:id`
+- `PATCH /action-plans/:id/status`
+- `POST /reports/diagnostic/:diagnosticId/pdf`
+- `POST /reports/diagnostic/:diagnosticId/excel`
+- `GET /reports/:id`
 
-### 1. Autenticacao
+## Endpoints alvo apos a refatoracao
 
-```txt
-POST /api/auth/sign-up/email
-POST /api/auth/sign-in/email
-GET  /users/me
-```
+### Organization
 
-### 2. Empresa
+- `GET /organization`
+- `PATCH /organization`
+- `GET /organization/users`
 
-```txt
-POST /companies
-GET  /companies
-GET  /companies/:id
-```
+### Baseline manual
 
-### 3. Template global
+- `GET /baseline-templates`
+- `POST /organization/baseline-setup/from-template`
+- `GET /organization/baseline-areas`
+- `POST /baseline-diagnostics`
+- `POST /baseline-diagnostics/:id/answers`
+- `POST /baseline-diagnostics/:id/complete`
+- `GET /baseline-diagnostics/:id/scores`
 
-```txt
-GET  /diagnostic-templates
-GET  /diagnostic-templates/:id
-POST /diagnostic-templates
-POST /diagnostic-templates/:id/areas
-POST /diagnostic-template-areas/:id/questions
-```
+### Manual metrics
 
-### 4. Estrutura da empresa
+- `POST /organization/manual-metrics`
+- `GET /organization/manual-metrics`
+- `PATCH /organization/manual-metrics/:id`
 
-```txt
-POST /companies/:companyId/diagnostic-setup/from-template
-GET  /companies/:companyId/diagnostic-areas
-GET  /company-diagnostic-areas/:id
-POST /companies/:companyId/diagnostic-areas
-POST /company-diagnostic-areas/:id/questions
-PATCH /company-diagnostic-areas/:id
-DELETE /company-diagnostic-areas/:id
-PATCH /company-diagnostic-questions/:id
-DELETE /company-diagnostic-questions/:id
-```
+### Dashboard
 
-### 5. Diagnostico
+- `GET /organization/dashboard`
 
-```txt
-POST /diagnostics
-GET  /diagnostics/:id
-GET  /companies/:companyId/diagnostics
-POST /diagnostics/:id/answers
-GET  /diagnostics/:id/answers
-POST /diagnostics/:id/complete
-GET  /diagnostics/:id/scores
-```
+### Action plans
 
-### 6. Dashboard
+- `POST /action-plans`
+- `GET /organization/action-plans`
+- `PATCH /action-plans/:id`
+- `PATCH /action-plans/:id/status`
 
-```txt
-GET /companies/:companyId/dashboard
-```
+### Reports
 
-### 7. Planos de acao
+- `POST /reports/baseline/:diagnosticId/pdf`
+- `POST /reports/baseline/:diagnosticId/excel`
+- `GET /reports/:id`
 
-```txt
-POST  /action-plans
-GET   /companies/:companyId/action-plans
-PATCH /action-plans/:id
-PATCH /action-plans/:id/status
-```
+### Fase posterior
 
-### 8. Relatorios
+- `POST /organization/data-sources`
+- `GET /organization/data-sources`
+- `POST /data-ingestion/:sourceKey`
+- `GET /organization/business-events`
+- `GET /organization/business-signals`
+- `GET /organization/alerts`
+- `GET /organization/insights`
 
-```txt
-POST /reports/diagnostic/:diagnosticId/pdf
-POST /reports/diagnostic/:diagnosticId/excel
-GET  /reports/:id
-```
+## Regra importante
 
-## Exemplos Rapidos
-
-### POST `/diagnostic-templates`
-
-```json
-{
-  "name": "Diagnostico Padrao",
-  "slug": "diagnostico-padrao",
-  "description": "Template base do Diagnostico 360.",
-  "isDefault": true
-}
-```
-
-### POST `/diagnostic-templates/:id/areas`
-
-```json
-{
-  "name": "Marketing",
-  "slug": "marketing",
-  "description": "Area de marketing.",
-  "displayOrder": 1
-}
-```
-
-### POST `/diagnostic-template-areas/:id/questions`
-
-```json
-{
-  "question": "A empresa possui posicionamento claro para seu publico-alvo?",
-  "description": "Avalia proposta de valor e clareza de mercado.",
-  "displayOrder": 1
-}
-```
-
-### POST `/companies/:companyId/diagnostic-setup/from-template`
-
-```json
-{
-  "templateId": "UUID_DO_TEMPLATE"
-}
-```
-
-### POST `/companies/:companyId/diagnostic-areas`
-
-```json
-{
-  "name": "Operacao",
-  "slug": "operacao",
-  "description": "Area adicional da empresa.",
-  "displayOrder": 4
-}
-```
-
-### POST `/company-diagnostic-areas/:id/questions`
-
-```json
-{
-  "question": "A empresa tem rotina de controle operacional semanal?",
-  "description": "Avalia acompanhamento da operacao.",
-  "displayOrder": 1
-}
-```
-
-### POST `/diagnostics`
-
-```json
-{
-  "companyId": "UUID_DA_EMPRESA",
-  "title": "Diagnostico inicial",
-  "notes": "Primeira avaliacao do cliente."
-}
-```
-
-### POST `/diagnostics/:id/answers`
-
-```json
-{
-  "questionId": "UUID_DA_PERGUNTA_DA_EMPRESA",
-  "score": 8,
-  "comment": "Processo comercial bem definido."
-}
-```
-
-### POST `/diagnostics/:id/complete`
-
-```json
-{}
-```
-
-### POST `/action-plans`
-
-```json
-{
-  "companyId": "UUID_DA_EMPRESA",
-  "diagnosticId": "UUID_DO_DIAGNOSTICO",
-  "areaId": "UUID_DA_AREA",
-  "title": "Estruturar rotina comercial",
-  "description": "Plano para corrigir gargalo comercial identificado no diagnostico.",
-  "responsible": "Marina Consultora",
-  "dueDate": "2026-07-15T00:00:00.000Z",
-  "status": "not_started"
-}
-```
-
-### PATCH `/action-plans/:id/status`
-
-```json
-{
-  "status": "in_progress"
-}
-```
-
-## Erros Comuns
-
-- `UNAUTHORIZED`: sem cookie de sessao valido.
-- `FORBIDDEN`: usuario sem role necessaria para escrita.
-- `COMPANY_NOT_FOUND`: empresa nao existe ou nao pertence ao usuario.
-- `DIAGNOSTIC_TEMPLATE_NOT_FOUND`: template nao existe.
-- `COMPANY_DIAGNOSTIC_SETUP_ALREADY_EXISTS`: a empresa ja recebeu uma copia de template.
-- `COMPANY_DIAGNOSTIC_AREA_NOT_FOUND`: area da empresa nao encontrada.
-- `DIAGNOSTIC_NOT_FOUND`: diagnostico nao encontrado para o usuario.
-- `DIAGNOSTIC_ALREADY_COMPLETED`: diagnostico ja finalizado.
-- `DIAGNOSTIC_NOT_COMPLETED`: scores ainda nao existem para esse diagnostico.
-- `ACTION_PLAN_NOT_FOUND`: plano de acao nao encontrado.
-- `REPORT_NOT_FOUND`: relatorio nao encontrado.
-
-## Observacao sobre relatorios
-
-As rotas de relatorio geram um snapshot estruturado persistido no backend para o diagnostico manual.
-O formato (`pdf` ou `excel`) ja fica definido no registro, permitindo o front-end ou um worker futuro materializarem a exportacao binaria sem recalcular o diagnostico.
+Nao criar novas APIs reforcando o dominio antigo de carteira de clientes.
+As proximas implementacoes devem seguir a especificacao nova baseada em `organization`.

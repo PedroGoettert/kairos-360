@@ -1,4 +1,4 @@
-# Padrões de Frontend
+# Padroes de Frontend
 
 ## Framework
 
@@ -8,17 +8,20 @@ Usar Next.js com TypeScript.
 
 Usar shadcn/ui como base.
 
-## Organização
+## Organizacao
 
 ```txt
 features/
-  companies/
-  diagnostics/
+  auth/
+  organization/
+  baseline-diagnostics/
+  manual-metrics/
   dashboard/
-  crm/
   action-plans/
   reports/
-  ai/
+  data-sources/
+  alerts/
+  insights/
 ```
 
 Cada feature pode ter:
@@ -31,7 +34,7 @@ schemas/
 types/
 ```
 
-## Formulários
+## Formularios
 
 Usar:
 
@@ -46,12 +49,12 @@ Centralizar chamadas em services.
 Exemplo:
 
 ```txt
-features/companies/services/company-service.ts
+features/organization/services/organization-service.ts
 ```
 
 ## Estados de tela
 
-Toda tela com dados assíncronos deve tratar:
+Toda tela com dados assincronos deve tratar:
 
 - loading
 - error
@@ -60,128 +63,80 @@ Toda tela com dados assíncronos deve tratar:
 
 ## Dashboard
 
-Usar cards, gráficos e semáforo.
+Usar cards, graficos e semaforo.
 
-Classificação:
+Classificacao:
 
-- 0 a 4.9 = crítico
-- 5 a 7.4 = atenção
-- 7.5 a 10 = saudável
+- 0 a 4.9 = critico
+- 5 a 7.4 = atencao
+- 7.5 a 10 = saudavel
 
-## Rotas principais
+## Rotas principais alvo
 
 ```txt
 /login
 /dashboard
-/clientes
-/clientes/:id
-/clientes/:id/diagnosticos
-/clientes/:id/dashboard
-/clientes/:id/planos-de-acao
-/crm
-/crm/:leadId
-/campanhas
-/criativos
+/organizacao
+/baseline
+/baseline/novo
+/baseline/:id
+/metricas
+/metricas/nova
+/planos-de-acao
 /relatorios
-/configuracoes/diagnostico
+/configuracoes
 /configuracoes/usuarios
+/configuracoes/fontes-de-dados
 ```
 
-## Implementação atual (junho de 2026)
+## Regra de dominio
 
-### Dependências em uso
+Nao modelar o frontend como:
 
-- Next.js 16 com App Router.
-- React 19 e TypeScript estrito.
-- Tailwind CSS 4 para a base de estilos.
-- React Hook Form, Zod e `zodResolver` nos formulários.
+- carteira de clientes
+- painel de consultoria
+- CRM de terceiros
 
-Recharts e componentes shadcn/ui fazem parte da stack definida, mas ainda não estão instalados no
-pacote web atual.
+Modelar como:
 
-### Rotas entregues
-
-| Rota | Acesso | Estado |
-| --- | --- | --- |
-| `/login` | Público | Login por e-mail e senha integrado ao Better Auth. |
-| `/signup` | Público | Cadastro integrado ao Better Auth. |
-| `/logout` | Sessão | Route Handler POST que encerra a sessão e redireciona para login. |
-| `/` | Protegido | Visão operacional do dashboard. |
-| `/dashboard` | Protegido | Visão operacional do dashboard. |
-| `/clientes` | Protegido | Carteira, indicadores e criação de empresa pela API. |
-
-As demais rotas listadas na seção anterior são o mapa de navegação alvo e ainda não estão
-implementadas.
-
-### Sessão e proteção de rotas
-
-- O frontend encaminha o cookie para `GET /api/auth/get-session` em chamadas server-side.
-- `requireSession(redirectTo)` protege cada página privada e redireciona para
-  `/login?redirectTo=...` quando necessário.
-- Login e signup redirecionam usuários já autenticados.
-- A proteção foi mantida junto às páginas para validar a sessão na API. Se o número de rotas
-  privadas crescer, um `proxy.ts` pode centralizar o redirecionamento inicial, sem substituir a
-  autorização definitiva do backend.
-
-### Comunicação com a API
-
-Usar `NEXT_PUBLIC_API_URL`; em ambiente local o fallback é `http://localhost:3333`.
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3333
-```
-
-Chamadas autenticadas no navegador devem usar `credentials: "include"`. A URL do frontend também
-deve constar em `WEB_ORIGINS` na API.
-
-### Integrações atuais
-
-- A criação de clientes usa `POST /companies` e exige usuário com role `admin`.
-- A carteira consome `GET /companies` e atualiza após novos cadastros.
-- Os indicadores por empresa consomem `GET /companies/:companyId/dashboard`.
-- O dashboard principal usa dados reais da primeira empresa ou da empresa indicada por
-  `companyId` na query string.
-- Estados de loading, erro, vazio e sucesso estão implementados em clientes e dashboard.
-- Detalhes, formulários de diagnóstico, planos e relatórios ainda não possuem páginas próprias.
+- sistema operacional da propria empresa
+- painel de saude da organizacao
+- leitura interna de gargalos e prioridades
 
 ## Design system
 
-O frontend deve seguir a linguagem visual do projeto de referência em `./design`.
+O frontend deve seguir a linguagem visual do projeto de referencia em `./design`.
 
 ### Identidade visual
 
 - Fundo principal: `#08080A`.
-- Fundo secundário: `#111110`.
-- Superfícies/cards: `#1A1918`.
+- Fundo secundario: `#111110`.
+- Superficies/cards: `#1A1918`.
 - Bordas: `#242320`.
-- Ação primária/acento: `#FF6B2B`.
+- Acao primaria/acento: `#FF6B2B`.
 - Acento forte: `#CC4D18`.
 - Texto principal: `#FAFAF8`.
-- Texto secundário: `#9B9B94`.
+- Texto secundario: `#9B9B94`.
 - Sucesso: `#22C870`.
-- Erro/crítico: `#EF4444`.
-- Atenção: `#F5C518`.
+- Erro/critico: `#EF4444`.
+- Atencao: `#F5C518`.
 
 ### Tipografia
 
 - Interface: Space Grotesk.
-- Marca e títulos de alto impacto: Syne.
-- Métricas, datas, códigos e valores: DM Mono.
+- Marca e titulos de alto impacto: Syne.
+- Metricas, datas, codigos e valores: DM Mono.
 
 ### Componentes visuais
 
-- Usar app shell escuro, com navegação lateral em desktop e navegação inferior em mobile.
-- Cards devem ter fundo escuro, borda sutil e raio próximo de `14px`, conforme a referência.
-- Botões primários usam fundo laranja e texto escuro.
-- Badges e chips usam fundo laranja translúcido com borda laranja sutil.
-- KPIs devem usar rótulos em uppercase/mono, valor em mono e subtítulo discreto.
-- Estados de saúde devem usar as cores oficiais:
-  - crítico: vermelho
-  - atenção: amarelo
-  - saudável: verde
+- Usar app shell escuro, com navegacao lateral em desktop e navegacao inferior em mobile.
+- Cards devem ter fundo escuro, borda sutil e raio proximo de `14px`.
+- KPIs devem usar rotulos em uppercase/mono, valor em mono e subtitulo discreto.
+- Estados de saude devem usar as cores oficiais.
 
-### Experiência
+### Experiencia
 
-- A primeira tela após login deve ser uma área operacional do sistema, não uma landing page.
-- As telas devem ser densas, escaneáveis e consultivas, priorizando indicadores, gargalos, próximos passos e ações.
-- Manter a fidelidade visual ao projeto em `./design`, mas adaptar o conteúdo para o domínio do Diagnóstico 360.
+- A primeira tela apos login deve ser uma area operacional do sistema.
+- As telas devem priorizar indicadores, gargalos, prioridades e proximos passos.
+- A baseline manual deve existir, mas nao dominar toda a experiencia.
+- O dashboard deve parecer um sistema de monitoramento da propria operacao.

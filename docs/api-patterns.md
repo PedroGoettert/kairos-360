@@ -1,10 +1,10 @@
-# Padrões de API — Kairos 360
+# Padroes de API - Kairos 360
 
 ## Backend
 
 Framework oficial: Fastify.
 
-## Validação
+## Validacao
 
 Toda entrada deve ser validada com Zod.
 
@@ -14,7 +14,7 @@ Validar:
 - params
 - query
 
-## Padrão de resposta
+## Padrao de resposta
 
 Sucesso:
 
@@ -48,153 +48,149 @@ Erro:
 }
 ```
 
-## Rotas principais
+## Direcao do dominio
+
+As APIs devem refletir a organizacao dona da conta, nao uma carteira de clientes.
+
+Modelo alvo:
+
+- autenticacao
+- organizacao
+- usuarios da organizacao
+- baseline diagnostico
+- metricas manuais
+- dashboard
+- action plans
+- reports
+- depois data sources e ingestao
+
+## Rotas principais alvo
 
 ### Auth
 
-- POST /api/auth/sign-up/email
-- POST /api/auth/sign-in/email
-- GET /api/auth/get-session
-- POST /auth/sign-out
+- POST `/api/auth/sign-up/email`
+- POST `/api/auth/sign-in/email`
+- GET `/api/auth/get-session`
+- POST `/auth/sign-out`
 
-### Companies
+### Organization
 
-- POST /companies
-- GET /companies
-- GET /companies/:id
-- PATCH /companies/:id
-- DELETE /companies/:id
+- GET `/organization`
+- PATCH `/organization`
+- GET `/organization/users`
+- POST `/organization/users`
+- PATCH `/organization/users/:id/role`
 
-### Diagnostics (Baseline Manual)
+### Baseline Diagnostic
 
-- POST /diagnostics
-- GET /diagnostics/:id
-- POST /diagnostics/:id/answers
-- POST /diagnostics/:id/complete
-- GET /companies/:companyId/diagnostics
-- GET /diagnostics/:id/scores
+- GET `/baseline-templates`
+- GET `/baseline-templates/:id`
+- POST `/baseline-templates`
+- POST `/baseline-templates/:id/areas`
+- POST `/baseline-template-areas/:id/questions`
+- POST `/organization/baseline-setup/from-template`
+- GET `/organization/baseline-areas`
+- GET `/organization/baseline-areas/:id`
+- POST `/organization/baseline-areas`
+- POST `/organization/baseline-areas/:id/questions`
+- PATCH `/organization/baseline-areas/:id`
+- DELETE `/organization/baseline-areas/:id`
+- PATCH `/organization/baseline-questions/:id`
+- DELETE `/organization/baseline-questions/:id`
+- POST `/baseline-diagnostics`
+- GET `/baseline-diagnostics/:id`
+- GET `/organization/baseline-diagnostics`
+- POST `/baseline-diagnostics/:id/answers`
+- GET `/baseline-diagnostics/:id/answers`
+- PATCH `/baseline-diagnostic-answers/:id`
+- DELETE `/baseline-diagnostic-answers/:id`
+- POST `/baseline-diagnostics/:id/complete`
+- GET `/baseline-diagnostics/:id/scores`
 
-### Diagnostic Templates
+### Manual Metrics
 
-- GET /diagnostic-templates
-- GET /diagnostic-templates/:id
-- POST /diagnostic-templates
-- POST /diagnostic-templates/:id/areas
-- POST /diagnostic-template-areas/:id/questions
-
-### Company Diagnostic Structure
-
-- POST /companies/:companyId/diagnostic-setup/from-template
-- GET /companies/:companyId/diagnostic-areas
-- GET /company-diagnostic-areas/:id
-- POST /companies/:companyId/diagnostic-areas
-- POST /company-diagnostic-areas/:id/questions
-- PATCH /company-diagnostic-areas/:id
-- DELETE /company-diagnostic-areas/:id
-- PATCH /company-diagnostic-questions/:id
-- DELETE /company-diagnostic-questions/:id
+- POST `/organization/manual-metrics`
+- GET `/organization/manual-metrics`
+- GET `/organization/manual-metrics/:id`
+- PATCH `/organization/manual-metrics/:id`
+- DELETE `/organization/manual-metrics/:id`
 
 ### Dashboard
 
-- GET /companies/:companyId/dashboard
-
-### CRM
-
-- POST /leads
-- GET /leads
-- GET /leads/:id
-- PATCH /leads/:id/stage
-- POST /leads/:id/notes
-- POST /leads/:id/tasks
+- GET `/organization/dashboard`
 
 ### Action Plans
 
-- POST /action-plans
-- GET /companies/:companyId/action-plans
-- PATCH /action-plans/:id
-- PATCH /action-plans/:id/status
-
-### AI
-
-- POST /diagnostics/:id/ai-summary
-- POST /companies/:companyId/ai/insights (insights baseados em dados contínuos)
+- POST `/action-plans`
+- GET `/organization/action-plans`
+- PATCH `/action-plans/:id`
+- PATCH `/action-plans/:id/status`
 
 ### Reports
 
-- POST /reports/diagnostic/:diagnosticId/pdf
-- POST /reports/diagnostic/:diagnosticId/excel
-- POST /reports/company/:companyId/continuous/pdf (relatório de diagnóstico contínuo)
+- POST `/reports/baseline/:diagnosticId/pdf`
+- POST `/reports/baseline/:diagnosticId/excel`
+- GET `/reports/:id`
 
 ### Data Sources
 
-- POST /companies/:companyId/data-sources
-- GET /companies/:companyId/data-sources
-- GET /companies/:companyId/data-sources/:key
-- PATCH /companies/:companyId/data-sources/:key
-- DELETE /companies/:companyId/data-sources/:key
-- POST /companies/:companyId/data-sources/:key/sync (disparar sincronização manual)
+- POST `/organization/data-sources`
+- GET `/organization/data-sources`
+- GET `/organization/data-sources/:key`
+- PATCH `/organization/data-sources/:key`
+- DELETE `/organization/data-sources/:key`
+- POST `/organization/data-sources/:key/sync`
 
 ### Data Ingestion
 
-- POST /data-ingestion/:sourceKey (webhook genérico para receber dados de uma fonte)
-- GET /companies/:companyId/data-ingestion-logs
+- POST `/data-ingestion/:sourceKey`
+- GET `/organization/data-ingestion-logs`
 
 ### Business Events
 
-- GET /companies/:companyId/business-events
-- GET /companies/:companyId/business-events/:id
+- GET `/organization/business-events`
+- GET `/organization/business-events/:id`
 
 ### Business Signals
 
-- GET /companies/:companyId/business-signals
-- GET /companies/:companyId/business-signals/:id
+- GET `/organization/business-signals`
+- GET `/organization/business-signals/:id`
 
 ### Alerts
 
-- GET /companies/:companyId/alerts
-- GET /companies/:companyId/alerts/active
-- PATCH /alerts/:id/acknowledge
-- PATCH /alerts/:id/resolve
+- GET `/organization/alerts`
+- GET `/organization/alerts/active`
+- PATCH `/alerts/:id/acknowledge`
+- PATCH `/alerts/:id/resolve`
 
 ### Insights
 
-- GET /companies/:companyId/insights
-- GET /companies/:companyId/insights/:id
+- GET `/organization/insights`
+- POST `/organization/insights/generate`
 
 ### Metrics History
 
-- GET /companies/:companyId/metrics
-- GET /companies/:companyId/metrics/:metricKey/history
+- GET `/organization/metrics`
+- GET `/organization/metrics/:metricKey/history`
 
 ## Regra de service
 
-Nenhuma regra de negócio deve ficar no controller.
+Nenhuma regra de negocio deve ficar no controller.
 
 Controller apenas orquestra request/response.
 
 Service executa a regra.
 
-## Integração Web e CORS
+## Integracao Web e CORS
 
-- A sessão usa cookie HTTP gerenciado pelo Better Auth.
-- Requisições do navegador devem usar `credentials: "include"`.
-- A API lê as origens permitidas de `WEB_ORIGINS`, separadas por vírgula.
-- A mesma lista é usada pelo Fastify CORS e por `trustedOrigins` do Better Auth.
-- Em desenvolvimento, incluir explicitamente a origem exata do frontend, normalmente
-  `http://localhost:3000`.
-- `OPTIONS` e a resposta final da rota devem retornar os cabeçalhos CORS; um preflight bem-sucedido
-  isoladamente não garante que a chamada real esteja configurada corretamente.
+- A sessao usa cookie HTTP gerenciado pelo Better Auth.
+- Requisicoes do navegador devem usar `credentials: "include"`.
+- A API le as origens permitidas de `WEB_ORIGINS`, separadas por virgula.
+- A mesma lista e usada pelo Fastify CORS e por `trustedOrigins` do Better Auth.
 
-Exemplo:
+## Estado atual
 
-```env
-WEB_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-```
+As rotas implementadas hoje ainda refletem o dominio legado de `companies`.
+Essas rotas devem ser tratadas como transitorias durante a refatoracao completa.
 
-## Situação das rotas
-
-As rotas de auth, users, companies, diagnostic templates, estrutura diagnóstica por empresa,
-diagnostics, dashboard, action plans e reports estão implementadas. CRM, IA, data sources,
-ingestion, events, signals, alerts, insights e metrics history permanecem planejadas.
-
-A lista exata de endpoints disponíveis está em `docs/api-reference.md`.
+Nao ampliar o design legado em novas features.

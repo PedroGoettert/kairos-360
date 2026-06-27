@@ -1,10 +1,10 @@
-# Banco, Schemas e Sincronização — Kairos 360
+# Banco, Schemas e Sincronizacao - Kairos 360
 
 ## ORM oficial
 
 Usar Drizzle ORM com PostgreSQL.
 
-Não usar Prisma.
+Nao usar Prisma.
 
 ## Local dos schemas
 
@@ -12,101 +12,98 @@ Não usar Prisma.
 apps/api/src/database/schema/
 ```
 
-## Organização dos schemas
+## Organizacao alvo dos schemas
 
 ```txt
 schema/
-  users.ts
-  companies.ts
+  auth.ts
+  organizations.ts
+  organization-users.ts
   diagnostic-templates.ts
   diagnostic-template-areas.ts
   diagnostic-template-questions.ts
-  company-diagnostic-areas.ts
-  company-diagnostic-questions.ts
-  diagnostics.ts
-  diagnostic-answers.ts
-  diagnostic-scores.ts
+  organization-diagnostic-areas.ts
+  organization-diagnostic-questions.ts
+  baseline-diagnostics.ts
+  baseline-diagnostic-answers.ts
+  baseline-diagnostic-scores.ts
+  manual-metrics.ts
   data-sources.ts
   data-ingestion-logs.ts
   business-events.ts
+  metrics-history.ts
   business-signals.ts
   alerts.ts
   insights.ts
-  metrics-history.ts
-  leads.ts
-  lead-notes.ts
-  lead-tasks.ts
-  campaigns.ts
-  creatives.ts
   action-plans.ts
   reports.ts
-  ai-outputs.ts
   index.ts
 ```
 
-## Descrição dos schemas
+## Descricao dos schemas
 
-### Núcleo do sistema
+### Nucleo do sistema
 
-| Schema | Descrição |
+| Schema | Descricao |
 |---|---|
-| `users` | Usuários do sistema (admin, consultant, viewer) |
-| `companies` | Empresas clientes, vinculadas a um owner_user_id |
+| `organizations` | empresa assinante do SaaS |
+| `organization-users` | vinculo entre usuarios e organizacao, com papel e status |
 
-### Diagnóstico Manual (Baseline)
+### Baseline manual
 
-| Schema | Descrição |
+| Schema | Descricao |
 |---|---|
-| `diagnostic-templates` | Templates globais de diagnóstico (criados por admin) |
-| `diagnostic-template-areas` | Áreas dentro de um template |
-| `diagnostic-template-questions` | Perguntas dentro de uma área do template |
-| `company-diagnostic-areas` | Cópia editável das áreas do template para uma empresa |
-| `company-diagnostic-questions` | Cópia editável das perguntas para uma empresa |
-| `diagnostics` | Diagnósticos realizados em uma empresa |
-| `diagnostic-answers` | Respostas do diagnóstico, vinculadas às perguntas da empresa |
-| `diagnostic-scores` | Scores calculados por área e geral do diagnóstico |
+| `diagnostic-templates` | templates globais de baseline |
+| `diagnostic-template-areas` | areas do template |
+| `diagnostic-template-questions` | perguntas do template |
+| `organization-diagnostic-areas` | copia editavel das areas para a organizacao |
+| `organization-diagnostic-questions` | copia editavel das perguntas para a organizacao |
+| `baseline-diagnostics` | diagnosticos manuais da organizacao |
+| `baseline-diagnostic-answers` | respostas do baseline |
+| `baseline-diagnostic-scores` | scores calculados do baseline |
 
-### Ingestão e Processamento Contínuo
+### Operacao manual antes das integracoes
 
-| Schema | Descrição |
+| Schema | Descricao |
 |---|---|
-| `data-sources` | Fontes de dados configuradas por empresa (Meta Ads, WhatsApp, CRM, etc.) |
-| `data-ingestion-logs` | Log de cada tentativa de ingestão (webhook recebido, scheduler executado, etc.) |
-| `business-events` | Eventos de negócio normalizados provenientes das fontes de dados |
-| `business-signals` | Sinais derivados de eventos e métricas |
-| `alerts` | Alertas disparados quando sinais ultrapassam thresholds |
-| `insights` | Insights gerados por regras ou IA |
-| `metrics-history` | Série temporal de métricas calculadas |
+| `manual-metrics` | indicadores registrados manualmente pela organizacao |
 
-### CRM
+### Dados continuos
 
-| Schema | Descrição |
+| Schema | Descricao |
 |---|---|
-| `leads` | Leads no pipeline de CRM |
-| `lead-notes` | Notas associadas a um lead |
-| `lead-tasks` | Tarefas associadas a um lead |
+| `data-sources` | futuras fontes conectadas por organizacao |
+| `data-ingestion-logs` | auditoria de sincronizacoes e ingestao |
+| `business-events` | eventos normalizados |
+| `metrics-history` | serie temporal das metricas |
+| `business-signals` | sinais derivados |
+| `alerts` | alertas operacionais |
+| `insights` | insights por regras ou IA |
 
-### Campanhas e Criativos
+### Operacao
 
-| Schema | Descrição |
+| Schema | Descricao |
 |---|---|
-| `campaigns` | Campanhas de marketing |
-| `creatives` | Criativos (anúncios, peças) vinculados a campanhas |
+| `action-plans` | planos de acao da propria organizacao |
+| `reports` | relatorios gerados |
 
-### Planos de Ação
+## Estado atual do repositorio
 
-| Schema | Descrição |
-|---|---|
-| `action-plans` | Planos de ação vinculados a uma empresa |
+Hoje o codigo ainda possui estruturas legadas como:
 
-### Relatórios e IA
+- `companies`
+- `company_diagnostic_areas`
+- `company_diagnostic_questions`
+- `diagnostics`
+- `diagnostic_answers`
+- `diagnostic_scores`
 
-| Schema | Descrição |
-|---|---|
-| `reports` | Relatórios gerados (PDF, Excel) |
-| `ai-outputs` | Saídas da IA (resumo executivo, recomendações, etc.) |
+Essas estruturas devem ser tratadas como **legado transitorio**.
+Na refatoracao completa, a direcao correta e migrar para o dominio de `organizations`.
 
-## Regra de exportação
+Nao adicionar novas tabelas reforcando o conceito antigo de carteira de clientes.
+
+## Regra de exportacao
 
 Evitar `export *`.
 
@@ -115,27 +112,21 @@ Preferir exports nomeados no `index.ts`.
 Exemplo:
 
 ```ts
-export { users } from './users';
-export { companies } from './companies';
-export { diagnostics } from './diagnostics';
-export { dataSources } from './data-sources';
-export { businessEvents } from './business-events';
-export { businessSignals } from './business-signals';
-export { alerts } from './alerts';
-export { insights } from './insights';
-export { metricsHistory } from './metrics-history';
+export { organizations } from "./organizations";
+export { businessEvents } from "./business-events";
+export { reports } from "./reports";
 ```
 
-## Fluxo obrigatório ao alterar banco
+## Fluxo obrigatorio ao alterar banco
 
 Sempre que alterar schema Drizzle:
 
 1. Alterar arquivo em `apps/api/src/database/schema`.
-2. Rodar geração de migration.
+2. Rodar geracao de migration.
 3. Conferir migration gerada.
 4. Rodar migration.
-5. Atualizar schemas Zod se necessário.
-6. Atualizar types compartilhados se necessário.
+5. Atualizar schemas Zod se necessario.
+6. Atualizar types compartilhados se necessario.
 7. Atualizar services/controllers impactados.
 8. Testar endpoint relacionado.
 
@@ -156,41 +147,17 @@ pnpm db:studio
 - Sempre modelar relacionamentos com foreign key.
 - Sempre usar enum para status importantes.
 
-## Estado implementado (junho de 2026)
+## Decisao de refatoracao
 
-Os schemas atualmente exportados pela aplicação são:
+Opcao escolhida:
 
 ```txt
-auth (user, session, account, verification e user_role)
-companies
-diagnostic_templates
-diagnostic_template_areas
-diagnostic_template_questions
-company_diagnostic_areas
-company_diagnostic_questions
-diagnostics
-diagnostic_answers
-diagnostic_scores
-action_plans
-reports
+Opcao B - refatoracao estrutural completa do dominio
 ```
 
-As migrations versionadas vão de `0000_broad_peter_quill.sql` até
-`0004_aberrant_malcolm_colcord.sql`.
+Isso significa:
 
-### Planos de ação
-
-- Pertencem a uma empresa e ao usuário criador.
-- Podem referenciar um diagnóstico e uma área da empresa.
-- Status: `not_started`, `in_progress` ou `completed`.
-
-### Relatórios
-
-- Pertencem a uma empresa e ao usuário criador.
-- O tipo implementado é `manual_diagnostic`.
-- Os formatos registrados são `pdf` e `excel`.
-- A implementação atual persiste um snapshot estruturado em JSON; a materialização do arquivo
-  binário fica para o frontend ou para um worker futuro.
-
-Os schemas de diagnóstico contínuo listados anteriormente são o modelo alvo e ainda não foram
-criados no banco.
+- o modelo atual de `companies` nao e mais o modelo alvo
+- o produto passa a girar em torno da organizacao dona da conta
+- o baseline manual permanece
+- metricas manuais entram antes das integracoes

@@ -1,38 +1,40 @@
-# Regras para Módulo de IA
+# Regras para Modulo de IA
 
-A IA deve interpretar dados do sistema, não inventar dados.
+A IA deve interpretar dados do sistema, nao inventar dados.
 
 ## Entradas permitidas
 
-- Dados do diagnóstico
-- Scores por área
-- Comentários do consultor
-- Histórico do cliente
-- Dados do CRM
-- Dados de campanhas
-- Conversões
+- dados da baseline manual
+- metricas manuais
+- business events
+- metricas historicas
+- signals
+- alerts
+- action plans
+- comentarios da organizacao
 
-## Saídas esperadas
+## Saidas esperadas
 
-- Resumo executivo
-- Principal gargalo
-- Causa provável
-- Recomendações
-- Plano de ação sugerido
-- Riscos
-- Próximos passos
+- resumo executivo
+- principal gargalo
+- segunda prioridade
+- causa provavel
+- recomendacoes
+- plano de acao sugerido
+- riscos
+- proximos passos
 
-## Regra crítica
+## Regra critica
 
-A IA não deve calcular números financeiros sozinha.
+A IA nao deve calcular numeros financeiros sozinha.
 
-O backend calcula números.
+O backend calcula numeros.
 
-A IA interpreta os números.
+A IA interpreta os numeros.
 
 ## Formato preferencial
 
-Sempre que possível, solicitar saída em JSON estruturado.
+Sempre que possivel, solicitar saida em JSON estruturado.
 
 Exemplo:
 
@@ -47,6 +49,6 @@ Exemplo:
 }
 ```
 
-## Revisão humana
+## Revisao humana
 
-Toda saída da IA deve ser revisada pelo consultor antes de ser usada em relatório final.
+Toda saida da IA deve ser revisada por um usuario responsavel antes de ser usada em relatorio final.

@@ -1,4 +1,4 @@
-# AGENTS.md — Kairos 360
+# AGENTS.md - Kairos 360
 
 ## Mandatory Reading
 
@@ -16,34 +16,35 @@ These documents are considered part of the project specification.
 
 ## Project overview
 
-This repository contains the **Kairos 360** platform, a **SaaS de diagnóstico contínuo da saúde empresarial** for Kairos.
+This repository contains the **Kairos 360** platform, a **SaaS de diagnostico continuo da saude empresarial**.
 
-The product helps consultants and businesses:
+The product is meant to be used by the company that subscribes to it in order to monitor **its own operation**.
+It is **not** a consultancy backoffice for Kairos to manage external client companies.
 
-- Establish a **baseline** via manual 360° diagnostic questionnaire.
-- **Ingest data continuously** from CRM, WhatsApp, Meta Ads, Facebook, customer service, sales, finance, and other sources.
-- Process raw data into **business events**, **business metrics**, **business signals**, and **insights**.
-- Calculate and track **health scores** that evolve over time — not just snapshots.
-- Identify **bottlenecks** and **trends** through continuous data analysis.
-- Trigger **alerts** when signals indicate risk or opportunity.
-- Use **AI as an interpretation layer** to explain what the numbers mean.
-- Manage leads in a CRM.
-- Track campaigns and creatives.
-- Generate action plans.
-- Generate reports.
+The product helps an organization:
+
+- Establish an initial **baseline** through a manual 360 diagnostic.
+- Register manual operational data while integrations do not exist yet.
+- Monitor its own health by area.
+- Identify bottlenecks and priorities.
+- Manage internal action plans.
+- Generate internal reports.
+- Later connect CRM, WhatsApp, Meta Ads, Facebook and other sources.
+- Interpret business data with AI after the backend has calculated the numbers.
 
 Main business flow:
 
-```
-Lead enters → Kairos registers the company → Consultant applies baseline 360° diagnostic
-→ System calculates initial scores → Data sources connect (CRM, WhatsApp, Meta Ads, etc.)
-→ Data ingestion runs continuously → Business events are normalized
-→ Metrics are calculated → Signals are derived → AI interprets signals
-→ Dashboard displays health, trends, bottlenecks, and alerts
-→ Consultant creates action plans → Reports are generated
+```txt
+Organization signs up -> users access the tenant -> baseline manual diagnostic is applied
+-> initial scores are calculated -> manual metrics or data-source connections are configured
+-> business events and metrics are recorded -> signals and alerts are derived
+-> dashboard shows health, bottlenecks and priorities -> action plans are managed
+-> reports and AI summaries are generated
 ```
 
 ## Repository structure
+
+Expected structure:
 
 ```txt
 diagnostico-360/
@@ -201,18 +202,39 @@ Responsibilities:
 
 Do not put business logic inside controllers.
 
-### Additional modules (beyond the core MVP)
+### Domain direction
 
-As the product evolves toward continuous diagnostics, these modules will be added:
+The target domain is:
+
+- one organization or tenant per account
+- users belong to the same organization
+- the system monitors the organization's own health
+- diagnostic manual is a baseline, not the product core
+
+Do not expand the old "client portfolio" model.
+
+If existing code still uses `companies`, treat it as **legacy transitional naming**.
+New architecture work should move toward `organizations` or equivalent tenant naming.
+
+### Additional modules
+
+These modules are expected in the new product direction:
 
 | Module | Purpose |
 |---|---|
-| `data-ingestion` | Webhooks, schedulers, normalizers for external data sources |
-| `business-events` | Normalized event store (every external interaction becomes an event) |
-| `business-signals` | Signal derivation from events and metrics |
-| `business-alerts` | Alert rules, triggering, acknowledgement |
-| `insights` | AI-generated and rule-based insights |
-| `data-sources` | Source configuration, tokens, status per company |
+| `organizations` | tenant / organization management |
+| `organization-users` | membership, access and roles |
+| `baseline-diagnostics` | manual initial diagnostic |
+| `manual-metrics` | manual data entry before integrations |
+| `data-sources` | source configuration and connection status |
+| `data-ingestion` | ingestion logs, schedulers and normalizers |
+| `business-events` | normalized events |
+| `metrics-history` | time-series metrics |
+| `business-signals` | derived signals |
+| `alerts` | alert triggering and lifecycle |
+| `insights` | AI + rules interpretation layer |
+| `action-plans` | operational response to bottlenecks |
+| `reports` | generated reports |
 
 ## Database rules
 
@@ -222,31 +244,30 @@ Schemas must live in:
 apps/api/src/database/schema/
 ```
 
-Expected organization:
+Expected target organization:
 
 ```txt
-users.ts
-companies.ts
-diagnostic-areas.ts
-diagnostic-questions.ts
-diagnostics.ts
-diagnostic-answers.ts
-diagnostic-scores.ts
+auth.ts
+organizations.ts
+organization-users.ts
+diagnostic-templates.ts
+diagnostic-template-areas.ts
+diagnostic-template-questions.ts
+organization-diagnostic-areas.ts
+organization-diagnostic-questions.ts
+baseline-diagnostics.ts
+baseline-diagnostic-answers.ts
+baseline-diagnostic-scores.ts
+manual-metrics.ts
 data-sources.ts
 data-ingestion-logs.ts
 business-events.ts
+metrics-history.ts
 business-signals.ts
 alerts.ts
 insights.ts
-metrics-history.ts
-leads.ts
-lead-notes.ts
-lead-tasks.ts
-campaigns.ts
-creatives.ts
 action-plans.ts
 reports.ts
-ai-outputs.ts
 index.ts
 ```
 
@@ -255,8 +276,8 @@ Avoid generic `export *`.
 Prefer named exports:
 
 ```ts
-export { users } from "./users";
-export { companies } from "./companies";
+export { organizations } from "./organizations";
+export { reports } from "./reports";
 ```
 
 When changing database schema:
@@ -312,17 +333,17 @@ Use feature-based organization:
 
 ```txt
 apps/web/src/features/
-├── companies/
-├── diagnostics/
+├── auth/
+├── organization/
+├── baseline-diagnostics/
 ├── dashboard/
-├── crm/
-├── action-plans/
-├── reports/
-├── ai/
+├── manual-metrics/
+├── data-sources/
 ├── signals/
 ├── alerts/
-├── insights/
-└── data-sources/
+├── action-plans/
+├── reports/
+└── ai/
 ```
 
 Each feature may contain:
@@ -341,83 +362,12 @@ Every async screen must handle loading, error, empty state and success.
 
 ## Business rules
 
-The system is multi-company. Every relevant business record must be linked to a company.
+The system is multi-tenant, but not a consultancy client-manager.
+Every relevant business record must be linked to the current organization.
 
-### Baseline Diagnostic (manual questionnaire)
-
-Default diagnostic areas:
-
-- Marketing
-- Comercial
-- Operação
-- Financeiro
-- Gestão
-- Atendimento
-- Recursos Humanos
-
-Diagnostic answers use a score from 0 to 10.
-
-Area score: average of answers in the area.
-
-General score: average of area scores.
-
-Health classification:
-
-```txt
-0 to 4.9   = critical
-5 to 7.4   = attention
-7.5 to 10  = healthy
-```
-
-Main bottleneck: area with the lowest score.
-
-Second priority: area with the second lowest score.
-
-### Continuous Diagnostics
-
-Beyond the baseline, scores are continuously updated from:
-
-- Business events (sales closed, support tickets, campaign results, etc.)
-- Derived metrics (conversion rate, average ticket, NPS, response time, etc.)
-- Business signals (trend deviations, anomalies, thresholds exceeded)
-
-The system maintains:
-
-- **Current score**: weighted combination of baseline + metric evidence.
-- **Score history**: time-series of all score changes.
-- **Score trend**: direction (improving, stable, declining).
-
-### Signals and Alerts
-
-A **signal** is a derived indicator from one or more metrics. Examples:
-
-- `conversion_rate_dropped`: conversion rate fell > 15% in 30 days.
-- `support_volume_spike`: ticket volume > 2σ above mean.
-- `campaign_roi_declining`: ROI declining for 2 consecutive months.
-
-An **alert** is a signal that crossed a notification threshold.
-
-Alerts have statuses:
-
-```txt
-active
-acknowledged
-resolved
-```
-
-### AI interpretation layer
-
-AI must interpret system data. AI must not invent metrics.
-
-Backend calculates numbers. AI explains and recommends based on the numbers.
-
-AI inputs may include diagnostic scores, diagnostic answers, consultant comments, CRM data, campaign data, conversion data, business signals, alerts, and metric history.
-
-AI outputs may include executive summary, main bottleneck, second priority, probable cause, risks, recommendations, suggested action plans, and signal interpretation.
-
-Prefer structured JSON responses.
-
-All AI outputs must be reviewable by a consultant before final use in reports.
+The baseline manual diagnostic continues to exist.
+Manual metrics entry is allowed before external integrations.
+AI must interpret data already calculated by the backend.
 
 ## Git rules
 
@@ -426,13 +376,10 @@ Use Conventional Commits.
 Allowed examples:
 
 ```txt
-feat(companies): create companies module
-feat(diagnostics): implement diagnostic scoring
-feat(data-ingestion): add whatsapp webhook handler
-feat(signals): implement conversion rate signal derivation
-feat(alerts): add alert triggering engine
+feat(organizations): create tenant module
+feat(baseline): implement baseline scoring
+feat(manual-metrics): add manual metrics entry
 fix(auth): correct session validation
-refactor(crm): simplify lead service
 docs(project): update architecture documentation
 chore(database): add drizzle config
 ```
@@ -465,27 +412,27 @@ Implement in this order:
 6. Shared package
 7. Drizzle
 8. Better Auth
-9. Users
-10. Companies
-11. Baseline Diagnostic 360 (manual questionnaire)
-12. Scoring engine
-13. Dashboard
-14. Action plans
-15. AI diagnostic summary
-16. Reports
-17. Data sources (configuration layer)
-18. Data ingestion (webhooks, schedulers)
-19. Business events (normalization layer)
-20. Business signals (derivation engine)
-21. Alerts (triggering and notification)
-22. Insights engine (rule-based + AI)
-23. CRM
-24. Meta Ads (as data source)
-25. WhatsApp (as data source)
+9. Organization domain refactor
+10. Baseline diagnostic as optional manual baseline
+11. Dashboard
+12. Action plans
+13. Reports
+14. Manual metrics
+15. AI summary on real system data
+16. Data sources
+17. Data ingestion
+18. Business events
+19. Metrics history
+20. Business signals
+21. Alerts
+22. Insights engine
+23. CRM connector
+24. Meta Ads connector
+25. WhatsApp connector
 
-**Real-time processing is a future evolution, not an MVP requirement.**
+Real-time processing is a future evolution, not an MVP requirement.
 
-Do not start external integrations before the core data ingestion and signal layers are working.
+Do not start external integrations before the internal manual and event layers are working.
 
 ## Documentation routing
 
