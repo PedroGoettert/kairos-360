@@ -30,6 +30,9 @@ Better Auth
 CRUD de empresas
 Diagnóstico com template global + cópia editável por empresa
 Scoring por empresa
+Dashboard manual por empresa
+Action plans
+Reports estruturados do diagnóstico manual
 ```
 
 ## O que já existe
@@ -111,6 +114,10 @@ GET  /companies/:companyId/diagnostic-areas
 GET  /company-diagnostic-areas/:id
 POST /companies/:companyId/diagnostic-areas
 POST /company-diagnostic-areas/:id/questions
+PATCH /company-diagnostic-areas/:id
+DELETE /company-diagnostic-areas/:id
+PATCH /company-diagnostic-questions/:id
+DELETE /company-diagnostic-questions/:id
 ```
 
 ### Rotas do diagnóstico
@@ -123,8 +130,21 @@ POST   /diagnostics/:id/answers
 GET    /diagnostics/:id/answers
 PATCH  /diagnostic-answers/:id
 DELETE /diagnostic-answers/:id
-POST   /iagnostics/:id/complete
+POST   /diagnostics/:id/complete
 GET    /diagnostics/:id/scores
+```
+
+### Rotas de dashboard, planos e relatorios manuais
+
+```txt
+GET   /companies/:companyId/dashboard
+POST  /action-plans
+GET   /companies/:companyId/action-plans
+PATCH /action-plans/:id
+PATCH /action-plans/:id/status
+POST  /reports/diagnostic/:diagnosticId/pdf
+POST  /reports/diagnostic/:diagnosticId/excel
+GET   /reports/:id
 ```
 
 ### Scoring
@@ -142,6 +162,12 @@ GET    /diagnostics/:id/scores
 - O principal gargalo é a área com menor score.
 - A segunda prioridade é a segunda menor área.
 
+### Dashboard, action plans e relatórios manuais
+
+- Dashboard consolidado por empresa com último diagnóstico concluído, score atual e resumo de action plans.
+- Action plans vinculáveis à empresa, diagnóstico e área.
+- Relatórios persistidos como snapshot estruturado do diagnóstico manual nos formatos `pdf` e `excel`.
+
 ## Banco de dados
 
 ### Migrations atuais
@@ -151,6 +177,7 @@ GET    /diagnostics/:id/scores
 0001_clear_warhawk.sql
 0002_supreme_blindfold.sql
 0003_polite_dazzler.sql
+0004_aberrant_malcolm_colcord.sql
 ```
 
 ### O que a migration `0003_polite_dazzler.sql` faz
@@ -160,6 +187,12 @@ GET    /diagnostics/:id/scores
 - Mantém `diagnostics`, `diagnostic_answers` e `diagnostic_scores`.
 - Faz `answers` apontarem para `company_diagnostic_questions`.
 - Faz `scores` apontarem para `company_diagnostic_areas`.
+
+### O que a migration `0004_aberrant_malcolm_colcord.sql` faz
+
+- Cria `action_plans`.
+- Cria `reports`.
+- Adiciona enums de status e formato para fechar o fluxo manual.
 
 ## Seed local
 
@@ -171,6 +204,7 @@ O seed foi adaptado para o novo modelo e agora cria:
 - cópia do template para as empresas
 - diagnósticos fictícios
 - respostas e scores coerentes com a estrutura da empresa
+- action plans fictícios vinculados aos diagnósticos concluídos
 
 Credenciais locais:
 
@@ -193,7 +227,7 @@ docker compose exec -T postgres pg_isready -U postgres -d diagnostico_360
 
 Paramos com o novo modelo de diagnóstico flexível implementado no backend e no banco.
 
-O fluxo core atual é:
+O fluxo core manual atual é:
 
 ```txt
 1. Criar empresa
@@ -204,47 +238,14 @@ O fluxo core atual é:
 6. Responder perguntas da empresa
 7. Finalizar diagnóstico
 8. Ler scores
+9. Visualizar dashboard
+10. Criar e acompanhar action plans
+11. Gerar relatório estruturado
 ```
 
 ## Próximos passos recomendados
 
-### 1. Dashboard
-
-Criar:
-
-```txt
-GET /companies/:companyId/dashboard
-```
-
-Esse endpoint deve ler o novo modelo por empresa e exibir:
-
-- saúde geral
-- gargalo principal
-- segunda prioridade
-- evolução mensal
-- status dos planos de ação
-
-### 2. Rotas de edição da estrutura da empresa
-
-Para completar a flexibilidade prometida, ainda faltam as rotas de manutenção:
-
-```txt
-PATCH /company-diagnostic-areas/:id
-DELETE /company-diagnostic-areas/:id
-PATCH /company-diagnostic-questions/:id
-DELETE /company-diagnostic-questions/:id
-```
-
-### 3. Action plans
-
-```txt
-POST /action-plans
-GET  /companies/:companyId/action-plans
-PATCH /action-plans/:id
-PATCH /action-plans/:id/status
-```
-
-### 4. Data Sources (camada de configuração)
+### 1. Data Sources (camada de configuração)
 
 Após action plans, implementar a camada de **Data Sources**:
 
@@ -257,7 +258,7 @@ DELETE /companies/:companyId/data-sources/:key
 POST /companies/:companyId/data-sources/:key/sync
 ```
 
-### 5. Data Ingestion
+### 2. Data Ingestion
 
 Implementar ingestão batch/scheduled:
 
@@ -266,7 +267,7 @@ POST /data-ingestion/:sourceKey (webhook genérico)
 GET  /companies/:companyId/data-ingestion-logs
 ```
 
-### 6. Business Events, Signals e Alerts
+### 3. Business Events, Signals e Alerts
 
 Camada de processamento contínuo:
 
@@ -276,7 +277,7 @@ Business Signals: GET /companies/:companyId/business-signals
 Alerts: GET /companies/:companyId/alerts, PATCH /alerts/:id/acknowledge, PATCH /alerts/:id/resolve
 ```
 
-### 7. Insights Engine
+### 4. Insights Engine
 
 Combinar regras + IA para gerar insights baseados em dados contínuos:
 
@@ -285,7 +286,7 @@ POST /companies/:companyId/ai/insights
 GET  /companies/:companyId/insights
 ```
 
-### 8. CRM, Meta Ads, WhatsApp
+### 5. CRM, Meta Ads, WhatsApp
 
 Integrações como data sources, seguindo a ordem de prioridade definida no AGENTS.md.
 

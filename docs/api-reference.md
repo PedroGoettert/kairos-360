@@ -92,6 +92,10 @@ Erro:
 | GET | `/company-diagnostic-areas/:id` | Cookie | Busca uma area da empresa. |
 | POST | `/companies/:companyId/diagnostic-areas` | Cookie, role `admin` | Cria area propria da empresa. |
 | POST | `/company-diagnostic-areas/:id/questions` | Cookie, role `admin` | Cria pergunta propria da empresa. |
+| PATCH | `/company-diagnostic-areas/:id` | Cookie, role `admin` | Atualiza area propria da empresa. |
+| DELETE | `/company-diagnostic-areas/:id` | Cookie, role `admin` | Desativa area propria da empresa. |
+| PATCH | `/company-diagnostic-questions/:id` | Cookie, role `admin` | Atualiza pergunta propria da empresa. |
+| DELETE | `/company-diagnostic-questions/:id` | Cookie, role `admin` | Remove ou desativa pergunta propria da empresa. |
 | POST | `/diagnostics` | Cookie | Cria diagnostico para uma empresa. |
 | GET | `/diagnostics/:id` | Cookie | Busca diagnostico. |
 | GET | `/companies/:companyId/diagnostics` | Cookie | Lista diagnosticos da empresa. |
@@ -101,6 +105,14 @@ Erro:
 | DELETE | `/diagnostic-answers/:id` | Cookie | Remove resposta de diagnostico em draft. |
 | POST | `/diagnostics/:id/complete` | Cookie | Finaliza e calcula scores. |
 | GET | `/diagnostics/:id/scores` | Cookie | Busca scores persistidos do diagnostico. |
+| GET | `/companies/:companyId/dashboard` | Cookie | Consolida a visao manual da empresa. |
+| POST | `/action-plans` | Cookie | Cria plano de acao manual. |
+| GET | `/companies/:companyId/action-plans` | Cookie | Lista planos de acao da empresa. |
+| PATCH | `/action-plans/:id` | Cookie | Atualiza dados principais do plano de acao. |
+| PATCH | `/action-plans/:id/status` | Cookie | Atualiza status do plano de acao. |
+| POST | `/reports/diagnostic/:diagnosticId/pdf` | Cookie | Gera snapshot estruturado do relatorio manual em formato PDF. |
+| POST | `/reports/diagnostic/:diagnosticId/excel` | Cookie | Gera snapshot estruturado do relatorio manual em formato Excel. |
+| GET | `/reports/:id` | Cookie | Busca um relatorio gerado. |
 
 ## Modelo Atual
 
@@ -162,6 +174,10 @@ GET  /companies/:companyId/diagnostic-areas
 GET  /company-diagnostic-areas/:id
 POST /companies/:companyId/diagnostic-areas
 POST /company-diagnostic-areas/:id/questions
+PATCH /company-diagnostic-areas/:id
+DELETE /company-diagnostic-areas/:id
+PATCH /company-diagnostic-questions/:id
+DELETE /company-diagnostic-questions/:id
 ```
 
 ### 5. Diagnostico
@@ -174,6 +190,29 @@ POST /diagnostics/:id/answers
 GET  /diagnostics/:id/answers
 POST /diagnostics/:id/complete
 GET  /diagnostics/:id/scores
+```
+
+### 6. Dashboard
+
+```txt
+GET /companies/:companyId/dashboard
+```
+
+### 7. Planos de acao
+
+```txt
+POST  /action-plans
+GET   /companies/:companyId/action-plans
+PATCH /action-plans/:id
+PATCH /action-plans/:id/status
+```
+
+### 8. Relatorios
+
+```txt
+POST /reports/diagnostic/:diagnosticId/pdf
+POST /reports/diagnostic/:diagnosticId/excel
+GET  /reports/:id
 ```
 
 ## Exemplos Rapidos
@@ -265,6 +304,29 @@ GET  /diagnostics/:id/scores
 {}
 ```
 
+### POST `/action-plans`
+
+```json
+{
+  "companyId": "UUID_DA_EMPRESA",
+  "diagnosticId": "UUID_DO_DIAGNOSTICO",
+  "areaId": "UUID_DA_AREA",
+  "title": "Estruturar rotina comercial",
+  "description": "Plano para corrigir gargalo comercial identificado no diagnostico.",
+  "responsible": "Marina Consultora",
+  "dueDate": "2026-07-15T00:00:00.000Z",
+  "status": "not_started"
+}
+```
+
+### PATCH `/action-plans/:id/status`
+
+```json
+{
+  "status": "in_progress"
+}
+```
+
 ## Erros Comuns
 
 - `UNAUTHORIZED`: sem cookie de sessao valido.
@@ -276,16 +338,10 @@ GET  /diagnostics/:id/scores
 - `DIAGNOSTIC_NOT_FOUND`: diagnostico nao encontrado para o usuario.
 - `DIAGNOSTIC_ALREADY_COMPLETED`: diagnostico ja finalizado.
 - `DIAGNOSTIC_NOT_COMPLETED`: scores ainda nao existem para esse diagnostico.
+- `ACTION_PLAN_NOT_FOUND`: plano de acao nao encontrado.
+- `REPORT_NOT_FOUND`: relatorio nao encontrado.
 
-## Proximas Rotas Ainda Nao Implementadas
+## Observacao sobre relatorios
 
-```txt
-GET    /companies/:companyId/dashboard
-POST   /action-plans
-GET    /companies/:companyId/action-plans
-PATCH  /action-plans/:id
-PATCH  /action-plans/:id/status
-POST   /diagnostics/:id/ai-summary
-POST   /reports/diagnostic/:diagnosticId/pdf
-POST   /reports/diagnostic/:diagnosticId/excel
-```
+As rotas de relatorio geram um snapshot estruturado persistido no backend para o diagnostico manual.
+O formato (`pdf` ou `excel`) ja fica definido no registro, permitindo o front-end ou um worker futuro materializarem a exportacao binaria sem recalcular o diagnostico.

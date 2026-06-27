@@ -3,6 +3,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { auth } from "../auth/index.js";
 import { db, sql } from "./index.js";
 import {
+  actionPlans,
   companies,
   companyDiagnosticAreas,
   companyDiagnosticQuestions,
@@ -201,6 +202,20 @@ const scoreProfiles = [
       atendimento: [8, 7, 8],
       "recursos-humanos": [6, 6, 7],
     },
+    actionPlans: [
+      {
+        title: "Revisar posicionamento e proposta de valor",
+        responsible: "Pedro Admin",
+        dueDateOffsetDays: 15,
+        status: "not_started",
+      },
+      {
+        title: "Padronizar rotina de acompanhamento das campanhas",
+        responsible: "Marina Consultora",
+        dueDateOffsetDays: 30,
+        status: "in_progress",
+      },
+    ],
   },
   {
     title: "Diagnostico inicial - Nexo Fit",
@@ -214,6 +229,14 @@ const scoreProfiles = [
       atendimento: [7, 7, 6],
       "recursos-humanos": [6, 5, 6],
     },
+    actionPlans: [
+      {
+        title: "Implantar rotina semanal de fluxo de caixa",
+        responsible: "Pedro Admin",
+        dueDateOffsetDays: 10,
+        status: "in_progress",
+      },
+    ],
   },
   {
     title: "Diagnostico inicial - Verde Campo Solar",
@@ -227,6 +250,14 @@ const scoreProfiles = [
       atendimento: [8, 8, 7],
       "recursos-humanos": [7, 7, 8],
     },
+    actionPlans: [
+      {
+        title: "Estruturar cadencia comercial com follow-up",
+        responsible: "Marina Consultora",
+        dueDateOffsetDays: 20,
+        status: "not_started",
+      },
+    ],
   },
 ] as const;
 
@@ -612,6 +643,36 @@ async function replaceDiagnosticAnswers(
   }
 }
 
+async function ensureActionPlansForDiagnostic(
+  companyId: string,
+  diagnosticId: string,
+  createdByUserId: string,
+  planSeeds: ReadonlyArray<{
+    title: string;
+    responsible: string;
+    dueDateOffsetDays: number;
+    status: "not_started" | "in_progress" | "completed";
+  }>,
+) {
+  await db.delete(actionPlans).where(eq(actionPlans.diagnosticId, diagnosticId));
+
+  if (planSeeds.length === 0) {
+    return;
+  }
+
+  await db.insert(actionPlans).values(
+    planSeeds.map((planSeed) => ({
+      companyId,
+      createdByUserId,
+      diagnosticId,
+      title: planSeed.title,
+      responsible: planSeed.responsible,
+      dueDate: new Date(Date.now() + planSeed.dueDateOffsetDays * 86400000),
+      status: planSeed.status,
+    })),
+  );
+}
+
 async function main() {
   const seededUsers = new Map<string, Awaited<ReturnType<typeof ensureUser>>>();
 
@@ -654,6 +715,12 @@ async function main() {
       seededCompany.company.id,
       diagnostic.id,
       profile.areaScores,
+    );
+    await ensureActionPlansForDiagnostic(
+      seededCompany.company.id,
+      diagnostic.id,
+      seededCompany.owner.id,
+      profile.actionPlans,
     );
   }
 
