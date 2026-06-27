@@ -1,12 +1,19 @@
 import { z } from "zod";
 
-const optionalTextSchema = z
+const createOptionalTextSchema = z
   .string()
   .trim()
   .min(1)
   .optional()
   .nullable()
   .transform((value) => value ?? null);
+
+const updateOptionalTextSchema = z
+  .union([
+    z.string().trim().min(1),
+    z.null(),
+  ])
+  .optional();
 
 export const companyDiagnosticAreasCompanyParamsSchema = z.object({
   companyId: z.uuid(),
@@ -27,13 +34,13 @@ export const applyTemplateToCompanySchema = z.object({
 export const createCompanyDiagnosticAreaSchema = z.object({
   name: z.string().trim().min(1),
   slug: z.string().trim().min(1),
-  description: optionalTextSchema,
+  description: createOptionalTextSchema,
   displayOrder: z.int().positive().optional(),
 });
 
 export const createCompanyDiagnosticQuestionSchema = z.object({
   question: z.string().trim().min(1),
-  description: optionalTextSchema,
+  description: createOptionalTextSchema,
   displayOrder: z.int().positive().optional(),
 });
 
@@ -41,7 +48,7 @@ export const updateCompanyDiagnosticAreaSchema = z
   .object({
     name: z.string().trim().min(1).optional(),
     slug: z.string().trim().min(1).optional(),
-    description: optionalTextSchema,
+    description: updateOptionalTextSchema,
     displayOrder: z.int().positive().optional(),
     isActive: z.boolean().optional(),
   })
@@ -55,7 +62,7 @@ export const updateCompanyDiagnosticAreaSchema = z
 export const updateCompanyDiagnosticQuestionSchema = z
   .object({
     question: z.string().trim().min(1).optional(),
-    description: optionalTextSchema,
+    description: updateOptionalTextSchema,
     displayOrder: z.int().positive().optional(),
     isActive: z.boolean().optional(),
   })
