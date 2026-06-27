@@ -14,6 +14,24 @@ Base URL local:
 http://localhost:3333
 ```
 
+Origem padrão do frontend:
+
+```txt
+http://localhost:3000
+```
+
+Configure a API com a origem exata do web:
+
+```env
+WEB_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+Configure o frontend com:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3333
+```
+
 Subir PostgreSQL:
 
 ```bash
@@ -65,6 +83,7 @@ Erro:
 
 - A autenticacao e feita pelo Better Auth em `/api/auth/*`.
 - O usuario logado e identificado pelo cookie de sessao.
+- Chamadas feitas pelo navegador usam `credentials: "include"`.
 - No Insomnia, mantenha a cookie jar habilitada.
 
 ## Rotas Implementadas

@@ -155,3 +155,42 @@ pnpm db:studio
 - Sempre criar `created_at` e `updated_at` nas tabelas principais.
 - Sempre modelar relacionamentos com foreign key.
 - Sempre usar enum para status importantes.
+
+## Estado implementado (junho de 2026)
+
+Os schemas atualmente exportados pela aplicação são:
+
+```txt
+auth (user, session, account, verification e user_role)
+companies
+diagnostic_templates
+diagnostic_template_areas
+diagnostic_template_questions
+company_diagnostic_areas
+company_diagnostic_questions
+diagnostics
+diagnostic_answers
+diagnostic_scores
+action_plans
+reports
+```
+
+As migrations versionadas vão de `0000_broad_peter_quill.sql` até
+`0004_aberrant_malcolm_colcord.sql`.
+
+### Planos de ação
+
+- Pertencem a uma empresa e ao usuário criador.
+- Podem referenciar um diagnóstico e uma área da empresa.
+- Status: `not_started`, `in_progress` ou `completed`.
+
+### Relatórios
+
+- Pertencem a uma empresa e ao usuário criador.
+- O tipo implementado é `manual_diagnostic`.
+- Os formatos registrados são `pdf` e `excel`.
+- A implementação atual persiste um snapshot estruturado em JSON; a materialização do arquivo
+  binário fica para o frontend ou para um worker futuro.
+
+Os schemas de diagnóstico contínuo listados anteriormente são o modelo alvo e ainda não foram
+criados no banco.

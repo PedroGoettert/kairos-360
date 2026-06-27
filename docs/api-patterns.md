@@ -52,8 +52,9 @@ Erro:
 
 ### Auth
 
-- GET /auth/session
-- POST /auth/sign-in
+- POST /api/auth/sign-up/email
+- POST /api/auth/sign-in/email
+- GET /api/auth/get-session
 - POST /auth/sign-out
 
 ### Companies
@@ -172,3 +173,28 @@ Nenhuma regra de negócio deve ficar no controller.
 Controller apenas orquestra request/response.
 
 Service executa a regra.
+
+## Integração Web e CORS
+
+- A sessão usa cookie HTTP gerenciado pelo Better Auth.
+- Requisições do navegador devem usar `credentials: "include"`.
+- A API lê as origens permitidas de `WEB_ORIGINS`, separadas por vírgula.
+- A mesma lista é usada pelo Fastify CORS e por `trustedOrigins` do Better Auth.
+- Em desenvolvimento, incluir explicitamente a origem exata do frontend, normalmente
+  `http://localhost:3000`.
+- `OPTIONS` e a resposta final da rota devem retornar os cabeçalhos CORS; um preflight bem-sucedido
+  isoladamente não garante que a chamada real esteja configurada corretamente.
+
+Exemplo:
+
+```env
+WEB_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+## Situação das rotas
+
+As rotas de auth, users, companies, diagnostic templates, estrutura diagnóstica por empresa,
+diagnostics, dashboard, action plans e reports estão implementadas. CRM, IA, data sources,
+ingestion, events, signals, alerts, insights e metrics history permanecem planejadas.
+
+A lista exata de endpoints disponíveis está em `docs/api-reference.md`.

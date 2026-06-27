@@ -188,6 +188,44 @@ Processamento real-time (streaming, filas, websockets) é tratado como **evoluç
 
 No MVP, a ingestão e o processamento de dados ocorrem em **batch agendado** (ex: a cada N minutos/horas) ou **sob demanda** (ex: webhook com processamento síncrono).
 
+## Estado implementado (junho de 2026)
+
+O fluxo manual do MVP já possui implementação ponta a ponta nas seguintes camadas:
+
+```txt
+Next.js (login, cadastro, logout, dashboard e clientes)
+       ↓ cookie de sessão
+Fastify + Better Auth
+       ↓
+Companies → estrutura diagnóstica por empresa → diagnóstico → scores
+       ↓
+Dashboard manual → planos de ação → snapshots de relatórios
+       ↓
+PostgreSQL via Drizzle ORM
+```
+
+### Frontend atual
+
+- App Router do Next.js 16 em `apps/web/src/app`.
+- Organização por feature em `apps/web/src/features`.
+- Páginas públicas: `/login` e `/signup`.
+- Rota de encerramento de sessão: `/logout`.
+- Páginas protegidas: `/`, `/dashboard` e `/clientes`.
+- A proteção atual é feita em Server Components por `requireSession`; não existe `proxy.ts` global.
+- Login, cadastro, logout e criação de empresa usam a API real.
+- A listagem exibida em `/clientes` ainda usa dados de demonstração; somente o cadastro está integrado.
+
+### Backend atual
+
+- Better Auth exposto em `/api/auth/*`, com alias protegido `POST /auth/sign-out`.
+- Autorização por sessão e roles `admin`, `consultant` e `viewer`.
+- Módulos implementados: users, companies, diagnostic templates, estrutura diagnóstica da empresa,
+  diagnostics, dashboard, action plans e reports.
+- CORS e `trustedOrigins` são configurados pela lista `WEB_ORIGINS`.
+
+As camadas de data sources, ingestion, events, metrics, signals, alerts e insights continuam
+planejadas e não devem ser tratadas como implementadas.
+
 ## Regra de módulos no backend
 
 Cada módulo deve seguir este padrão:

@@ -243,6 +243,47 @@ O fluxo core manual atual é:
 11. Gerar relatório estruturado
 ```
 
+## Frontend implementado
+
+O frontend possui uma base operacional fiel à linguagem visual do projeto de referência em
+`./design`, adaptada ao domínio do Kairos 360.
+
+### Entregas
+
+- App shell responsivo com sidebar desktop e navegação inferior mobile.
+- Dashboard operacional em `/` e `/dashboard`.
+- Página de clientes em `/clientes`.
+- Formulário de novo cliente integrado a `POST /companies`.
+- Login em `/login` e cadastro em `/signup` integrados ao Better Auth.
+- Logout server-side em `/logout`.
+- Validação de sessão nas páginas privadas e redirecionamento para login.
+- Redirecionamento de usuários autenticados para o dashboard ao acessar login ou signup.
+
+### Estado de integração
+
+```txt
+Auth (login, signup, logout)     integrado à API
+Criação de empresa              integrada à API
+Listagem da carteira            dados demonstrativos
+Dashboard                       dados demonstrativos
+Detalhes/diagnósticos no web    ainda não implementados
+```
+
+### Configuração local do web
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3333
+```
+
+A API deve permitir a origem do frontend em `WEB_ORIGINS` e ambas as aplicações devem usar
+`localhost` de forma consistente para que o cookie de sessão seja enviado corretamente.
+
+## Próximo passo do frontend
+
+Integrar `/clientes` a `GET /companies`, cobrindo loading, erro, vazio e sucesso. Depois, criar o
+detalhe do cliente e conectar o fluxo manual já disponível no backend: estrutura diagnóstica,
+diagnóstico, dashboard, planos de ação e relatórios.
+
 ## Próximos passos recomendados
 
 ### 1. Data Sources (camada de configuração)

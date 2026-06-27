@@ -87,6 +87,59 @@ Classificação:
 /configuracoes/usuarios
 ```
 
+## Implementação atual (junho de 2026)
+
+### Dependências em uso
+
+- Next.js 16 com App Router.
+- React 19 e TypeScript estrito.
+- Tailwind CSS 4 para a base de estilos.
+- React Hook Form, Zod e `zodResolver` nos formulários.
+
+Recharts e componentes shadcn/ui fazem parte da stack definida, mas ainda não estão instalados no
+pacote web atual.
+
+### Rotas entregues
+
+| Rota | Acesso | Estado |
+| --- | --- | --- |
+| `/login` | Público | Login por e-mail e senha integrado ao Better Auth. |
+| `/signup` | Público | Cadastro integrado ao Better Auth. |
+| `/logout` | Sessão | Encerra a sessão e redireciona para login. |
+| `/` | Protegido | Visão operacional do dashboard. |
+| `/dashboard` | Protegido | Visão operacional do dashboard. |
+| `/clientes` | Protegido | Carteira visual e criação de empresa pela API. |
+
+As demais rotas listadas na seção anterior são o mapa de navegação alvo e ainda não estão
+implementadas.
+
+### Sessão e proteção de rotas
+
+- O frontend encaminha o cookie para `GET /api/auth/get-session` em chamadas server-side.
+- `requireSession(redirectTo)` protege cada página privada e redireciona para
+  `/login?redirectTo=...` quando necessário.
+- Login e signup redirecionam usuários já autenticados.
+- A proteção foi mantida junto às páginas para validar a sessão na API. Se o número de rotas
+  privadas crescer, um `proxy.ts` pode centralizar o redirecionamento inicial, sem substituir a
+  autorização definitiva do backend.
+
+### Comunicação com a API
+
+Usar `NEXT_PUBLIC_API_URL`; em ambiente local o fallback é `http://localhost:3333`.
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3333
+```
+
+Chamadas autenticadas no navegador devem usar `credentials: "include"`. A URL do frontend também
+deve constar em `WEB_ORIGINS` na API.
+
+### Limites conhecidos
+
+- A criação de clientes usa `POST /companies` e exige usuário com role `admin`.
+- A carteira mostrada em `/clientes` ainda é demonstrativa e não consome `GET /companies`.
+- Dashboard, filtros e links para detalhes de cliente ainda são interfaces demonstrativas.
+
 ## Design system
 
 O frontend deve seguir a linguagem visual do projeto de referência em `./design`.
