@@ -264,8 +264,8 @@ O frontend possui uma base operacional fiel à linguagem visual do projeto de re
 ```txt
 Auth (login, signup, logout)     integrado à API
 Criação de empresa              integrada à API
-Listagem da carteira            dados demonstrativos
-Dashboard                       dados demonstrativos
+Listagem da carteira            integrada à API
+Dashboard                       integrado à API por empresa
 Detalhes/diagnósticos no web    ainda não implementados
 ```
 
@@ -280,9 +280,8 @@ A API deve permitir a origem do frontend em `WEB_ORIGINS` e ambas as aplicaçõe
 
 ## Próximo passo do frontend
 
-Integrar `/clientes` a `GET /companies`, cobrindo loading, erro, vazio e sucesso. Depois, criar o
-detalhe do cliente e conectar o fluxo manual já disponível no backend: estrutura diagnóstica,
-diagnóstico, dashboard, planos de ação e relatórios.
+Criar o detalhe do cliente e conectar o restante do fluxo manual já disponível no backend:
+estrutura diagnóstica, diagnóstico, planos de ação e relatórios.
 
 ## Próximos passos recomendados
 

@@ -1,254 +1,234 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+
 import { AppShell } from "@/components/app-shell";
 import { NewClientForm } from "@/features/companies/components/new-client-form";
+import type {
+  CompanyPortfolioItem,
+  HealthStatus,
+} from "@/features/dashboard/types/dashboard-types";
 
-type ClientStatus = "critical" | "attention" | "healthy";
-
-type Client = {
-  id: string;
-  name: string;
-  segment: string;
-  owner: string;
-  score: number;
-  status: ClientStatus;
-  mainBottleneck: string;
-  lastDiagnostic: string;
-  activePlans: number;
-  stage: string;
+type ClientsPageProps = {
+  items: CompanyPortfolioItem[];
+  loadError?: string;
 };
 
-const clients: Client[] = [
-  {
-    id: "CLI-1042",
-    name: "Kairos Performance Lab",
-    segment: "Consultoria",
-    owner: "Pedro Lima",
-    score: 6.4,
-    status: "attention",
-    mainBottleneck: "Comercial",
-    lastDiagnostic: "24 jun 2026",
-    activePlans: 7,
-    stage: "Diagnóstico",
-  },
-  {
-    id: "CLI-1039",
-    name: "Norte Solar Energia",
-    segment: "Energia",
-    owner: "Marina Alves",
-    score: 4.8,
-    status: "critical",
-    mainBottleneck: "Financeiro",
-    lastDiagnostic: "18 jun 2026",
-    activePlans: 5,
-    stage: "Plano de ação",
-  },
-  {
-    id: "CLI-1034",
-    name: "Vitta Odonto Prime",
-    segment: "Saúde",
-    owner: "Rafael Costa",
-    score: 7.9,
-    status: "healthy",
-    mainBottleneck: "Marketing",
-    lastDiagnostic: "11 jun 2026",
-    activePlans: 3,
-    stage: "Acompanhamento",
-  },
-  {
-    id: "CLI-1028",
-    name: "Atlas Food Service",
-    segment: "Alimentação",
-    owner: "Bianca Rocha",
-    score: 5.6,
-    status: "attention",
-    mainBottleneck: "Operação",
-    lastDiagnostic: "03 jun 2026",
-    activePlans: 9,
-    stage: "Reunião",
-  },
-  {
-    id: "CLI-1017",
-    name: "Mova Educação Corporativa",
-    segment: "Educação",
-    owner: "Pedro Lima",
-    score: 8.3,
-    status: "healthy",
-    mainBottleneck: "Recursos Humanos",
-    lastDiagnostic: "28 mai 2026",
-    activePlans: 2,
-    stage: "Relatório",
-  },
-];
+type PortfolioStatus = HealthStatus | "unassessed";
 
-const statusLabel: Record<ClientStatus, string> = {
-  attention: "Atenção",
-  critical: "Crítico",
-  healthy: "Saudável",
+const statusLabel: Record<PortfolioStatus, string> = {
+  attention: "Atencao",
+  critical: "Critico",
+  healthy: "Saudavel",
+  unassessed: "Sem baseline",
 };
 
-const statusClass: Record<ClientStatus, string> = {
-  attention: "is-attention",
-  critical: "is-critical",
-  healthy: "is-healthy",
-};
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(new Date(value));
+}
 
-const portfolioKpis = [
-  { label: "Clientes ativos", value: "38", sub: "5 com diagnóstico recente", tone: "healthy" },
-  { label: "Score médio", value: "6.7", sub: "Atenção operacional", tone: "attention" },
-  { label: "Críticos", value: "6", sub: "prioridade da semana", tone: "critical" },
-  { label: "Planos abertos", value: "42", sub: "18 em andamento", tone: "attention" },
-];
+export function ClientsPage({ items, loadError }: ClientsPageProps) {
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState(items[0]?.company.id ?? null);
+  const filteredItems = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
 
-const selectedClient = clients[0];
+    if (!normalizedQuery) {
+      return items;
+    }
 
-export function ClientsPage() {
+    return items.filter(({ company }) =>
+      [company.name, company.tradeName, company.industry]
+        .filter(Boolean)
+        .some((value) => value?.toLocaleLowerCase("pt-BR").includes(normalizedQuery)),
+    );
+  }, [items, query]);
+  const selected =
+    items.find(({ company }) => company.id === selectedId) ?? items[0] ?? null;
+  const assessed = items.filter(({ dashboard }) => dashboard?.latestScores).length;
+  const critical = items.filter(
+    ({ dashboard }) => dashboard?.healthClassification === "critical",
+  ).length;
+  const activePlans = items.reduce(
+    (total, { dashboard }) =>
+      total + (dashboard?.actionPlans.notStarted ?? 0) + (dashboard?.actionPlans.inProgress ?? 0),
+    0,
+  );
+  const averageScore =
+    assessed > 0
+      ? items.reduce(
+          (total, { dashboard }) => total + (dashboard?.latestScores?.generalScore ?? 0),
+          0,
+        ) / assessed
+      : null;
+
   return (
     <AppShell activeNav="Clientes" eyebrow="Carteira multiempresa" title="Clientes">
       <section className="hero-panel clients-hero">
         <div>
-          <div className="badge">Base consultiva</div>
+          <div className="badge">Dados da API</div>
           <h2>Empresas em acompanhamento</h2>
           <p>
-            Consulte saúde do negócio, gargalo principal, estágio do relacionamento
-            e próximos passos por cliente.
+            A carteira abaixo reflete as empresas persistidas no backend para o usuario
+            autenticado.
           </p>
         </div>
       </section>
 
       <NewClientForm />
 
+      {loadError ? <div className="screen-state error" role="alert">{loadError}</div> : null}
+
       <section className="kpi-grid" aria-label="Indicadores da carteira">
-        {portfolioKpis.map((kpi) => (
-          <article className={`kpi-card ${kpi.tone}`} key={kpi.label}>
-            <div className="kpi-label">{kpi.label}</div>
-            <div className="kpi-value">{kpi.value}</div>
-            <div className="kpi-sub">{kpi.sub}</div>
-          </article>
-        ))}
-      </section>
-
-      <section className="client-layout">
-        <article className="panel client-list-panel">
-          <div className="panel-header client-panel-header">
-            <div>
-              <div className="section-title">Lista de clientes</div>
-              <h3>Carteira atual</h3>
-            </div>
-            <span className="panel-note">{clients.length} registros</span>
-          </div>
-
-          <div className="client-toolbar">
-            <label className="search-field">
-              <span>Buscar</span>
-              <input placeholder="Empresa, segmento ou responsável" type="search" />
-            </label>
-            <div className="filter-bar">
-              <button className="filter-chip active" type="button">
-                Todos
-              </button>
-              <button className="filter-chip" type="button">
-                Críticos
-              </button>
-              <button className="filter-chip" type="button">
-                Atenção
-              </button>
-              <button className="filter-chip" type="button">
-                Saudáveis
-              </button>
-            </div>
-          </div>
-
-          <div className="client-table" role="table">
-            <div className="client-table-head" role="row">
-              <span>Empresa</span>
-              <span>Score</span>
-              <span>Gargalo</span>
-              <span>Responsável</span>
-              <span>Último diagnóstico</span>
-            </div>
-            {clients.map((client) => (
-              <a
-                className={
-                  client.id === selectedClient.id ? "client-row active" : "client-row"
-                }
-                href={`/clientes/${client.id}`}
-                key={client.id}
-                role="row"
-              >
-                <span className="client-company">
-                  <strong>{client.name}</strong>
-                  <small>
-                    {client.id} · {client.segment}
-                  </small>
-                </span>
-                <span className="client-score">
-                  <span className={`status-dot ${statusClass[client.status]}`} />
-                  {client.score.toFixed(1)}
-                </span>
-                <span>{client.mainBottleneck}</span>
-                <span>{client.owner}</span>
-                <span>{client.lastDiagnostic}</span>
-              </a>
-            ))}
-          </div>
+        <article className="kpi-card healthy">
+          <div className="kpi-label">Clientes</div>
+          <div className="kpi-value">{items.length}</div>
+          <div className="kpi-sub">registros persistidos</div>
         </article>
-
-        <aside className="panel client-detail-panel">
-          <div className="panel-header">
-            <div>
-              <div className="section-title">Cliente selecionado</div>
-              <h3>{selectedClient.name}</h3>
-            </div>
-            <span className={`client-status ${selectedClient.status}`}>
-              {statusLabel[selectedClient.status]}
-            </span>
-          </div>
-
-          <div className="client-detail-score">
-            <div>
-              <span>Score geral</span>
-              <strong>{selectedClient.score.toFixed(1)}</strong>
-            </div>
-            <div className="mini-track">
-              <div
-                className={statusClass[selectedClient.status]}
-                style={{ width: `${selectedClient.score * 10}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="detail-list">
-            <div>
-              <span>Gargalo principal</span>
-              <strong>{selectedClient.mainBottleneck}</strong>
-            </div>
-            <div>
-              <span>Estágio atual</span>
-              <strong>{selectedClient.stage}</strong>
-            </div>
-            <div>
-              <span>Planos ativos</span>
-              <strong>{selectedClient.activePlans}</strong>
-            </div>
-            <div>
-              <span>Consultor responsável</span>
-              <strong>{selectedClient.owner}</strong>
-            </div>
-          </div>
-
-          <div className="next-actions">
-            <div className="section-title">Próximas ações</div>
-            <a href={`/clientes/${selectedClient.id}/diagnosticos`}>
-              Abrir diagnóstico
-            </a>
-            <a href={`/clientes/${selectedClient.id}/dashboard`}>
-              Ver dashboard do cliente
-            </a>
-            <a href={`/clientes/${selectedClient.id}/planos-de-acao`}>
-              Revisar planos de ação
-            </a>
-          </div>
-        </aside>
+        <article className="kpi-card attention">
+          <div className="kpi-label">Score medio</div>
+          <div className="kpi-value">{averageScore?.toFixed(1) ?? "--"}</div>
+          <div className="kpi-sub">{assessed} com baseline</div>
+        </article>
+        <article className="kpi-card critical">
+          <div className="kpi-label">Criticos</div>
+          <div className="kpi-value">{critical}</div>
+          <div className="kpi-sub">exigem prioridade</div>
+        </article>
+        <article className="kpi-card attention">
+          <div className="kpi-label">Planos ativos</div>
+          <div className="kpi-value">{activePlans}</div>
+          <div className="kpi-sub">nao iniciados ou em andamento</div>
+        </article>
       </section>
+
+      {items.length === 0 && !loadError ? (
+        <section className="panel screen-state empty">
+          <div className="section-title">Carteira vazia</div>
+          <h3>Cadastre a primeira empresa</h3>
+          <p>Use o botao Novo cliente para validar o fluxo manual sem dados de seed.</p>
+        </section>
+      ) : (
+        <section className="client-layout">
+          <article className="panel client-list-panel">
+            <div className="panel-header client-panel-header">
+              <div>
+                <div className="section-title">Lista de clientes</div>
+                <h3>Carteira atual</h3>
+              </div>
+              <span className="panel-note">{filteredItems.length} registros</span>
+            </div>
+
+            <div className="client-toolbar">
+              <label className="search-field">
+                <span>Buscar</span>
+                <input
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Empresa, nome fantasia ou segmento"
+                  type="search"
+                  value={query}
+                />
+              </label>
+            </div>
+
+            {filteredItems.length === 0 ? (
+              <div className="screen-state empty compact">Nenhuma empresa encontrada.</div>
+            ) : (
+              <div className="client-table" role="table">
+                <div className="client-table-head" role="row">
+                  <span>Empresa</span>
+                  <span>Score</span>
+                  <span>Segmento</span>
+                  <span>Diagnosticos</span>
+                  <span>Cadastro</span>
+                </div>
+                {filteredItems.map((item) => {
+                  const status = item.dashboard?.healthClassification ?? "unassessed";
+
+                  return (
+                    <button
+                      className={item.company.id === selected?.company.id ? "client-row active" : "client-row"}
+                      key={item.company.id}
+                      onClick={() => setSelectedId(item.company.id)}
+                      role="row"
+                      type="button"
+                    >
+                      <span className="client-company">
+                        <strong>{item.company.tradeName ?? item.company.name}</strong>
+                        <small>{item.company.name}</small>
+                      </span>
+                      <span className="client-score">
+                        <span className={`status-dot is-${status}`} />
+                        {item.dashboard?.latestScores?.generalScore.toFixed(1) ?? "--"}
+                      </span>
+                      <span>{item.company.industry ?? "Nao informado"}</span>
+                      <span>{item.dashboard?.diagnostics.total ?? 0}</span>
+                      <span>{formatDate(item.company.createdAt)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </article>
+
+          {selected ? (
+            <aside className="panel client-detail-panel">
+              <div className="panel-header">
+                <div>
+                  <div className="section-title">Cliente selecionado</div>
+                  <h3>{selected.company.tradeName ?? selected.company.name}</h3>
+                </div>
+                <span className={`client-status ${selected.dashboard?.healthClassification ?? "unassessed"}`}>
+                  {statusLabel[selected.dashboard?.healthClassification ?? "unassessed"]}
+                </span>
+              </div>
+
+              <div className="client-detail-score">
+                <div>
+                  <span>Score geral</span>
+                  <strong>{selected.dashboard?.latestScores?.generalScore.toFixed(1) ?? "--"}</strong>
+                </div>
+                <div className="mini-track">
+                  <div
+                    className={`is-${selected.dashboard?.healthClassification ?? "unassessed"}`}
+                    style={{ width: `${(selected.dashboard?.latestScores?.generalScore ?? 0) * 10}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="detail-list">
+                <div>
+                  <span>Gargalo principal</span>
+                  <strong>{selected.dashboard?.latestScores?.mainBottleneck.areaName ?? "Aguardando baseline"}</strong>
+                </div>
+                <div>
+                  <span>Diagnosticos</span>
+                  <strong>{selected.dashboard?.diagnostics.total ?? 0}</strong>
+                </div>
+                <div>
+                  <span>Planos ativos</span>
+                  <strong>{(selected.dashboard?.actionPlans.notStarted ?? 0) + (selected.dashboard?.actionPlans.inProgress ?? 0)}</strong>
+                </div>
+                <div>
+                  <span>Segmento</span>
+                  <strong>{selected.company.industry ?? "Nao informado"}</strong>
+                </div>
+              </div>
+
+              <div className="next-actions">
+                <div className="section-title">Acoes disponiveis</div>
+                <Link href={`/dashboard?companyId=${selected.company.id}`}>Abrir dashboard</Link>
+              </div>
+            </aside>
+          ) : null}
+        </section>
+      )}
     </AppShell>
   );
 }

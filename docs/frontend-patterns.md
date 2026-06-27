@@ -105,10 +105,10 @@ pacote web atual.
 | --- | --- | --- |
 | `/login` | Público | Login por e-mail e senha integrado ao Better Auth. |
 | `/signup` | Público | Cadastro integrado ao Better Auth. |
-| `/logout` | Sessão | Encerra a sessão e redireciona para login. |
+| `/logout` | Sessão | Route Handler POST que encerra a sessão e redireciona para login. |
 | `/` | Protegido | Visão operacional do dashboard. |
 | `/dashboard` | Protegido | Visão operacional do dashboard. |
-| `/clientes` | Protegido | Carteira visual e criação de empresa pela API. |
+| `/clientes` | Protegido | Carteira, indicadores e criação de empresa pela API. |
 
 As demais rotas listadas na seção anterior são o mapa de navegação alvo e ainda não estão
 implementadas.
@@ -134,11 +134,15 @@ NEXT_PUBLIC_API_URL=http://localhost:3333
 Chamadas autenticadas no navegador devem usar `credentials: "include"`. A URL do frontend também
 deve constar em `WEB_ORIGINS` na API.
 
-### Limites conhecidos
+### Integrações atuais
 
 - A criação de clientes usa `POST /companies` e exige usuário com role `admin`.
-- A carteira mostrada em `/clientes` ainda é demonstrativa e não consome `GET /companies`.
-- Dashboard, filtros e links para detalhes de cliente ainda são interfaces demonstrativas.
+- A carteira consome `GET /companies` e atualiza após novos cadastros.
+- Os indicadores por empresa consomem `GET /companies/:companyId/dashboard`.
+- O dashboard principal usa dados reais da primeira empresa ou da empresa indicada por
+  `companyId` na query string.
+- Estados de loading, erro, vazio e sucesso estão implementados em clientes e dashboard.
+- Detalhes, formulários de diagnóstico, planos e relatórios ainda não possuem páginas próprias.
 
 ## Design system
 

@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { createCompanyFormSchema } from "@/features/companies/schemas/company-schema";
 import { createCompany } from "@/features/companies/services/company-service";
 import type {
@@ -21,6 +22,7 @@ const defaultValues: CreateCompanyFormValues = {
 };
 
 export function NewClientForm() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [createdCompany, setCreatedCompany] = useState<Company | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export function NewClientForm() {
       setCreatedCompany(company);
       reset(defaultValues);
       setIsOpen(false);
+      router.refresh();
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Não foi possível criar o cliente.",

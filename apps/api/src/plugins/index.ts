@@ -13,7 +13,7 @@ import { reportsRoutes } from "../modules/reports/reports.routes.js";
 import { usersRoutes } from "../modules/users/users.routes.js";
 
 export async function registerPlugins(server: FastifyInstance): Promise<void> {
-  await server.register(corsPlugin);
+  await corsPlugin(server, {});
   await server.register(authPlugin);
   await server.register(actionPlansRoutes);
   await server.register(companiesRoutes);
