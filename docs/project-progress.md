@@ -27,6 +27,8 @@ Opcao B - refatoracao completa do dominio
 - o diagnostico manual permanece, mas como baseline
 - antes das integracoes, a operacao pode ser acompanhada de forma mais manual
 - data sources, CRM, WhatsApp e Facebook entram depois
+- o produto deve ser mais opinado e menos flexivel
+- a flexibilidade passa a ser controlada, nao irrestrita
 
 ## Estado atual do codigo
 
@@ -43,6 +45,26 @@ Hoje o backend ainda possui implementacao legada orientada a:
 
 Esse estado **nao deve ser expandido como direcao final**.
 Ele deve ser tratado como base transitoria enquanto a refatoracao de dominio e executada.
+
+### O que ja esta feito no backend
+
+- Better Auth
+- sessao e usuario atual
+- CRUD legado de `companies`
+- baseline manual legado com templates e score
+- dashboard legado
+- action plans
+- reports estruturados
+
+### O que ainda falta no backend
+
+- dominio `organizations`
+- `organization_users`
+- novas roles
+- `manual_metrics`
+- dashboard consolidado do dominio novo
+- reposicionamento do baseline para o dominio novo
+- pipeline futuro de data sources e eventos
 
 ## O que ainda pode ser reaproveitado
 
@@ -81,6 +103,8 @@ A organizacao assinante usa o SaaS para monitorar a propria operacao
 - dashboard
 - action plans
 - reports
+
+Essa fase deve ser resolvida com estrutura simples e opinada.
 
 ### Fase 2
 
@@ -130,6 +154,8 @@ viewer
 
 Reposicionar o modulo atual de diagnostico como baseline oficial da organizacao.
 
+Com flexibilidade controlada, sem ampliar o design generico antigo.
+
 ### 4. Manual metrics
 
 Criar um modulo de metricas manuais para:
@@ -144,7 +170,13 @@ Criar um modulo de metricas manuais para:
 
 Consolidar baseline + metricas manuais.
 
-### 6. Data sources depois
+### 6. Action plans e reports no dominio novo
+
+- reaproveitar o que existe
+- alinhar ownership para organization
+- remover dependencia conceitual de cliente externo
+
+### 7. Data sources depois
 
 Somente depois:
 

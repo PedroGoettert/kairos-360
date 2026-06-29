@@ -32,6 +32,28 @@ The product helps an organization:
 - Later connect CRM, WhatsApp, Meta Ads, Facebook and other sources.
 - Interpret business data with AI after the backend has calculated the numbers.
 
+## Product stance
+
+The product should be **opinionated**.
+
+Do not over-engineer generic configurability as if this were a consultancy framework builder.
+
+Prefer:
+
+- strong default baseline areas
+- strong default questions
+- strong default dashboards
+- controlled extensions
+
+Allow only **controlled flexibility**, such as:
+
+- editing text
+- activating or deactivating items
+- reordering
+- adding a limited number of organization-specific items when necessary
+
+Avoid turning core modules into highly generic template engines unless the product truly requires it.
+
 Main business flow:
 
 ```txt
@@ -210,6 +232,8 @@ The target domain is:
 - users belong to the same organization
 - the system monitors the organization's own health
 - diagnostic manual is a baseline, not the product core
+- manual metrics are part of the MVP before integrations
+- flexibility should be controlled, not unlimited
 
 Do not expand the old "client portfolio" model.
 
@@ -369,6 +393,29 @@ The baseline manual diagnostic continues to exist.
 Manual metrics entry is allowed before external integrations.
 AI must interpret data already calculated by the backend.
 
+## Current state
+
+What is already implemented in code:
+
+- auth and session
+- current user route
+- legacy `companies` module
+- legacy baseline structure by company
+- legacy diagnostic scoring
+- dashboard
+- action plans
+- reports
+
+What is still missing for the target backend:
+
+- organization domain refactor
+- organization users / memberships
+- new roles
+- manual metrics
+- target organization routes
+- refactor of legacy baseline naming
+- future data-source pipeline
+
 ## Git rules
 
 Use Conventional Commits.
@@ -414,10 +461,10 @@ Implement in this order:
 8. Better Auth
 9. Organization domain refactor
 10. Baseline diagnostic as optional manual baseline
-11. Dashboard
-12. Action plans
-13. Reports
-14. Manual metrics
+11. Manual metrics
+12. Dashboard consolidation for organization
+13. Action plans aligned to organization domain
+14. Reports aligned to organization domain
 15. AI summary on real system data
 16. Data sources
 17. Data ingestion

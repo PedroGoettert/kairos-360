@@ -103,6 +103,23 @@ Na refatoracao completa, a direcao correta e migrar para o dominio de `organizat
 
 Nao adicionar novas tabelas reforcando o conceito antigo de carteira de clientes.
 
+## Regra de modelagem
+
+Nao modelar o banco para hiperflexibilidade desnecessaria.
+
+Preferir:
+
+- estruturas opinadas
+- enums e categorias claras
+- relacionamentos simples
+- extensibilidade controlada
+
+Evitar:
+
+- engines genericas demais
+- customizacao irrestrita por tenant
+- modelagem orientada a consultoria multi-cliente
+
 ## Regra de exportacao
 
 Evitar `export *`.
@@ -161,3 +178,26 @@ Isso significa:
 - o produto passa a girar em torno da organizacao dona da conta
 - o baseline manual permanece
 - metricas manuais entram antes das integracoes
+
+## O que ja existe no banco
+
+Hoje o repositorio ja possui:
+
+- auth
+- companies (legado)
+- diagnostico manual legado
+- action plans
+- reports
+
+## O que ainda precisa existir no banco
+
+- organizations
+- organization_users
+- manual_metrics
+- depois data_sources
+- data_ingestion_logs
+- business_events
+- metrics_history
+- business_signals
+- alerts
+- insights

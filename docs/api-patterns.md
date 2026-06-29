@@ -64,6 +64,22 @@ Modelo alvo:
 - reports
 - depois data sources e ingestao
 
+## Regra de desenho de API
+
+As APIs devem ser opinadas e simples.
+
+Preferir:
+
+- poucos recursos bem definidos
+- payloads claros
+- fluxos previsiveis
+
+Evitar:
+
+- rotas altamente genericas
+- customizacao excessiva por tenant
+- endpoints que existem apenas para sustentar flexibilidade abstrata
+
 ## Rotas principais alvo
 
 ### Auth
@@ -194,3 +210,21 @@ As rotas implementadas hoje ainda refletem o dominio legado de `companies`.
 Essas rotas devem ser tratadas como transitorias durante a refatoracao completa.
 
 Nao ampliar o design legado em novas features.
+
+## O que ja existe
+
+- auth
+- user session
+- dominio legado de companies
+- baseline manual legado
+- dashboard
+- action plans
+- reports
+
+## O que ainda falta para o dominio alvo
+
+- organization routes
+- organization users
+- manual metrics
+- refatoracao das rotas legadas de baseline
+- data-source pipeline futuro

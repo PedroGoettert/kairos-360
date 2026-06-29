@@ -103,6 +103,18 @@ Modelar como:
 - painel de saude da organizacao
 - leitura interna de gargalos e prioridades
 
+## Regra de experiencia
+
+O frontend tambem deve ser mais opinado e menos flexivel.
+
+Preferir:
+
+- jornadas diretas
+- estrutura padrao
+- configuracao simples
+
+Evitar construir telas que sugiram um gerenciador generico de clientes ou um builder excessivamente customizavel.
+
 ## Design system
 
 O frontend deve seguir a linguagem visual do projeto de referencia em `./design`.

@@ -41,6 +41,26 @@ O dominio do produto deve ser:
 - a operacao pode ser acompanhada manualmente antes das integracoes
 - integracoes externas entram depois, sem mudar o modelo central
 
+## Postura de produto
+
+O produto deve ser mais **opinado** do que **generico**.
+
+Isso significa:
+
+- baseline com estrutura padrao forte
+- dashboard padrao forte
+- metricas manuais com categorias opinadas
+- action plans simples
+
+Permitir apenas flexibilidade controlada:
+
+- editar texto
+- reordenar
+- ativar/desativar
+- adicionar item complementar quando realmente necessario
+
+Nao transformar o produto em um construtor altamente flexivel de templates e processos.
+
 ## Fases do produto
 
 ### Fase 1 - Operacao simples e manual
@@ -52,6 +72,8 @@ Antes de CRM, WhatsApp ou Facebook:
 - dashboard da propria organizacao
 - planos de acao
 - relatorios
+
+Nessa fase, o objetivo e resolver o problema com baixo atrito e sem depender de integracoes externas.
 
 Essa fase deve funcionar sozinha.
 
@@ -76,6 +98,7 @@ O diagnostico manual continua existindo, mas seu papel e:
 - complementar a leitura quando ainda nao ha integracoes
 
 Nao tratar o baseline como o centro definitivo do produto.
+Tambem nao investir em flexibilidade excessiva nessa camada.
 
 ## Estrutura recomendada
 
@@ -238,6 +261,24 @@ O dominio alvo deve usar conceitos como:
 
 Se o codigo legado ainda usar `companies`, isso deve ser tratado como estado transitorio.
 Nao expandir o modelo legado de carteira de clientes.
+
+## Estado atual reaproveitavel
+
+O que ja existe e pode ser reaproveitado:
+
+- auth
+- modelo de session
+- baseline manual atual
+- score e classificacao
+- dashboard atual como base
+- action plans
+- reports
+
+O que deve ser refatorado:
+
+- `companies` -> `organizations`
+- ownership por empresa cliente -> membership da organizacao
+- rotas do baseline antigo para rotas do dominio novo
 
 ## Tempo real como evolucao futura
 

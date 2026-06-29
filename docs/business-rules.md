@@ -63,6 +63,22 @@ Por isso, o MVP deve aceitar:
 Essa camada manual nao e provisoria do ponto de vista do produto.
 Ela e uma fase legitima de uso.
 
+## Flexibilidade controlada
+
+O produto nao deve ser altamente flexivel como um framework de consultoria.
+
+Faz sentido permitir:
+
+- pequenas adaptacoes na baseline
+- complementos pontuais
+- configuracoes simples
+
+Nao faz sentido priorizar:
+
+- customizacao estrutural ilimitada
+- excesso de templates complexos
+- logica aberta demais para varios modelos de operacao
+
 ## Diagnostico Continuo
 
 Depois da baseline, a leitura de saude deve poder evoluir com:
@@ -211,6 +227,24 @@ Fluxo correto:
 6. criar action plans
 7. gerar reports
 8. conectar data sources depois
+
+## O que ja esta feito
+
+- auth
+- fluxo legado de baseline manual
+- score do baseline
+- dashboard inicial
+- action plans
+- reports estruturados
+
+## O que ainda falta
+
+- organization domain correto
+- organization users
+- metricas manuais
+- dashboard consolidando baseline + metricas manuais
+- refatoracao do legado de companies
+- camadas continuas futuras
 
 ## Tempo real como evolucao futura
 
