@@ -103,6 +103,11 @@ Na refatoracao completa, a direcao correta e migrar para o dominio de `organizat
 
 Nao adicionar novas tabelas reforcando o conceito antigo de carteira de clientes.
 
+Ja implementado no dominio novo:
+
+- `organizations`
+- `organization_users`
+
 ## Regra de modelagem
 
 Nao modelar o banco para hiperflexibilidade desnecessaria.
@@ -186,6 +191,8 @@ Hoje o repositorio ja possui:
 - auth
 - companies (legado)
 - diagnostico manual legado
+- organizations
+- organization_users
 - action plans
 - reports
 

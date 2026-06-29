@@ -13,6 +13,8 @@ import {
   diagnosticTemplateQuestions,
   diagnosticTemplates,
   diagnostics,
+  organizationUsers,
+  organizations,
   user as users,
 } from "./schema/index.js";
 
@@ -261,6 +263,17 @@ const scoreProfiles = [
   },
 ] as const;
 
+const seedOrganization = {
+  name: "Kairos Operacao",
+  slug: "kairos-operacao",
+  tradeName: "Kairos",
+  document: "45.678.901/0001-34",
+  industry: "Consultoria e Operacoes",
+  website: "https://kairos.example",
+  notes:
+    "Organizacao padrao local para validar o novo dominio baseado em tenant.",
+} as const;
+
 type SeedUser = (typeof seedUsers)[number];
 type SeedCompany = (typeof seedCompanies)[number];
 
@@ -348,6 +361,57 @@ async function ensureCompany(seedCompany: SeedCompany, ownerUserId: string) {
   }
 
   return company;
+}
+
+async function ensureOrganization(
+  ownerUserId: string,
+  memberUserIds: ReadonlyArray<{
+    userId: string;
+    role: "owner" | "admin" | "manager" | "viewer";
+  }>,
+) {
+  const [existingOrganization] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.slug, seedOrganization.slug))
+    .limit(1);
+
+  const organization =
+    existingOrganization ??
+    (
+      await db
+        .insert(organizations)
+        .values({
+          createdByUserId: ownerUserId,
+          name: seedOrganization.name,
+          slug: seedOrganization.slug,
+          tradeName: seedOrganization.tradeName,
+          document: seedOrganization.document,
+          industry: seedOrganization.industry,
+          website: seedOrganization.website,
+          notes: seedOrganization.notes,
+        })
+        .returning()
+    )[0];
+
+  if (!organization) {
+    throw new Error("Failed to seed organization");
+  }
+
+  await db
+    .delete(organizationUsers)
+    .where(eq(organizationUsers.organizationId, organization.id));
+
+  await db.insert(organizationUsers).values(
+    memberUserIds.map((memberUser) => ({
+      organizationId: organization.id,
+      userId: memberUser.userId,
+      role: memberUser.role,
+      status: "active" as const,
+    })),
+  );
+
+  return organization;
 }
 
 async function ensureDefaultTemplate() {
@@ -680,6 +744,20 @@ async function main() {
     const user = await ensureUser(seedUser);
     seededUsers.set(seedUser.email, user);
   }
+
+  const adminUser = seededUsers.get("admin@kairos.local");
+  const consultantUser = seededUsers.get("consultora@kairos.local");
+  const viewerUser = seededUsers.get("viewer@kairos.local");
+
+  if (!adminUser || !consultantUser || !viewerUser) {
+    throw new Error("Expected seeded users were not created");
+  }
+
+  await ensureOrganization(adminUser.id, [
+    { userId: adminUser.id, role: "owner" },
+    { userId: consultantUser.id, role: "manager" },
+    { userId: viewerUser.id, role: "viewer" },
+  ]);
 
   const template = await ensureDefaultTemplate();
   const seededCompanies = [];

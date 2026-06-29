@@ -46,6 +46,12 @@ Hoje o backend ainda possui implementacao legada orientada a:
 Esse estado **nao deve ser expandido como direcao final**.
 Ele deve ser tratado como base transitoria enquanto a refatoracao de dominio e executada.
 
+Em paralelo, o backend ja passou a ter a base do dominio novo:
+
+- `organizations`
+- `organization_users`
+- rotas iniciais da organizacao
+
 ### O que ja esta feito no backend
 
 - Better Auth
@@ -55,11 +61,15 @@ Ele deve ser tratado como base transitoria enquanto a refatoracao de dominio e e
 - dashboard legado
 - action plans
 - reports estruturados
+- schema `organizations`
+- schema `organization_users`
+- bootstrap da organizacao via API
+- leitura da organizacao atual
+- update da organizacao atual
+- listagem e gestao inicial de membros da organizacao
 
 ### O que ainda falta no backend
 
-- dominio `organizations`
-- `organization_users`
 - novas roles
 - `manual_metrics`
 - dashboard consolidado do dominio novo
@@ -124,9 +134,9 @@ O proximo passo recomendado nao e adicionar mais modulos no dominio antigo.
 
 O proximo passo correto e:
 
-1. planejar a refatoracao do backend de `companies` para `organizations`
+1. conectar o restante do backend ao dominio de `organizations`
 2. redefinir roles
-3. definir rotas da organizacao
+3. migrar o baseline manual legado para o dominio novo
 4. preservar o baseline manual como modulo opcional
 5. criar a camada de metricas manuais antes das integracoes externas
 
@@ -134,8 +144,9 @@ O proximo passo correto e:
 
 ### 1. Refatoracao do dominio
 
-- substituir o conceito de `companies` por `organizations`
-- revisar rotas, services, schemas e docs
+- continuar substituindo o conceito de `companies` por `organizations`
+- revisar ownership e joins internos
+- manter o legado apenas enquanto houver dependencia
 
 ### 2. Roles
 

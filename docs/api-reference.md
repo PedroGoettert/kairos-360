@@ -78,13 +78,25 @@ http://localhost:3333
 - `POST /reports/diagnostic/:diagnosticId/excel`
 - `GET /reports/:id`
 
+### Dominio novo ja implementado em paralelo
+
+- `POST /organizations`
+- `GET /organization`
+- `PATCH /organization`
+- `GET /organization/users`
+- `POST /organization/users`
+- `PATCH /organization/users/:id/role`
+
 ## Endpoints alvo apos a refatoracao
 
 ### Organization
 
+- `POST /organizations`
 - `GET /organization`
 - `PATCH /organization`
 - `GET /organization/users`
+- `POST /organization/users`
+- `PATCH /organization/users/:id/role`
 
 ### Baseline manual
 
@@ -133,3 +145,8 @@ http://localhost:3333
 
 Nao criar novas APIs reforcando o dominio antigo de carteira de clientes.
 As proximas implementacoes devem seguir a especificacao nova baseada em `organization`.
+
+## Observacao de migracao
+
+As rotas de `organization` ja existem e devem ser tratadas como a base do dominio novo.
+As rotas de `companies` continuam disponiveis apenas para manter o legado funcionando durante a transicao.
