@@ -36,6 +36,13 @@
       "when": 1782521590453,
       "tag": "0004_aberrant_malcolm_colcord",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782758085826,
+      "tag": "0005_rare_alex_power",
+      "breakpoints": true
     }
   ]
 }
