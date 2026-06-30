@@ -11,6 +11,7 @@ import type {
   CreateOrganizationResult,
   CreateOrganizationUserInput,
   CreateOrganizationUserResult,
+  CurrentOrganizationMembership,
   Organization,
   OrganizationUser,
   OrganizationUsersList,
@@ -31,7 +32,9 @@ function slugifyOrganizationName(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-async function getCurrentOrganizationMembership(currentUserId: string) {
+export async function getCurrentOrganizationMembership(
+  currentUserId: string,
+): Promise<CurrentOrganizationMembership | null> {
   const [membership] = await db
     .select({
       id: organizationUsers.id,
@@ -67,7 +70,7 @@ async function getCurrentOrganizationMembership(currentUserId: string) {
     .orderBy(asc(organizationUsers.createdAt))
     .limit(1);
 
-  return membership ?? null;
+  return (membership as CurrentOrganizationMembership | undefined) ?? null;
 }
 
 async function ensureOrganizationSlugAvailable(slug: string, excludeId?: string) {
@@ -84,7 +87,7 @@ async function ensureOrganizationSlugAvailable(slug: string, excludeId?: string)
   return !existing;
 }
 
-function canManageOrganization(role: OrganizationUserRole): boolean {
+export function canManageOrganization(role: OrganizationUserRole): boolean {
   return role === "owner" || role === "admin";
 }
 

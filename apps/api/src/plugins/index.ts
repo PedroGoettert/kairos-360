@@ -1,7 +1,9 @@
 import type { FastifyInstance } from "fastify";
 
 import { actionPlansRoutes } from "../modules/action-plans/action-plans.routes.js";
+import { baselineDiagnosticsRoutes } from "../modules/baseline-diagnostics/baseline-diagnostics.routes.js";
 import { authPlugin } from "./auth.js";
+import { organizationBaselineRoutes } from "../modules/organization-baseline/organization-baseline.routes.js";
 import { companyDiagnosticAreasRoutes } from "../modules/company-diagnostic-areas/company-diagnostic-areas.routes.js";
 import { corsPlugin } from "./cors.js";
 import { companiesRoutes } from "../modules/companies/companies.routes.js";
@@ -17,11 +19,13 @@ export async function registerPlugins(server: FastifyInstance): Promise<void> {
   await corsPlugin(server, {});
   await server.register(authPlugin);
   await server.register(actionPlansRoutes);
+  await server.register(baselineDiagnosticsRoutes);
   await server.register(companiesRoutes);
   await server.register(dashboardRoutes);
   await server.register(diagnosticTemplatesRoutes);
   await server.register(companyDiagnosticAreasRoutes);
   await server.register(diagnosticsRoutes);
+  await server.register(organizationBaselineRoutes);
   await server.register(organizationsRoutes);
   await server.register(reportsRoutes);
   await server.register(usersRoutes);

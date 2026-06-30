@@ -43,6 +43,13 @@
       "when": 1782758085826,
       "tag": "0005_rare_alex_power",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782759129927,
+      "tag": "0006_shocking_outlaw_kid",
+      "breakpoints": true
     }
   ]
 }

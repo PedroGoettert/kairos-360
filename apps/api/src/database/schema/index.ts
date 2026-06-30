@@ -10,6 +10,12 @@ export {
 } from "./auth.js";
 export { actionPlanStatus, actionPlans } from "./action-plans.js";
 export {
+  baselineDiagnosticAnswers,
+  baselineDiagnostics,
+  baselineDiagnosticScores,
+  baselineDiagnosticStatus,
+} from "./baseline-diagnostics.js";
+export {
   companyDiagnosticAreas,
   companyDiagnosticQuestions,
 } from "./company-diagnostic-areas.js";
@@ -27,5 +33,9 @@ export {
   organizationUserStatus,
   organizationUsers,
 } from "./organization-users.js";
+export {
+  organizationBaselineAreas,
+  organizationBaselineQuestions,
+} from "./organization-baseline.js";
 export { organizations, organizationsRelations } from "./organizations.js";
 export { reportFormat, reportKind, reports } from "./reports.js";

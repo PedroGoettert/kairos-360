@@ -4,6 +4,9 @@ import { auth } from "../auth/index.js";
 import { db, sql } from "./index.js";
 import {
   actionPlans,
+  baselineDiagnosticAnswers,
+  baselineDiagnostics,
+  baselineDiagnosticScores,
   companies,
   companyDiagnosticAreas,
   companyDiagnosticQuestions,
@@ -13,6 +16,8 @@ import {
   diagnosticTemplateQuestions,
   diagnosticTemplates,
   diagnostics,
+  organizationBaselineAreas,
+  organizationBaselineQuestions,
   organizationUsers,
   organizations,
   user as users,
@@ -574,6 +579,82 @@ async function ensureCompanyDiagnosticSetup(
   }
 }
 
+async function ensureOrganizationBaselineSetup(
+  organizationId: string,
+  templateId: string,
+) {
+  const [existingArea] = await db
+    .select({ id: organizationBaselineAreas.id })
+    .from(organizationBaselineAreas)
+    .where(eq(organizationBaselineAreas.organizationId, organizationId))
+    .limit(1);
+
+  if (existingArea) {
+    return;
+  }
+
+  const templateAreas = await db
+    .select()
+    .from(diagnosticTemplateAreas)
+    .where(eq(diagnosticTemplateAreas.templateId, templateId))
+    .orderBy(asc(diagnosticTemplateAreas.displayOrder));
+
+  const templateAreaIds = templateAreas.map((area) => area.id);
+  const templateQuestions =
+    templateAreaIds.length === 0
+      ? []
+      : await db
+          .select()
+          .from(diagnosticTemplateQuestions)
+          .where(
+            inArray(diagnosticTemplateQuestions.templateAreaId, templateAreaIds),
+          )
+          .orderBy(
+            asc(diagnosticTemplateQuestions.templateAreaId),
+            asc(diagnosticTemplateQuestions.displayOrder),
+          );
+
+  const areaIdMap = new Map<string, string>();
+
+  for (const templateArea of templateAreas) {
+    const [organizationArea] = await db
+      .insert(organizationBaselineAreas)
+      .values({
+        organizationId,
+        templateAreaId: templateArea.id,
+        name: templateArea.name,
+        slug: templateArea.slug,
+        description: templateArea.description,
+        displayOrder: templateArea.displayOrder,
+      })
+      .returning();
+
+    if (!organizationArea) {
+      throw new Error(
+        `Failed to create organization baseline area ${templateArea.slug}`,
+      );
+    }
+
+    areaIdMap.set(templateArea.id, organizationArea.id);
+  }
+
+  for (const templateQuestion of templateQuestions) {
+    const organizationAreaId = areaIdMap.get(templateQuestion.templateAreaId);
+
+    if (!organizationAreaId) {
+      continue;
+    }
+
+    await db.insert(organizationBaselineQuestions).values({
+      organizationAreaId,
+      templateQuestionId: templateQuestion.id,
+      question: templateQuestion.question,
+      description: templateQuestion.description,
+      displayOrder: templateQuestion.displayOrder,
+    });
+  }
+}
+
 async function ensureDiagnostic(
   companyId: string,
   createdByUserId: string,
@@ -707,6 +788,144 @@ async function replaceDiagnosticAnswers(
   }
 }
 
+async function ensureBaselineDiagnostic(
+  organizationId: string,
+  createdByUserId: string,
+  title: string,
+  notes: string,
+  status: "draft" | "completed",
+) {
+  const [existingDiagnostic] = await db
+    .select()
+    .from(baselineDiagnostics)
+    .where(
+      and(
+        eq(baselineDiagnostics.organizationId, organizationId),
+        eq(baselineDiagnostics.title, title),
+      ),
+    )
+    .limit(1);
+
+  if (existingDiagnostic) {
+    const [diagnostic] = await db
+      .update(baselineDiagnostics)
+      .set({
+        createdByUserId,
+        notes,
+        status,
+        completedAt: status === "completed" ? new Date() : null,
+      })
+      .where(eq(baselineDiagnostics.id, existingDiagnostic.id))
+      .returning();
+
+    if (!diagnostic) {
+      throw new Error(`Failed to update baseline diagnostic ${title}`);
+    }
+
+    return diagnostic;
+  }
+
+  const [diagnostic] = await db
+    .insert(baselineDiagnostics)
+    .values({
+      organizationId,
+      createdByUserId,
+      title,
+      notes,
+      status,
+      completedAt: status === "completed" ? new Date() : null,
+    })
+    .returning();
+
+  if (!diagnostic) {
+    throw new Error(`Failed to seed baseline diagnostic ${title}`);
+  }
+
+  return diagnostic;
+}
+
+async function replaceBaselineDiagnosticAnswers(
+  organizationId: string,
+  diagnosticId: string,
+  areaScores: Record<string, readonly number[]>,
+) {
+  const areas = await db
+    .select()
+    .from(organizationBaselineAreas)
+    .where(eq(organizationBaselineAreas.organizationId, organizationId))
+    .orderBy(asc(organizationBaselineAreas.displayOrder));
+
+  const areaIds = areas.map((area) => area.id);
+  const questions =
+    areaIds.length === 0
+      ? []
+      : await db
+          .select()
+          .from(organizationBaselineQuestions)
+          .where(
+            and(
+              eq(organizationBaselineQuestions.isActive, true),
+              inArray(organizationBaselineQuestions.organizationAreaId, areaIds),
+            ),
+          )
+          .orderBy(
+            asc(organizationBaselineQuestions.organizationAreaId),
+            asc(organizationBaselineQuestions.displayOrder),
+          );
+
+  const questionsByAreaSlug = new Map<
+    string,
+    Array<typeof organizationBaselineQuestions.$inferSelect>
+  >();
+
+  for (const area of areas) {
+    questionsByAreaSlug.set(
+      area.slug,
+      questions.filter((question) => question.organizationAreaId === area.id),
+    );
+  }
+
+  await db
+    .delete(baselineDiagnosticAnswers)
+    .where(eq(baselineDiagnosticAnswers.diagnosticId, diagnosticId));
+  await db
+    .delete(baselineDiagnosticScores)
+    .where(eq(baselineDiagnosticScores.diagnosticId, diagnosticId));
+
+  for (const [areaSlug, scores] of Object.entries(areaScores)) {
+    const area = areas.find((organizationArea) => organizationArea.slug === areaSlug);
+    const areaQuestions = questionsByAreaSlug.get(areaSlug) ?? [];
+
+    if (!area) {
+      continue;
+    }
+
+    const answerValues = areaQuestions.map((question, index) => ({
+      diagnosticId,
+      questionId: question.id,
+      score: scores[index] ?? scores.at(-1) ?? 0,
+      comment: `Resposta baseline para ${areaSlug.replace("-", " ")}.`,
+    }));
+
+    if (answerValues.length > 0) {
+      await db.insert(baselineDiagnosticAnswers).values(answerValues);
+    }
+
+    if (scores.length === 0) {
+      continue;
+    }
+
+    const averageScore =
+      scores.reduce((total, score) => total + score, 0) / scores.length;
+
+    await db.insert(baselineDiagnosticScores).values({
+      diagnosticId,
+      areaId: area.id,
+      score: Number(averageScore.toFixed(2)),
+    });
+  }
+}
+
 async function ensureActionPlansForDiagnostic(
   companyId: string,
   diagnosticId: string,
@@ -760,6 +979,17 @@ async function main() {
   ]);
 
   const template = await ensureDefaultTemplate();
+  const [organization] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.slug, seedOrganization.slug))
+    .limit(1);
+
+  if (!organization) {
+    throw new Error("Seeded organization not found");
+  }
+
+  await ensureOrganizationBaselineSetup(organization.id, template.id);
   const seededCompanies = [];
 
   for (const seedCompany of seedCompanies) {
@@ -813,6 +1043,20 @@ async function main() {
       "draft",
     );
   }
+
+  const baselineDiagnostic = await ensureBaselineDiagnostic(
+    organization.id,
+    adminUser.id,
+    "Baseline manual - Kairos Operacao",
+    "Diagnostico baseline inicial da operacao Kairos.",
+    "completed",
+  );
+
+  await replaceBaselineDiagnosticAnswers(
+    organization.id,
+    baselineDiagnostic.id,
+    scoreProfiles[0].areaScores,
+  );
 
   console.log("Seed completed successfully.");
   console.log(`Users: ${seedUsers.length}`);

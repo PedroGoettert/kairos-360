@@ -27,6 +27,14 @@ export type UpdateOrganizationUserRoleInput = z.infer<
 export type Organization = z.infer<typeof organizationSchema>;
 export type OrganizationUser = z.infer<typeof organizationUserSchema>;
 export type OrganizationUsersList = z.infer<typeof organizationUsersListSchema>;
+export type CurrentOrganizationMembership = {
+  id: string;
+  organizationId: string;
+  userId: string;
+  role: OrganizationUserRole;
+  status: "active" | "disabled";
+  organization: Organization;
+};
 
 export type CreateOrganizationResult =
   | { status: "created"; organization: Organization }
