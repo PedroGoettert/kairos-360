@@ -4,6 +4,13 @@ import type { ApiErrorResponse, ApiSuccessResponse } from "@/features/companies/
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
 
+export class ServerApiError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = "ServerApiError";
+  }
+}
+
 function getErrorMessage(payload: unknown, fallback: string): string {
   if (
     typeof payload === "object" &&
@@ -32,7 +39,10 @@ export async function getFromApi<T>(path: string): Promise<T> {
     | null;
 
   if (!response.ok) {
-    throw new Error(getErrorMessage(payload, "Nao foi possivel consultar a API."));
+    throw new ServerApiError(
+      getErrorMessage(payload, "Nao foi possivel consultar a API."),
+      response.status,
+    );
   }
 
   if (!payload || !("data" in payload)) {

@@ -1,0 +1,1 @@
+export default function SettingsLoading() { return <main className="workspace loading-workspace" aria-busy="true" aria-label="Carregando configurações"><div className="loading-block loading-title" /><div className="loading-block loading-content" /></main>; }

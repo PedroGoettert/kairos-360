@@ -2123,6 +2123,79 @@ progress::-moz-progress-bar {
 .settings-content dt { color: var(--muted); }
 .settings-content dd { margin: 0; }
 
+.settings-content form + .members-settings,
+.members-settings {
+  margin-top: 36px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border);
+}
+
+.member-add-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 180px auto;
+  gap: 12px;
+  align-items: end;
+  padding-bottom: 22px;
+}
+
+.member-add-form .secondary-action { min-height: 42px; }
+.member-list { display: grid; }
+.member-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 170px; gap: 12px; align-items: center; padding: 13px 0; border-top: 1px solid var(--border); }
+.member-row > div:nth-child(2) { display: grid; gap: 3px; }
+.member-row > div:nth-child(2) span { color: var(--muted); font-size: 0.8rem; }
+.member-row select, .member-add-form select, .baseline-question select { min-height: 42px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-soft); color: var(--text); padding: 0 10px; }
+
+.module-empty-state {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  max-width: 720px;
+  margin: 56px auto;
+  padding: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.module-empty-state h2 { font-family: "Syne", sans-serif; font-size: 1.55rem; }
+.module-empty-state p { max-width: 62ch; color: var(--supporting); line-height: 1.55; }
+.baseline-start-form { display: flex; align-items: end; gap: 12px; width: 100%; margin-top: 8px; }
+.baseline-start-form .form-field { flex: 1; }
+.baseline-new-cycle { display: flex; justify-content: flex-end; padding: 20px 0; border-bottom: 1px solid var(--border); }
+.baseline-new-cycle .baseline-start-form { max-width: 650px; }
+
+.baseline-resume, .baseline-complete-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+.baseline-resume > div { display: grid; gap: 4px; }
+.baseline-resume span, .baseline-complete-bar span { color: var(--muted); }
+.baseline-history a, .baseline-area-list > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--border); }
+.baseline-history a:first-child, .baseline-area-list > div:first-child { border-top: 0; }
+.baseline-history a > div { display: grid; gap: 4px; }
+.baseline-history a > div span { color: var(--muted); font-size: 0.78rem; }
+.diagnostic-status { color: var(--attention); font-size: 0.78rem; }
+.diagnostic-status.completed { color: var(--healthy); }
+
+.baseline-assessment { display: grid; gap: 18px; }
+.baseline-question-list { display: grid; }
+.baseline-question { display: grid; grid-template-columns: minmax(0, 1fr) 100px; gap: 24px; align-items: center; padding: 15px 0; border-top: 1px solid var(--border); }
+.baseline-question:first-child { border-top: 0; }
+.baseline-question > span { display: grid; gap: 5px; }
+.baseline-question small { color: var(--muted); line-height: 1.45; }
+.baseline-complete-bar { position: sticky; bottom: 0; z-index: 10; padding-inline: 18px; background: rgba(17, 17, 16, 0.98); border: 1px solid var(--border); border-radius: 8px; }
+.dashboard-chart-grid.single-chart { grid-template-columns: minmax(0, 760px); }
+
+.route-state {
+  display: grid;
+  place-content: center;
+  justify-items: start;
+  gap: 12px;
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.route-state h1 { max-width: 620px; font-family: "Syne", sans-serif; font-size: 1.7rem; }
+.route-state p { color: var(--supporting); }
+
 .breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -2373,6 +2446,10 @@ progress::-moz-progress-bar {
   .report-list article { grid-template-columns: 1fr auto; }
   .report-list button { grid-column: 1 / -1; }
   .settings-content dl > div { grid-template-columns: 1fr; gap: 5px; }
+  .member-add-form, .member-row { grid-template-columns: 1fr; }
+  .member-row .avatar { display: none; }
+  .baseline-start-form, .baseline-resume, .baseline-complete-bar { align-items: stretch; flex-direction: column; }
+  .baseline-question { grid-template-columns: 1fr; gap: 10px; }
   .health-heatmap { min-width: 620px; }
   .dashboard-section:has(.health-heatmap) { overflow-x: auto; }
   .plan-donut-layout { align-items: flex-start; }

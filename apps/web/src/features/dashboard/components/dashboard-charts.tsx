@@ -43,8 +43,8 @@ export function DashboardCharts({ bottlenecks }: DashboardChartsProps) {
   const areaScores = bottlenecks.map((area) => ({ area: area.areaName, score: area.score, status: area.status }));
 
   return (
-    <section className="dashboard-chart-grid" aria-label="Visão gráfica da saúde organizacional">
-      <article className="dashboard-chart-panel">
+    <section className={`dashboard-chart-grid ${history.length < 2 ? "single-chart" : ""}`} aria-label="Visão gráfica da saúde organizacional">
+      {history.length > 1 ? <article className="dashboard-chart-panel">
         <div className="chart-heading">
           <div><span className="data-label">Evolução consolidada</span><h2>Saúde geral</h2></div>
           <strong>{history.at(-1)?.score.toFixed(1)}</strong>
@@ -61,7 +61,7 @@ export function DashboardCharts({ bottlenecks }: DashboardChartsProps) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </article>
+      </article> : null}
 
       <article className="dashboard-chart-panel">
         <div className="chart-heading"><div><span className="data-label">Comparação atual</span><h2>Score por área</h2></div><span>0–10</span></div>

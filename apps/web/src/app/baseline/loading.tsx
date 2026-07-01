@@ -1,0 +1,1 @@
+export default function BaselineLoading() { return <main className="workspace loading-workspace" aria-busy="true" aria-label="Carregando baseline"><div className="loading-block loading-title" /><div className="loading-block loading-hero" /><div className="loading-block loading-content" /></main>; }

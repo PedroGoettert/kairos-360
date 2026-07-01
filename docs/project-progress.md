@@ -109,6 +109,23 @@ O shell autenticado foi dividido em rotas de responsabilidade unica:
 No desktop, todas as rotas aparecem na sidebar. No mobile, a navegacao inferior prioriza
 Dashboard, Metricas, Sinais e Planos. Todas as paginas possuem validacao de sessao propria.
 
+### Integracoes organizacionais do frontend
+
+O frontend ja consome as rotas reais do dominio novo para:
+
+- criar, consultar e atualizar a organizacao atual
+- listar membros, adicionar membro e alterar papel
+- listar a estrutura de areas e perguntas do baseline
+- criar uma aplicacao de baseline
+- criar e atualizar respostas
+- concluir uma aplicacao e consultar seus scores
+- listar o historico de aplicacoes
+- projetar o score geral e o ranking de areas reais no dashboard
+
+Quando ainda nao existe organizacao, baseline configurado ou aplicacao concluida, as telas exibem
+estados vazios acionaveis. Metricas, sinais e planos permanecem sem integracao com o backend novo e
+nao sao apresentados como dados reais no dashboard organizacional.
+
 Antes da integracao real, o backend deve oferecer:
 
 1. resumo de saude da organizacao
