@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, ne } from "drizzle-orm";
 
 import { auth } from "../auth/index.js";
+import { env } from "../env/index.js";
 import { db, sql } from "./index.js";
 import {
   actionPlans,
@@ -405,7 +406,9 @@ async function ensureOrganization(
 
   const memberIds = memberUserIds.map((memberUser) => memberUser.userId);
 
-  if (memberIds.length > 0) {
+  // Only local development seed is allowed to disable active memberships
+  // outside the default organization in order to keep the environment reusable.
+  if (env.NODE_ENV === "development" && memberIds.length > 0) {
     await db
       .update(organizationUsers)
       .set({ status: "disabled" })

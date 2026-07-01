@@ -169,6 +169,24 @@ Sempre que alterar schema Drizzle:
 7. Atualizar services/controllers impactados.
 8. Testar endpoint relacionado.
 
+## Auditoria antes da migration de membership ativa unica
+
+Antes de aplicar a migration que cria a unicidade parcial de membership ativa
+por usuario, rode esta consulta para encontrar usuarios com mais de uma
+organizacao ativa:
+
+```sql
+select
+  user_id,
+  count(*) as active_memberships
+from organization_users
+where status = 'active'
+group by user_id
+having count(*) > 1;
+```
+
+Se a consulta retornar linhas, corrija os dados antes de rodar `db:migrate`.
+
 ## Comandos
 
 ```bash
@@ -186,6 +204,7 @@ pnpm db:studio
 - Sempre modelar relacionamentos com foreign key.
 - Sempre usar enum para status importantes.
 - Para o MVP, preferir indice unico parcial para garantir uma unica membership ativa por usuario em `organization_users`.
+- Qualquer seed que desative memberships existentes deve ficar restrito ao ambiente local/development.
 
 ## Decisao de refatoracao
 

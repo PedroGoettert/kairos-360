@@ -22,6 +22,16 @@ import type {
   UpdateOrganizationUserRoleResult,
 } from "./organizations.types.js";
 
+const ORGANIZATION_USERS_ACTIVE_USER_CONSTRAINT =
+  "organization_users_active_user_idx";
+const ORGANIZATIONS_SLUG_CONSTRAINT = "organizations_slug_idx";
+
+type PostgresConstraintError = {
+  code?: string;
+  constraint?: string;
+  constraint_name?: string;
+};
+
 function slugifyOrganizationName(value: string): string {
   return value
     .normalize("NFD")
@@ -30,6 +40,24 @@ function slugifyOrganizationName(value: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function getConstraintName(error: unknown): string | null {
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+
+  const candidate = error as PostgresConstraintError;
+  return candidate.constraint_name ?? candidate.constraint ?? null;
+}
+
+function isUniqueConstraintError(error: unknown, constraintName: string): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as PostgresConstraintError;
+  return candidate.code === "23505" && getConstraintName(error) === constraintName;
 }
 
 async function getActiveOrganizationMembershipByUserId(userId: string) {
@@ -127,34 +155,50 @@ export async function createOrganization(
     return { status: "slug_already_exists" };
   }
 
-  const organization = await db.transaction(async (tx) => {
-    const [createdOrganization] = await tx
-      .insert(organizations)
-      .values({
-        createdByUserId: currentUserId,
-        name: input.name,
-        slug,
-        tradeName: input.tradeName,
-        document: input.document,
-        industry: input.industry,
-        website: input.website,
-        notes: input.notes,
-      })
-      .returning();
+  let organization: Organization;
 
-    if (!createdOrganization) {
-      throw new Error("Organization creation failed");
+  try {
+    organization = await db.transaction(async (tx) => {
+      const [createdOrganization] = await tx
+        .insert(organizations)
+        .values({
+          createdByUserId: currentUserId,
+          name: input.name,
+          slug,
+          tradeName: input.tradeName,
+          document: input.document,
+          industry: input.industry,
+          website: input.website,
+          notes: input.notes,
+        })
+        .returning();
+
+      if (!createdOrganization) {
+        throw new Error("Organization creation failed");
+      }
+
+      await tx.insert(organizationUsers).values({
+        organizationId: createdOrganization.id,
+        userId: currentUserId,
+        role: "owner",
+        status: "active",
+      });
+
+      return createdOrganization;
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error, ORGANIZATIONS_SLUG_CONSTRAINT)) {
+      return { status: "slug_already_exists" };
     }
 
-    await tx.insert(organizationUsers).values({
-      organizationId: createdOrganization.id,
-      userId: currentUserId,
-      role: "owner",
-      status: "active",
-    });
+    if (
+      isUniqueConstraintError(error, ORGANIZATION_USERS_ACTIVE_USER_CONSTRAINT)
+    ) {
+      return { status: "user_already_has_organization" };
+    }
 
-    return createdOrganization;
-  });
+    throw error;
+  }
 
   return {
     status: "created",
@@ -299,23 +343,57 @@ export async function createOrganizationUser(
       : { status: "user_already_has_active_organization" };
   }
 
-  const [organizationUser] = await db
-    .insert(organizationUsers)
-    .values({
-      organizationId: membership.organization.id,
-      userId: targetUser.id,
-      role: input.role,
-      status: "active",
-    })
-    .returning({
-      id: organizationUsers.id,
-      organizationId: organizationUsers.organizationId,
-      userId: organizationUsers.userId,
-      role: organizationUsers.role,
-      status: organizationUsers.status,
-      createdAt: organizationUsers.createdAt,
-      updatedAt: organizationUsers.updatedAt,
-    });
+  let organizationUser:
+    | {
+        id: string;
+        organizationId: string;
+        userId: string;
+        role: OrganizationUserRole;
+        status: "active" | "disabled";
+        createdAt: Date;
+        updatedAt: Date;
+      }
+    | undefined;
+
+  try {
+    [organizationUser] = await db
+      .insert(organizationUsers)
+      .values({
+        organizationId: membership.organization.id,
+        userId: targetUser.id,
+        role: input.role,
+        status: "active",
+      })
+      .returning({
+        id: organizationUsers.id,
+        organizationId: organizationUsers.organizationId,
+        userId: organizationUsers.userId,
+        role: organizationUsers.role,
+        status: organizationUsers.status,
+        createdAt: organizationUsers.createdAt,
+        updatedAt: organizationUsers.updatedAt,
+      });
+  } catch (error) {
+    if (
+      isUniqueConstraintError(error, ORGANIZATION_USERS_ACTIVE_USER_CONSTRAINT)
+    ) {
+      const activeMembership = await getActiveOrganizationMembershipByUserId(
+        targetUser.id,
+      );
+
+      if (activeMembership?.organizationId === membership.organization.id) {
+        return { status: "membership_already_exists" };
+      }
+
+      return { status: "user_already_has_active_organization" };
+    }
+
+    if (isUniqueConstraintError(error, "organization_users_org_user_idx")) {
+      return { status: "membership_already_exists" };
+    }
+
+    throw error;
+  }
 
   if (!organizationUser) {
     throw new Error("Organization membership creation failed");
