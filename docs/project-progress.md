@@ -30,6 +30,18 @@ Opcao B - refatoracao completa do dominio
 - o produto deve ser mais opinado e menos flexivel
 - a flexibilidade passa a ser controlada, nao irrestrita
 
+## Congelamento do legado `companies`
+
+Fica definido para o MVP:
+
+- `organizations` e o dominio oficial do produto
+- `companies` passa a existir apenas como legado temporario de compatibilidade
+- novas features nao devem usar `companies`
+- novas features nao devem introduzir `company_id`
+- novas APIs nao devem ser criadas sob rotas `/companies`
+
+O dominio legado deve ser mantido apenas pelo tempo necessario para a migracao estrutural.
+
 ## Estado atual do codigo
 
 Hoje o backend ainda possui implementacao legada orientada a:
@@ -45,6 +57,7 @@ Hoje o backend ainda possui implementacao legada orientada a:
 
 Esse estado **nao deve ser expandido como direcao final**.
 Ele deve ser tratado como base transitoria enquanto a refatoracao de dominio e executada.
+Nao e permitido adicionar novas features reforcando esse dominio legado.
 
 Em paralelo, o backend ja passou a ter a base do dominio novo:
 
@@ -193,11 +206,12 @@ O proximo passo recomendado nao e adicionar mais modulos no dominio antigo.
 
 O proximo passo correto e:
 
-1. conectar o restante do backend ao dominio de `organizations`
-2. redefinir roles
-3. migrar o baseline manual legado para o dominio novo
-4. preservar o baseline manual como modulo opcional
-5. criar a camada de metricas manuais antes das integracoes externas
+1. congelar o dominio legado `companies`
+2. conectar o restante do backend ao dominio de `organizations`
+3. redefinir roles
+4. migrar o baseline manual legado para o dominio novo
+5. preservar o baseline manual como modulo opcional
+6. criar a camada de metricas manuais antes das integracoes externas
 
 ## Proximos passos recomendados
 
@@ -206,6 +220,7 @@ O proximo passo correto e:
 - continuar substituindo o conceito de `companies` por `organizations`
 - revisar ownership e joins internos
 - manter o legado apenas enquanto houver dependencia
+- impedir novas features, novas rotas e novos contratos baseados em `companies`
 
 ### 2. Roles
 

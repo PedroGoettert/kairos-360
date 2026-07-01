@@ -4,6 +4,7 @@
 
 Before making any change, read:
 
+- docs/project-progress.md
 - docs/architecture.md
 - docs/database.md
 - docs/api-patterns.md
@@ -240,6 +241,25 @@ Do not expand the old "client portfolio" model.
 If existing code still uses `companies`, treat it as **legacy transitional naming**.
 New architecture work should move toward `organizations` or equivalent tenant naming.
 
+### Legacy freeze policy
+
+The official MVP domain is `organizations`.
+
+The old `companies` domain is frozen as temporary legacy compatibility only.
+
+Do not create new:
+
+- features using `companies`
+- schemas or columns using `company_id`
+- routes under `/companies`
+- services, controllers, types or frontend flows centered on client portfolio semantics
+
+Allowed work involving `companies` is limited to:
+
+- compatibility maintenance during migration
+- data migration or backfill
+- controlled removal after replacement in the `organizations` domain
+
 ### Additional modules
 
 These modules are expected in the new product direction:
@@ -415,6 +435,12 @@ What is still missing for the target backend:
 - target organization routes
 - refactor of legacy baseline naming
 - future data-source pipeline
+
+Important:
+
+- `organizations` is the official MVP domain
+- `companies` is legacy and must not receive new features
+- new work must not introduce new `company_id` dependencies or new `/companies` endpoints
 
 ## Git rules
 

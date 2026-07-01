@@ -262,6 +262,21 @@ O dominio alvo deve usar conceitos como:
 Se o codigo legado ainda usar `companies`, isso deve ser tratado como estado transitorio.
 Nao expandir o modelo legado de carteira de clientes.
 
+## Politica de congelamento do legado
+
+Para o MVP, o dominio oficial e `organizations`.
+
+`companies` deve permanecer apenas como compatibilidade temporaria durante a migracao.
+
+Nao criar novos:
+
+- modulos orientados a `companies`
+- endpoints sob `/companies`
+- contratos, payloads ou filtros centrados em `companyId`
+- tabelas, colunas ou relacionamentos novos baseados em `company_id`
+
+Qualquer nova capacidade funcional deve nascer diretamente no dominio `organizations`.
+
 ## Estado atual reaproveitavel
 
 O que ja existe e pode ser reaproveitado:

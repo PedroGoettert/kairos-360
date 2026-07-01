@@ -102,6 +102,7 @@ Essas estruturas devem ser tratadas como **legado transitorio**.
 Na refatoracao completa, a direcao correta e migrar para o dominio de `organizations`.
 
 Nao adicionar novas tabelas reforcando o conceito antigo de carteira de clientes.
+Nao adicionar novas colunas, foreign keys, indices ou joins baseados em `company_id`.
 
 Ja implementado no dominio novo:
 
@@ -124,6 +125,19 @@ Evitar:
 - engines genericas demais
 - customizacao irrestrita por tenant
 - modelagem orientada a consultoria multi-cliente
+
+## Regra de congelamento do legado
+
+Para o MVP, `organizations` e o dominio oficial do banco.
+
+`companies` e estruturas associadas devem ser mantidas apenas para compatibilidade temporaria.
+
+Nao criar novos:
+
+- schemas orientados a `companies`
+- campos `company_id` em tabelas novas
+- relacionamentos novos apontando para `companies`
+- migrations cujo objetivo seja expandir o dominio legado
 
 ## Regra de exportacao
 

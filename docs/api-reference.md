@@ -37,6 +37,15 @@ http://localhost:3333
 
 ### Dominio legado atual
 
+Estas rotas existem apenas por compatibilidade temporaria.
+
+Elas:
+
+- nao representam o dominio oficial do MVP
+- nao devem receber novas features
+- nao devem servir de base para novos contratos
+- nao devem ser expandidas com novos endpoints `/companies`
+
 - `POST /companies`
 - `GET /companies`
 - `GET /companies/:id`
@@ -145,6 +154,7 @@ http://localhost:3333
 
 Nao criar novas APIs reforcando o dominio antigo de carteira de clientes.
 As proximas implementacoes devem seguir a especificacao nova baseada em `organization`.
+Nao criar novos endpoints com `companyId`, `company_id` ou prefixo `/companies`.
 
 ## Observacao de migracao
 

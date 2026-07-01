@@ -25,6 +25,19 @@ Cada organizacao possui:
 
 Todos os dados devem estar vinculados a uma organizacao.
 
+## Legado congelado
+
+No MVP, `organizations` e o dominio oficial.
+
+`companies` deve ser tratado apenas como legado temporario de transicao.
+
+Isso implica:
+
+- nao criar novas features baseadas em `companies`
+- nao introduzir novos registros dependentes de `company_id`
+- nao desenhar novos fluxos como se o produto gerenciasse uma carteira de clientes
+- nao criar novas rotas ou contratos que reforcem esse modelo legado
+
 ## Diagnostico Manual (Baseline Inicial)
 
 O diagnostico manual e a **baseline inicial** da propria organizacao.

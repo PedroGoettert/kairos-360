@@ -64,6 +64,9 @@ Modelo alvo:
 - reports
 - depois data sources e ingestao
 
+O dominio oficial do MVP e `organizations`.
+O dominio `companies` deve ser tratado apenas como legado temporario.
+
 ## Regra de desenho de API
 
 As APIs devem ser opinadas e simples.
@@ -79,6 +82,7 @@ Evitar:
 - rotas altamente genericas
 - customizacao excessiva por tenant
 - endpoints que existem apenas para sustentar flexibilidade abstrata
+- novos endpoints baseados em `companies`, `companyId` ou `company_id`
 
 ## Rotas principais alvo
 
@@ -210,6 +214,8 @@ As rotas implementadas hoje ainda refletem o dominio legado de `companies`.
 Essas rotas devem ser tratadas como transitorias durante a refatoracao completa.
 
 Nao ampliar o design legado em novas features.
+Nao criar novas rotas sob `/companies`.
+Nao criar novos contratos cuja ownership dependa de `company_id`.
 
 ## O que ja existe
 
