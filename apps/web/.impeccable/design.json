@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-01T11:24:31.7186395-03:00",
+  "title": "Design System: Kairos 360",
+  "extensions": {
+    "colorMeta": {
+      "operational-black": {"role":"neutral","displayName":"Preto Operacional","canonical":"#08080a","tonalRamp":["#08080a","#161619","#2b2b2f","#48484e","#6a6a72","#92929a","#c1c1c6","#f1f1f2"]},
+      "recessed-black": {"role":"neutral","displayName":"Preto Recuado","canonical":"#111110","tonalRamp":["#0a0a09","#1b1b19","#30302d","#4c4c48","#6e6e68","#96968f","#c3c3bd","#f1f1ee"]},
+      "surface-charcoal": {"role":"neutral","displayName":"Carvão de Superfície","canonical":"#1a1918","tonalRamp":["#0d0c0c","#242321","#393734","#55524e","#77736e","#9d9993","#c9c6c1","#f4f3f1"]},
+      "elevated-charcoal": {"role":"neutral","displayName":"Carvão Elevado","canonical":"#22211f","tonalRamp":["#11100f","#2b2927","#403e3a","#5c5954","#7d7973","#a29e97","#cdcac5","#f5f4f2"]},
+      "quiet-border": {"role":"neutral","displayName":"Borda Silenciosa","canonical":"#242320","tonalRamp":["#121110","#2d2b28","#42403b","#5e5b55","#807b74","#a59f98","#cfcac5","#f6f4f2"]},
+      "kairos-orange": {"role":"primary","displayName":"Laranja Kairos","canonical":"#ff6b2b","tonalRamp":["#3b1304","#672307","#96350c","#c74912","#f45e1d","#ff8754","#ffb795","#ffe7d8"]},
+      "kairos-orange-deep": {"role":"primary","displayName":"Laranja Kairos Profundo","canonical":"#cc4d18","tonalRamp":["#351003","#5c1d05","#862b09","#b13b0f","#d9561f","#e9865d","#f2b59a","#fbe7dc"]},
+      "healthy-green": {"role":"secondary","displayName":"Verde Saudável","canonical":"#22c870","tonalRamp":["#062d18","#09502a","#0e743d","#139951","#1cbd68","#54d894","#92e8ba","#d8f8e7"]},
+      "critical-red": {"role":"secondary","displayName":"Vermelho Crítico","canonical":"#ef4444","tonalRamp":["#370909","#601010","#8a1919","#b62424","#df3535","#ed7070","#f4a7a7","#fce2e2"]},
+      "attention-yellow": {"role":"secondary","displayName":"Amarelo de Atenção","canonical":"#f5c518","tonalRamp":["#382b02","#614b03","#8c6d05","#b89109","#e2b511","#f2d459","#f7e697","#fdf6d7"]},
+      "primary-ink": {"role":"neutral","displayName":"Tinta Principal","canonical":"#fafaf8","tonalRamp":["#262624","#444441","#62625e","#83837e","#a6a6a0","#c8c8c3","#e3e3df","#fafaf8"]},
+      "secondary-ink": {"role":"neutral","displayName":"Tinta Secundária","canonical":"#9b9b94","tonalRamp":["#242422","#3f3f3c","#5b5b57","#787873","#979791","#b7b7b1","#d6d6d1","#f4f4f1"]},
+      "supporting-ink": {"role":"neutral","displayName":"Tinta de Apoio","canonical":"#c7c7be","tonalRamp":["#292927","#484845","#676762","#878781","#a8a8a1","#c7c7be","#deded8","#f6f6f3"]}
+    },
+    "typographyMeta": {
+      "display": {"displayName":"Display","purpose":"Mensagens de grande impacto em autenticação e introduções de estado."},
+      "headline": {"displayName":"Headline","purpose":"Título principal de página e identificação da organização."},
+      "title": {"displayName":"Title","purpose":"Títulos internos de painéis, formulários e blocos operacionais."},
+      "body": {"displayName":"Body","purpose":"Explicações, contexto e conteúdo de leitura."},
+      "label": {"displayName":"Label / Data","purpose":"Métricas, datas, códigos e rótulos operacionais."}
+    },
+    "shadows": [
+      {"name":"ambient-deep","value":"0 32px 80px rgba(0, 0, 0, 0.34)","purpose":"Separação excepcional de uma composição focal; proibida em grades repetidas."}
+    ],
+    "motion": [
+      {"name":"loading-shimmer","value":"1.4s ease-in-out infinite","purpose":"Feedback tonal de carregamento; desativado quando reduced motion estiver ativo."}
+    ],
+    "breakpoints": [
+      {"name":"shell-collapse","value":"1080px"},
+      {"name":"mobile","value":"720px"},
+      {"name":"compact-mobile","value":"460px"}
+    ]
+  },
+  "components": [
+    {
+      "name":"Primary Button",
+      "kind":"button",
+      "refersTo":"button-primary",
+      "description":"A ação principal única de um contexto.",
+      "html":"<button class=\"ds-btn-primary\">Continuar</button>",
+      "css":".ds-btn-primary{min-height:46px;border:0;border-radius:12px;background:var(--accent,#ff6b2b);color:var(--background,#08080a);padding:0 18px;font:800 .92rem 'Space Grotesk',sans-serif;cursor:pointer}.ds-btn-primary:hover{background:var(--accent-strong,#cc4d18)}.ds-btn-primary:focus-visible{outline:3px solid var(--text,#fafaf8);outline-offset:3px}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:disabled{cursor:not-allowed;opacity:.62}"
+    },
+    {
+      "name":"Secondary Button",
+      "kind":"button",
+      "refersTo":"button-secondary",
+      "description":"Ação de apoio sem competir com a decisão principal.",
+      "html":"<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css":".ds-btn-secondary{min-height:46px;border:1px solid var(--border,#242320);border-radius:12px;background:var(--surface-strong,#22211f);color:var(--text,#fafaf8);padding:0 16px;font:800 .9rem 'Space Grotesk',sans-serif;cursor:pointer}.ds-btn-secondary:hover{border-color:var(--muted,#9b9b94)}.ds-btn-secondary:focus-visible{outline:3px solid var(--accent,#ff6b2b);outline-offset:3px}.ds-btn-secondary:active{background:var(--background-soft,#111110)}"
+    },
+    {
+      "name":"Text Field",
+      "kind":"input",
+      "refersTo":"input",
+      "description":"Campo escuro recuado para formulários operacionais.",
+      "html":"<label class=\"ds-field\"><span>Email</span><input type=\"email\" placeholder=\"voce@empresa.com.br\"></label>",
+      "css":".ds-field{display:flex;flex-direction:column;gap:7px;color:var(--muted,#9b9b94);font:500 .7rem 'DM Mono',monospace;text-transform:uppercase}.ds-field input{min-height:42px;border:1px solid var(--border,#242320);border-radius:10px;background:var(--background-soft,#111110);color:var(--text,#fafaf8);padding:12px 13px;font:400 .92rem 'Space Grotesk',sans-serif;outline:none}.ds-field input::placeholder{color:var(--supporting-ink,#c7c7be)}.ds-field input:hover{border-color:var(--muted,#9b9b94)}.ds-field input:focus-visible{border-color:var(--accent,#ff6b2b);outline:2px solid var(--accent,#ff6b2b);outline-offset:2px}"
+    },
+    {
+      "name":"Filter Chip",
+      "kind":"chip",
+      "refersTo":"chip",
+      "description":"Filtro ou seleção curta com estado ativo explícito.",
+      "html":"<button class=\"ds-chip\">Em andamento</button>",
+      "css":".ds-chip{min-height:34px;border:1px solid var(--border,#242320);border-radius:999px;background:var(--surface-strong,#22211f);color:var(--muted,#9b9b94);padding:0 13px;font:700 .78rem 'Space Grotesk',sans-serif;cursor:pointer}.ds-chip:hover{color:var(--text,#fafaf8)}.ds-chip:focus-visible{outline:3px solid var(--accent,#ff6b2b);outline-offset:2px}.ds-chip[aria-pressed='true']{border-color:var(--accent,#ff6b2b);background:var(--accent,#ff6b2b);color:var(--background,#08080a)}"
+    },
+    {
+      "name":"Operational Panel",
+      "kind":"card",
+      "refersTo":"panel",
+      "description":"Contêiner tonal para uma unidade real de informação.",
+      "html":"<article class=\"ds-panel\"><p class=\"ds-panel-label\">Prioridade</p><h3>Revisar operação comercial</h3><p>Responsável e prazo permanecem visíveis no contexto.</p></article>",
+      "css":".ds-panel{border:1px solid var(--border,#242320);border-radius:14px;background:var(--surface,#1a1918);color:var(--text,#fafaf8);padding:18px;font-family:'Space Grotesk',sans-serif}.ds-panel-label{color:var(--muted,#9b9b94);font:500 .72rem 'DM Mono',monospace;text-transform:uppercase}.ds-panel h3{margin:6px 0 0;font-size:1.08rem}.ds-panel p:last-child{color:var(--muted-strong,#c7c7be);line-height:1.55}.ds-panel:focus-within{border-color:var(--accent,#ff6b2b)}"
+    },
+    {
+      "name":"Navigation Link",
+      "kind":"nav",
+      "description":"Item de navegação lateral com seleção funcional.",
+      "html":"<a class=\"ds-nav-link\" aria-current=\"page\" href=\"#\"><span></span>Dashboard</a>",
+      "css":".ds-nav-link{display:flex;min-height:42px;align-items:center;gap:10px;border-radius:10px;color:var(--muted,#9b9b94);padding:0 12px;font:600 .9rem 'Space Grotesk',sans-serif;text-decoration:none}.ds-nav-link span{width:7px;height:7px;border-radius:999px;background:var(--border,#242320)}.ds-nav-link:hover{background:var(--surface,#1a1918);color:var(--text,#fafaf8)}.ds-nav-link:focus-visible{outline:3px solid var(--accent,#ff6b2b);outline-offset:2px}.ds-nav-link[aria-current='page']{background:var(--surface,#1a1918);color:var(--text,#fafaf8)}.ds-nav-link[aria-current='page'] span{background:var(--accent,#ff6b2b)}"
+    },
+    {
+      "name":"Health KPI",
+      "kind":"custom",
+      "description":"Resumo compacto de métrica com semântica textual e cromática.",
+      "html":"<article class=\"ds-kpi\"><span>Saúde geral</span><strong>7.8</strong><small>Saudável</small></article>",
+      "css":".ds-kpi{min-height:128px;border:1px solid var(--border,#242320);border-radius:14px;background:var(--surface,#1a1918);padding:16px}.ds-kpi>span{color:var(--muted,#9b9b94);font:500 .72rem 'DM Mono',monospace;text-transform:uppercase}.ds-kpi strong{display:block;margin-top:8px;color:var(--success,#22c870);font:500 2rem 'DM Mono',monospace}.ds-kpi small{display:block;margin-top:4px;color:var(--muted,#9b9b94);font:400 .72rem 'DM Mono',monospace}.ds-kpi:focus-within{border-color:var(--accent,#ff6b2b)}"
+    }
+  ],
+  "narrative": {
+    "northStar":"Mesa de Decisão",
+    "overview":"O Kairos 360 é uma superfície operacional escura e sóbria, desenhada para líderes entenderem a condição da empresa e decidirem o próximo movimento sem atravessar decoração ou configuração desnecessária. A hierarquia parte da saúde atual, avança para gargalos e prioridades e termina em ações com responsável e prazo. A interface usa densidade confortável, contraste alto e um vocabulário consistente de superfícies quase pretas.",
+    "keyCharacteristics":["Modo escuro exclusivo, com superfícies tonais claramente separadas.","Laranja Kairos reservado para ação, seleção e foco.","Informação operacional densa, mas organizada por prioridade.","Estados de saúde legíveis por texto, cor e contexto.","Layout responsivo estrutural: sidebar no desktop e navegação inferior no mobile."],
+    "rules":[
+      {"name":"The One Orange Voice Rule","body":"O laranja aparece apenas em ação primária, seleção, foco e marca. Se várias superfícies disputam o acento ao mesmo tempo, a hierarquia está errada.","section":"colors"},
+      {"name":"The Semantic Redundancy Rule","body":"Verde, vermelho e amarelo nunca comunicam estado sozinhos; sempre acompanham texto, valor ou forma identificável para atender ao WCAG AA.","section":"colors"},
+      {"name":"The Three-Voice Rule","body":"Syne é marca e hierarquia, Space Grotesk é interface, DM Mono é dado. Nunca usar a fonte display em botões, labels ou tabelas.","section":"typography"},
+      {"name":"The Tonal-First Rule","body":"Antes de adicionar sombra, resolver profundidade com operational-black, recessed-black, surface-charcoal e elevated-charcoal.","section":"elevation"}
+    ],
+    "dos":["Do colocar condição, gargalo, prioridade e próxima ação antes de detalhes secundários.","Do usar o Laranja Kairos com raridade e função explícita.","Do manter contraste WCAG AA, foco visível e navegação completa por teclado.","Do combinar cores semânticas com texto e valores legíveis.","Do usar estrutura opinada, estados vazios instrutivos e loading por skeleton.","Do adaptar a estrutura nos breakpoints de 1080px, 720px e 460px sem escalar tipografia pela largura da viewport em superfícies operacionais compactas."],
+    "donts":["Don't modelar a interface como CRM de consultoria ou carteira de empresas-clientes.","Don't criar um dashboard administrativo genérico sem hierarquia de decisão.","Don't transformar o produto em um builder altamente customizável.","Don't usar interface lúdica, promocional ou decoração sem função operacional.","Don't tratar o diagnóstico manual como finalidade definitiva do produto.","Don't usar gradiente em texto, glassmorphism decorativo, faixas laterais coloridas ou cards aninhados.","Don't aplicar a sombra Ambiente Profundo em cada painel; se toda superfície flutua, nenhuma possui prioridade.","Don't usar Laranja Kairos como preenchimento decorativo em grandes áreas inativas."]
+  }
+}
