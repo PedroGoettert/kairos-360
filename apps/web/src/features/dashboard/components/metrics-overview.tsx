@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { MetricsCharts } from "@/features/dashboard/components/metrics-charts";
 import { organizationDashboardFixture as snapshot } from "@/features/dashboard/data/organization-dashboard-fixture";
 
 export function MetricsOverview() {
@@ -17,6 +18,14 @@ export function MetricsOverview() {
               <div><span className={`trend-copy ${metric.trend}`}>{metric.change}</span><small>{metric.context}</small></div>
             </article>
           ))}
+        </div>
+      </section>
+      <MetricsCharts bottlenecks={snapshot.bottlenecks} />
+      <section className="dashboard-section" aria-labelledby="health-map-title">
+        <div className="dashboard-section-heading"><div><h2 id="health-map-title">Mapa de saúde</h2></div><span>Últimos 6 meses</span></div>
+        <div className="health-heatmap" role="table" aria-label="Scores mensais por área">
+          <div className="heatmap-row heatmap-heading" role="row"><span role="columnheader">Área</span>{snapshot.bottlenecks[0]?.history.map((point) => <span key={point.label} role="columnheader">{point.label}</span>)}</div>
+          {snapshot.bottlenecks.map((area) => <div className="heatmap-row" key={area.slug} role="row"><strong role="rowheader">{area.areaName}</strong>{area.history.map((point) => <span className={point.score < 5 ? "critical" : point.score < 7 ? "attention" : "healthy"} key={point.label} role="cell" title={`${area.areaName}, ${point.label}: ${point.score.toFixed(1)}`}>{point.score.toFixed(1)}</span>)}</div>)}
         </div>
       </section>
       <section className="dashboard-section" aria-labelledby="area-metrics-title">

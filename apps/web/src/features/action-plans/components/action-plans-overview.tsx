@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { ActionPlanCharts } from "@/features/action-plans/components/action-plan-charts";
 import { organizationDashboardFixture as snapshot } from "@/features/dashboard/data/organization-dashboard-fixture";
 import type { PlanStatus } from "@/features/dashboard/types/organization-dashboard-types";
 
@@ -9,6 +10,7 @@ export function ActionPlansOverview() {
   return (
     <AppShell activeNav="Planos" eyebrow="Execução das prioridades" title="Planos de ação">
       <section className="page-intro"><div><span className="data-label">Responsáveis e prazos</span><h2>Transforme gargalos em trabalho acompanhado</h2></div><p>Planos vinculados às áreas críticas, com progresso e prazo visíveis para a liderança.</p></section>
+      <ActionPlanCharts plans={snapshot.actionPlans} />
       <section className="dashboard-section" aria-labelledby="plans-page-title">
         <div className="dashboard-section-heading"><div><h2 id="plans-page-title">Todos os planos</h2></div><span>{snapshot.actionPlans.length} registrados</span></div>
         <div className="dashboard-plan-list">
