@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
+import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts";
 import { organizationDashboardFixture } from "@/features/dashboard/data/organization-dashboard-fixture";
 import type { HealthStatus, OrganizationDashboardSnapshot, TrendDirection } from "@/features/dashboard/types/organization-dashboard-types";
 
@@ -90,6 +91,8 @@ export function DashboardOverview({
           ) : null}
         </div>
       </section>
+
+      <DashboardCharts bottlenecks={snapshot.bottlenecks} />
 
       <section className="dashboard-section" aria-labelledby="bottlenecks-title">
         <div className="dashboard-section-heading">
