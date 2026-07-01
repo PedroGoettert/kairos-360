@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   index,
   pgEnum,
@@ -45,6 +46,9 @@ export const organizationUsers = pgTable(
     index("organization_users_organization_id_idx").on(table.organizationId),
     index("organization_users_user_id_idx").on(table.userId),
     index("organization_users_role_idx").on(table.role),
+    uniqueIndex("organization_users_active_user_idx")
+      .on(table.userId)
+      .where(sql`${table.status} = 'active'`),
     uniqueIndex("organization_users_org_user_idx").on(
       table.organizationId,
       table.userId,

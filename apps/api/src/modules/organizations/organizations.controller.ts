@@ -160,6 +160,11 @@ export async function createOrganizationUserController(
       message: "User not found",
       code: "USER_NOT_FOUND",
     },
+    user_already_has_active_organization: {
+      status: 409,
+      message: "User already belongs to an active organization",
+      code: "USER_ALREADY_HAS_ACTIVE_ORGANIZATION",
+    },
     membership_already_exists: {
       status: 409,
       message: "User already belongs to organization",

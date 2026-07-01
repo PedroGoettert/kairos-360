@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "organization_users_active_user_idx" ON "organization_users" USING btree ("user_id") WHERE "organization_users"."status" = 'active';

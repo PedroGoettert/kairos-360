@@ -13,6 +13,8 @@ O sistema e multi-tenant.
 
 Cada conta representa uma organizacao.
 
+No MVP, cada usuario deve possuir no maximo **uma organizacao ativa**.
+
 Cada organizacao possui:
 
 - usuarios

@@ -51,6 +51,7 @@ export type CreateOrganizationUserResult =
         | "organization_not_found"
         | "forbidden"
         | "user_not_found"
+        | "user_already_has_active_organization"
         | "membership_already_exists";
     };
 

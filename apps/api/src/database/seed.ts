@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, ne } from "drizzle-orm";
 
 import { auth } from "../auth/index.js";
 import { db, sql } from "./index.js";
@@ -401,6 +401,21 @@ async function ensureOrganization(
 
   if (!organization) {
     throw new Error("Failed to seed organization");
+  }
+
+  const memberIds = memberUserIds.map((memberUser) => memberUser.userId);
+
+  if (memberIds.length > 0) {
+    await db
+      .update(organizationUsers)
+      .set({ status: "disabled" })
+      .where(
+        and(
+          inArray(organizationUsers.userId, memberIds),
+          ne(organizationUsers.organizationId, organization.id),
+          eq(organizationUsers.status, "active"),
+        ),
+      );
   }
 
   await db

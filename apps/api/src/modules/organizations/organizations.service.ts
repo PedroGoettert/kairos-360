@@ -32,6 +32,25 @@ function slugifyOrganizationName(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+async function getActiveOrganizationMembershipByUserId(userId: string) {
+  const [membership] = await db
+    .select({
+      id: organizationUsers.id,
+      organizationId: organizationUsers.organizationId,
+    })
+    .from(organizationUsers)
+    .where(
+      and(
+        eq(organizationUsers.userId, userId),
+        eq(organizationUsers.status, "active"),
+      ),
+    )
+    .orderBy(asc(organizationUsers.createdAt))
+    .limit(1);
+
+  return membership ?? null;
+}
+
 export async function getCurrentOrganizationMembership(
   currentUserId: string,
 ): Promise<CurrentOrganizationMembership | null> {
@@ -268,6 +287,16 @@ export async function createOrganizationUser(
 
   if (existingMembership) {
     return { status: "membership_already_exists" };
+  }
+
+  const activeMembership = await getActiveOrganizationMembershipByUserId(
+    targetUser.id,
+  );
+
+  if (activeMembership) {
+    return activeMembership.organizationId === membership.organization.id
+      ? { status: "membership_already_exists" }
+      : { status: "user_already_has_active_organization" };
   }
 
   const [organizationUser] = await db

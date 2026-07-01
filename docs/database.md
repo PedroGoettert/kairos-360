@@ -49,6 +49,9 @@ schema/
 | `organizations` | empresa assinante do SaaS |
 | `organization-users` | vinculo entre usuarios e organizacao, com papel e status |
 
+No MVP, `organization_users` deve impor no maximo uma membership com `status = active`
+por `user_id`.
+
 ### Baseline manual
 
 | Schema | Descricao |
@@ -182,6 +185,7 @@ pnpm db:studio
 - Sempre criar `created_at` e `updated_at` nas tabelas principais.
 - Sempre modelar relacionamentos com foreign key.
 - Sempre usar enum para status importantes.
+- Para o MVP, preferir indice unico parcial para garantir uma unica membership ativa por usuario em `organization_users`.
 
 ## Decisao de refatoracao
 
