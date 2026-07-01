@@ -67,14 +67,56 @@ Em paralelo, o backend ja passou a ter a base do dominio novo:
 - leitura da organizacao atual
 - update da organizacao atual
 - listagem e gestao inicial de membros da organizacao
+- estrutura de areas e perguntas do baseline organizacional
+- execucao, respostas, conclusao e scores do baseline organizacional
 
 ### O que ainda falta no backend
 
 - novas roles
 - `manual_metrics`
 - dashboard consolidado do dominio novo
-- reposicionamento do baseline para o dominio novo
 - pipeline futuro de data sources e eventos
+
+## Auditoria do Dashboard Organizacional
+
+A auditoria realizada antes da nova implementacao do dashboard confirmou:
+
+- autenticacao, sessao e tenant atual ja podem sustentar telas protegidas
+- o baseline organizacional ja possui rotas proprias no dominio novo
+- ainda nao existe um agregado `GET /organization/dashboard`
+- ainda nao existe o modulo `manual_metrics`
+- action plans e reports continuam vinculados ao dominio legado de `companies`
+- o backend do baseline permite mutacoes por membros ativos sem restringir todas elas por role
+- ainda nao existem testes automatizados cobrindo o fluxo organizacional completo
+
+O frontend do dashboard passa a usar um contrato TypeScript orientado a organizacao e dados
+estaticos controlados nesta primeira etapa. Esses dados servem para validar hierarquia,
+navegacao e o fluxo dashboard -> gargalo -> plano de acao, sem criar um contrato falso com
+as rotas legadas.
+
+### Arquitetura de navegacao do frontend
+
+O shell autenticado foi dividido em rotas de responsabilidade unica:
+
+- `/dashboard`: saude geral, prioridade atual e ranking de gargalos
+- `/baseline`: resultado do diagnostico inicial por area
+- `/metricas`: indicadores essenciais e metricas por area
+- `/sinais`: desvios e mudancas priorizadas
+- `/planos`: execucao, responsaveis, prazos e progresso
+- `/relatorios`: consolidacoes periodicas da organizacao
+- `/configuracoes`: dados e preferencias do tenant
+
+No desktop, todas as rotas aparecem na sidebar. No mobile, a navegacao inferior prioriza
+Dashboard, Metricas, Sinais e Planos. Todas as paginas possuem validacao de sessao propria.
+
+Antes da integracao real, o backend deve oferecer:
+
+1. resumo de saude da organizacao
+2. ranking de gargalos por area
+3. metricas e historico por area
+4. sinais priorizados
+5. planos de acao vinculados a organizacao e area
+6. estado de atualizacao e origem dos dados
 
 ## O que ainda pode ser reaproveitado
 

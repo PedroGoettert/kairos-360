@@ -1,259 +1,144 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
-import type { Company } from "@/features/companies/types/company-types";
-import type {
-  ActionPlanStatus,
-  CompanyDashboard,
-  HealthStatus,
-} from "@/features/dashboard/types/dashboard-types";
+import { organizationDashboardFixture } from "@/features/dashboard/data/organization-dashboard-fixture";
+import type { HealthStatus, OrganizationDashboardSnapshot, TrendDirection } from "@/features/dashboard/types/organization-dashboard-types";
 
 type DashboardOverviewProps = {
-  companies: Company[];
-  dashboard: CompanyDashboard | null;
-  loadError?: string;
+  snapshot?: OrganizationDashboardSnapshot;
 };
 
-const healthLabel: Record<HealthStatus, string> = {
-  attention: "Atencao",
-  critical: "Critico",
-  healthy: "Saudavel",
+const healthLabels: Record<HealthStatus, string> = {
+  attention: "Atenção",
+  critical: "Crítico",
+  healthy: "Saudável",
 };
 
-const planStatusLabel: Record<ActionPlanStatus, string> = {
-  completed: "Concluido",
-  in_progress: "Em andamento",
-  not_started: "Nao iniciado",
+const trendLabels: Record<TrendDirection, string> = {
+  declining: "Em queda",
+  improving: "Melhorando",
+  stable: "Estável",
 };
-
-function formatDate(value: string | null): string {
-  if (!value) {
-    return "Sem prazo";
-  }
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    timeZone: "UTC",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-function getHealthStatus(score: number): HealthStatus {
-  if (score < 5) {
-    return "critical";
-  }
-
-  if (score < 7.5) {
-    return "attention";
-  }
-
-  return "healthy";
-}
 
 export function DashboardOverview({
-  companies,
-  dashboard,
-  loadError,
+  snapshot = organizationDashboardFixture,
 }: DashboardOverviewProps) {
-  if (loadError) {
-    return (
-      <AppShell activeNav="Dashboard" eyebrow="Visao operacional" title="Dashboard">
-        <section className="panel screen-state error" role="alert">
-          <div className="section-title">Falha na integracao</div>
-          <h3>Nao foi possivel carregar o backend</h3>
-          <p>{loadError}</p>
-        </section>
-      </AppShell>
-    );
-  }
-
-  if (!dashboard) {
-    return (
-      <AppShell activeNav="Dashboard" eyebrow="Visao operacional" title="Dashboard">
-        <section className="hero-panel">
-          <div>
-            <div className="badge">Ambiente conectado</div>
-            <h2>Comece pela primeira empresa</h2>
-            <p>O backend esta acessivel, mas ainda nao existe uma empresa para consolidar.</p>
-          </div>
-        </section>
-        <section className="panel screen-state empty">
-          <div className="section-title">Sem dados</div>
-          <h3>Cadastre um cliente para iniciar</h3>
-          <p>O dashboard sera preenchido com diagnosticos, scores e planos reais.</p>
-          <Link className="primary-action inline-action" href="/clientes">
-            Ir para clientes
-          </Link>
-        </section>
-      </AppShell>
-    );
-  }
-
-  const scores = dashboard.latestScores;
-  const health = dashboard.healthClassification;
-  const activePlans = dashboard.actionPlans.notStarted + dashboard.actionPlans.inProgress;
-
+  const primaryBottleneck = snapshot.bottlenecks[0];
   return (
     <AppShell
       activeNav="Dashboard"
-      eyebrow="Empresa selecionada"
-      title={dashboard.company.tradeName ?? dashboard.company.name}
+      eyebrow="Saúde da organização"
+      title={snapshot.organization.tradeName}
     >
-      {companies.length > 1 ? (
-        <nav className="company-switcher" aria-label="Selecionar empresa">
-          {companies.map((company) => (
-            <Link
-              className={company.id === dashboard.company.id ? "active" : ""}
-              href={`/dashboard?companyId=${company.id}`}
-              key={company.id}
-            >
-              {company.tradeName ?? company.name}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
+      <section className="dashboard-statusbar" aria-label="Estado da atualização">
+        <div className="connection-status">
+          <span className={`connection-dot ${snapshot.connection.status}`} />
+          <strong>Monitoramento ativo</strong>
+          <span>Atualizado {snapshot.connection.lastUpdatedLabel}</span>
+        </div>
+        <div className="dashboard-period">
+          <span>Janela de análise</span>
+          <strong>Últimos 30 dias</strong>
+        </div>
+      </section>
 
-      <section className="hero-panel">
-        <div>
-          <div className="badge">Dados consolidados da API</div>
-          <h2>{scores ? "Visao executiva do diagnostico" : "Empresa pronta para o baseline"}</h2>
-          <p>
-            {scores
-              ? "Scores, gargalos e planos abaixo refletem o ultimo diagnostico concluido."
-              : "Crie e finalize um diagnostico para calcular os primeiros indicadores."}
+      <section className="executive-summary" aria-labelledby="executive-title">
+        <div className="health-score-block">
+          <span className="data-label">Saúde geral</span>
+          <div className="health-score-line">
+            <strong>{snapshot.health.score.toFixed(1)}</strong>
+            <span>/10</span>
+          </div>
+          <div className={`health-state ${snapshot.health.status}`}>
+            {healthLabels[snapshot.health.status]}
+          </div>
+          <p className={`trend-copy ${snapshot.health.trend}`}>
+            {trendLabels[snapshot.health.trend]} · {snapshot.health.change.toFixed(1)} no período
           </p>
         </div>
-        <div className="score-orbit" aria-label={scores ? `Score geral ${scores.generalScore} de 10` : "Score ainda nao calculado"}>
-          <span>{scores?.generalScore.toFixed(1) ?? "--"}</span>
-          <small>/10</small>
+
+        <div className="executive-priority">
+          <div className="priority-heading">
+            <div>
+              <span className="data-label">Prioridade atual</span>
+              <h2 id="executive-title">{primaryBottleneck?.areaName}</h2>
+            </div>
+            <span className="priority-rank">01</span>
+          </div>
+          <p>{primaryBottleneck?.summary}</p>
+          <div className="priority-evidence">
+            <div>
+              <span>Score</span>
+              <strong>{primaryBottleneck?.score.toFixed(1)}</strong>
+            </div>
+            <div>
+              <span>Variação</span>
+              <strong>{primaryBottleneck?.change.toFixed(1)}</strong>
+            </div>
+            <div>
+              <span>Sinais ativos</span>
+              <strong>{primaryBottleneck?.signals.length}</strong>
+            </div>
+          </div>
+          {primaryBottleneck ? (
+            <Link
+              className="primary-action dashboard-primary-action"
+              href={`/dashboard/gargalos/${primaryBottleneck.slug}`}
+            >
+              Investigar gargalo
+            </Link>
+          ) : null}
         </div>
       </section>
 
-      <section className="kpi-grid" aria-label="Indicadores principais">
-        <article className={`kpi-card ${health ?? "neutral"}`}>
-          <div className="kpi-label">Saude geral</div>
-          <div className="kpi-value">{health ? healthLabel[health] : "Sem baseline"}</div>
-          <div className="kpi-sub">{scores ? `${scores.generalScore.toFixed(1)}/10` : "aguardando diagnostico"}</div>
-        </article>
-        <article className="kpi-card critical">
-          <div className="kpi-label">Principal gargalo</div>
-          <div className="kpi-value">{scores?.mainBottleneck.areaName ?? "--"}</div>
-          <div className="kpi-sub">{scores ? `${scores.mainBottleneck.score.toFixed(1)}/10` : "sem score"}</div>
-        </article>
-        <article className="kpi-card attention">
-          <div className="kpi-label">Segunda prioridade</div>
-          <div className="kpi-value">{scores?.secondPriority?.areaName ?? "--"}</div>
-          <div className="kpi-sub">{scores?.secondPriority ? `${scores.secondPriority.score.toFixed(1)}/10` : "sem score"}</div>
-        </article>
-        <article className="kpi-card healthy">
-          <div className="kpi-label">Planos ativos</div>
-          <div className="kpi-value">{activePlans}</div>
-          <div className="kpi-sub">{dashboard.actionPlans.inProgress} em andamento</div>
-        </article>
+      <section className="dashboard-section" aria-labelledby="bottlenecks-title">
+        <div className="dashboard-section-heading">
+          <div>
+            <span className="data-label">Leitura priorizada</span>
+            <h2 id="bottlenecks-title">Gargalos da operação</h2>
+          </div>
+          <span>{snapshot.bottlenecks.length} áreas monitoradas</span>
+        </div>
+
+        <div className="bottleneck-table" aria-label="Ranking de gargalos">
+          <div className="bottleneck-table-head">
+            <span>Prioridade</span>
+            <span>Área</span>
+            <span>Score</span>
+            <span>Tendência</span>
+            <span>Impacto</span>
+            <span>Ação</span>
+          </div>
+          {snapshot.bottlenecks.map((bottleneck) => (
+            <Link
+              className="bottleneck-row"
+              href={`/dashboard/gargalos/${bottleneck.slug}`}
+              key={bottleneck.slug}
+            >
+              <span className="bottleneck-rank">{String(bottleneck.rank).padStart(2, "0")}</span>
+              <span className="bottleneck-area">
+                <span className={`status-dot is-${bottleneck.status}`} />
+                <span>
+                  <strong>{bottleneck.areaName}</strong>
+                  <small>{healthLabels[bottleneck.status]}</small>
+                </span>
+              </span>
+              <span className="bottleneck-score">{bottleneck.score.toFixed(1)}</span>
+              <span className={`trend-copy ${bottleneck.trend}`}>
+                {trendLabels[bottleneck.trend]}
+              </span>
+              <span>{bottleneck.impact === "high" ? "Alto" : bottleneck.impact === "medium" ? "Médio" : "Baixo"}</span>
+              <span className="row-action">Detalhar</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
-      <section className="content-grid">
-        <article className="panel panel-large">
-          <div className="panel-header">
-            <div>
-              <div className="section-title">Scores por area</div>
-              <h3>Ranking de gargalos</h3>
-            </div>
-            <span className="panel-note">menor score primeiro</span>
-          </div>
-          {scores ? (
-            <div className="area-list">
-              {[...scores.scores]
-                .sort((left, right) => left.score - right.score)
-                .map((item) => {
-                  const status = getHealthStatus(item.score);
-
-                  return (
-                    <div className="area-row" key={item.areaId}>
-                      <div className="area-row-main">
-                        <span className={`status-dot is-${status}`} />
-                        <div>
-                          <strong>{item.areaName}</strong>
-                          <p>{healthLabel[status]}</p>
-                        </div>
-                      </div>
-                      <div className="area-score">
-                        <span>{item.score.toFixed(1)}</span>
-                        <div className="mini-track">
-                          <div className={`is-${status}`} style={{ width: `${item.score * 10}%` }} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="screen-state empty compact">Nenhum score calculado.</div>
-          )}
-        </article>
-
-        <aside className="panel">
-          <div className="panel-header">
-            <div>
-              <div className="section-title">Diagnosticos</div>
-              <h3>Estado do baseline</h3>
-            </div>
-          </div>
-          <div className="detail-list">
-            <div><span>Total</span><strong>{dashboard.diagnostics.total}</strong></div>
-            <div><span>Concluidos</span><strong>{dashboard.diagnostics.completed}</strong></div>
-            <div><span>Em rascunho</span><strong>{dashboard.diagnostics.draft}</strong></div>
-            <div>
-              <span>Ultima conclusao</span>
-              <strong>{formatDate(dashboard.diagnostics.latestCompleted?.completedAt ?? null)}</strong>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section className="content-grid lower-grid dashboard-lower-grid">
-        <article className="panel">
-          <div className="panel-header">
-            <div>
-              <div className="section-title">Planos de acao</div>
-              <h3>Entregas recentes</h3>
-            </div>
-          </div>
-          {dashboard.actionPlans.recent.length > 0 ? (
-            <div className="action-list">
-              {dashboard.actionPlans.recent.map((plan) => (
-                <div className="action-item" key={plan.id}>
-                  <div>
-                    <strong>{plan.title}</strong>
-                    <span>{plan.responsible ?? "Sem responsavel"} · {formatDate(plan.dueDate)}</span>
-                  </div>
-                  <small className={`plan-status ${plan.status}`}>{planStatusLabel[plan.status]}</small>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="screen-state empty compact">Nenhum plano de acao criado.</div>
-          )}
-        </article>
-
-        <article className="panel">
-          <div className="panel-header">
-            <div>
-              <div className="section-title">Empresa</div>
-              <h3>Contexto do cliente</h3>
-            </div>
-          </div>
-          <div className="detail-list">
-            <div><span>Razao social</span><strong>{dashboard.company.name}</strong></div>
-            <div><span>Nome fantasia</span><strong>{dashboard.company.tradeName ?? "Nao informado"}</strong></div>
-            <div><span>Segmento</span><strong>{dashboard.company.industry ?? "Nao informado"}</strong></div>
-          </div>
-          <div className="next-actions">
-            <Link href="/clientes">Voltar para carteira</Link>
-          </div>
-        </article>
-      </section>
+      <nav className="dashboard-route-strip" aria-label="Áreas de acompanhamento">
+        <Link href="/metricas"><span>Métricas</span><strong>3 indicadores essenciais</strong></Link>
+        <Link href="/sinais"><span>Sinais</span><strong>{snapshot.recentSignals.length} mudanças recentes</strong></Link>
+        <Link href="/planos"><span>Planos</span><strong>{snapshot.actionPlans.length} planos em acompanhamento</strong></Link>
+      </nav>
     </AppShell>
   );
 }

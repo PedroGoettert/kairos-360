@@ -10,13 +10,14 @@ type AppShellProps = {
 };
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Clientes", href: "/clientes" },
-  { label: "Diagnósticos", href: "/clientes" },
-  { label: "Planos", href: "/clientes" },
-  { label: "Relatórios", href: "/clientes" },
-  { label: "CRM", href: "/clientes" },
-];
+  { label: "Dashboard", href: "/dashboard", mobile: true },
+  { label: "Baseline", href: "/baseline", mobile: false },
+  { label: "Métricas", href: "/metricas", mobile: true },
+  { label: "Sinais", href: "/sinais", mobile: true },
+  { label: "Planos", href: "/planos", mobile: true },
+  { label: "Relatórios", href: "/relatorios", mobile: false },
+  { label: "Configurações", href: "/configuracoes", mobile: false },
+] as const;
 
 export function AppShell({ activeNav, eyebrow, title, children }: AppShellProps) {
   return (
@@ -53,15 +54,15 @@ export function AppShell({ activeNav, eyebrow, title, children }: AppShellProps)
           </div>
           <div className="topbar-actions">
             <button className="period-button" type="button">
-              Junho 2026
+              Julho 2026
             </button>
             <form action="/logout" method="post">
               <button className="logout-link" type="submit">
                 Sair
               </button>
             </form>
-            <div className="avatar" aria-label="Consultor Pedro">
-              P
+            <div className="avatar" aria-label="Usuário atual">
+              KP
             </div>
           </div>
         </header>
@@ -70,7 +71,7 @@ export function AppShell({ activeNav, eyebrow, title, children }: AppShellProps)
       </main>
 
       <nav className="bottom-nav" aria-label="Navegação mobile">
-        {navItems.slice(0, 4).map((item) => (
+        {navItems.filter((item) => item.mobile).map((item) => (
           <Link
             className={item.label === activeNav ? "active" : ""}
             href={item.href}
