@@ -68,7 +68,7 @@ export type OrganizationDashboardSnapshot = {
     status: HealthStatus;
     trend: TrendDirection;
     change: number;
-  };
+  } | null;
   bottlenecks: Bottleneck[];
   headlineMetrics: DashboardMetric[];
   recentSignals: DashboardSignal[];

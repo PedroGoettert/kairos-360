@@ -2,30 +2,125 @@ import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
 import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts";
-import type { HealthStatus, OrganizationDashboardSnapshot } from "@/features/dashboard/types/organization-dashboard-types";
+import type {
+  DashboardActionPlan,
+  DashboardMetric,
+  DashboardSignal,
+  HealthStatus,
+  OrganizationDashboardSnapshot,
+} from "@/features/dashboard/types/organization-dashboard-types";
 
 type DashboardOverviewProps = {
   snapshot: OrganizationDashboardSnapshot | null;
 };
 
 const healthLabels: Record<HealthStatus, string> = {
-  attention: "Atenção",
-  critical: "Crítico",
-  healthy: "Saudável",
+  attention: "Atencao",
+  critical: "Critico",
+  healthy: "Saudavel",
 };
+
+function getMetricsSummary(metrics: DashboardMetric[]) {
+  if (metrics.length === 0) {
+    return "Aguardando metricas manuais";
+  }
+
+  return `${metrics.length} metrica${metrics.length > 1 ? "s" : ""} manual${metrics.length > 1 ? "is" : ""} ativa${metrics.length > 1 ? "s" : ""}`;
+}
+
+function getSignalsSummary(signals: DashboardSignal[]) {
+  if (signals.length === 0) {
+    return "Aguardando camada de sinais";
+  }
+
+  return `${signals.length} sinal${signals.length > 1 ? "is" : ""} recente${signals.length > 1 ? "s" : ""}`;
+}
+
+function getActionPlansSummary(actionPlans: DashboardActionPlan[]) {
+  if (actionPlans.length === 0) {
+    return "Aguardando dominio organizacional";
+  }
+
+  return `${actionPlans.length} plano${actionPlans.length > 1 ? "s" : ""} em acompanhamento`;
+}
+
+function DashboardRouteStrip({ snapshot }: { snapshot: OrganizationDashboardSnapshot }) {
+  return (
+    <nav className="dashboard-route-strip" aria-label="Areas de acompanhamento">
+      <Link href="/metricas">
+        <span>Metricas</span>
+        <strong>{getMetricsSummary(snapshot.headlineMetrics)}</strong>
+      </Link>
+      <Link href="/sinais">
+        <span>Sinais</span>
+        <strong>{getSignalsSummary(snapshot.recentSignals)}</strong>
+      </Link>
+      <Link href="/planos">
+        <span>Planos</span>
+        <strong>{getActionPlansSummary(snapshot.actionPlans)}</strong>
+      </Link>
+    </nav>
+  );
+}
 
 export function DashboardOverview({ snapshot }: DashboardOverviewProps) {
   if (!snapshot) {
-    return <AppShell activeNav="Dashboard" eyebrow="Saúde da organização" title="Dashboard"><section className="module-empty-state"><span className="data-label">Baseline necessário</span><h2>A saúde organizacional ainda não foi calculada</h2><p>Conclua a primeira aplicação do baseline para gerar o score geral e o ranking de gargalos.</p><Link className="primary-action" href="/baseline">Ir para o baseline</Link></section></AppShell>;
+    return (
+      <AppShell activeNav="Dashboard" eyebrow="Saude da organizacao" title="Dashboard">
+        <section className="module-empty-state">
+          <span className="data-label">Organizacao necessaria</span>
+          <h2>Nenhuma organizacao ativa foi encontrada</h2>
+          <p>Crie ou acesse uma organizacao para acompanhar a saude operacional no dashboard.</p>
+          <Link className="primary-action" href="/configuracoes">
+            Ir para configuracoes
+          </Link>
+        </section>
+      </AppShell>
+    );
   }
+
+  if (!snapshot.health) {
+    return (
+      <AppShell
+        activeNav="Dashboard"
+        eyebrow="Saude da organizacao"
+        title={snapshot.organization.tradeName}
+      >
+        <section className="dashboard-statusbar" aria-label="Estado da atualizacao">
+          <div className="connection-status">
+            <span className={`connection-dot ${snapshot.connection.status}`} />
+            <strong>Baseline organizacional</strong>
+            <span>Atualizado {snapshot.connection.lastUpdatedLabel}</span>
+          </div>
+          <div className="dashboard-period">
+            <span>Fonte atual</span>
+            <strong>Diagnostico manual</strong>
+          </div>
+        </section>
+
+        <section className="module-empty-state">
+          <span className="data-label">Baseline necessario</span>
+          <h2>A saude organizacional ainda nao foi calculada</h2>
+          <p>Conclua a primeira aplicacao do baseline para gerar o score geral e o ranking de gargalos.</p>
+          <Link className="primary-action" href="/baseline">
+            Ir para o baseline
+          </Link>
+        </section>
+
+        <DashboardRouteStrip snapshot={snapshot} />
+      </AppShell>
+    );
+  }
+
   const primaryBottleneck = snapshot.bottlenecks[0];
+
   return (
     <AppShell
       activeNav="Dashboard"
-      eyebrow="Saúde da organização"
+      eyebrow="Saude da organizacao"
       title={snapshot.organization.tradeName}
     >
-      <section className="dashboard-statusbar" aria-label="Estado da atualização">
+      <section className="dashboard-statusbar" aria-label="Estado da atualizacao">
         <div className="connection-status">
           <span className={`connection-dot ${snapshot.connection.status}`} />
           <strong>Baseline organizacional</strong>
@@ -33,13 +128,13 @@ export function DashboardOverview({ snapshot }: DashboardOverviewProps) {
         </div>
         <div className="dashboard-period">
           <span>Fonte atual</span>
-          <strong>Diagnóstico manual</strong>
+          <strong>Diagnostico manual</strong>
         </div>
       </section>
 
       <section className="executive-summary" aria-labelledby="executive-title">
         <div className="health-score-block">
-          <span className="data-label">Saúde geral</span>
+          <span className="data-label">Saude geral</span>
           <div className="health-score-line">
             <strong>{snapshot.health.score.toFixed(1)}</strong>
             <span>/10</span>
@@ -47,22 +142,22 @@ export function DashboardOverview({ snapshot }: DashboardOverviewProps) {
           <div className={`health-state ${snapshot.health.status}`}>
             {healthLabels[snapshot.health.status]}
           </div>
-          <p className="trend-copy stable">Referência atual da organização</p>
+          <p className="trend-copy stable">Referencia atual da organizacao</p>
         </div>
 
         <div className="executive-priority">
           <div className="priority-heading">
             <div>
               <span className="data-label">Prioridade atual</span>
-              <h2 id="executive-title">{primaryBottleneck?.areaName}</h2>
+              <h2 id="executive-title">{primaryBottleneck?.areaName ?? "Sem gargalos identificados"}</h2>
             </div>
-            <span className="priority-rank">01</span>
+            <span className="priority-rank">{primaryBottleneck ? "01" : "--"}</span>
           </div>
-          <p>{primaryBottleneck?.summary}</p>
+          <p>{primaryBottleneck?.summary ?? "Conclua mais leituras do baseline para destacar prioridades da operacao."}</p>
           <div className="priority-evidence">
             <div>
               <span>Score</span>
-              <strong>{primaryBottleneck?.score.toFixed(1)}</strong>
+              <strong>{primaryBottleneck ? primaryBottleneck.score.toFixed(1) : "--"}</strong>
             </div>
             <div>
               <span>Origem</span>
@@ -70,7 +165,7 @@ export function DashboardOverview({ snapshot }: DashboardOverviewProps) {
             </div>
             <div>
               <span>Prioridade</span>
-              <strong>01</strong>
+              <strong>{primaryBottleneck ? "01" : "--"}</strong>
             </div>
           </div>
           {primaryBottleneck ? (
@@ -90,19 +185,19 @@ export function DashboardOverview({ snapshot }: DashboardOverviewProps) {
         <div className="dashboard-section-heading">
           <div>
             <span className="data-label">Leitura priorizada</span>
-            <h2 id="bottlenecks-title">Gargalos da operação</h2>
+            <h2 id="bottlenecks-title">Gargalos da operacao</h2>
           </div>
-          <span>{snapshot.bottlenecks.length} áreas monitoradas</span>
+          <span>{snapshot.bottlenecks.length} areas monitoradas</span>
         </div>
 
         <div className="bottleneck-table" aria-label="Ranking de gargalos">
           <div className="bottleneck-table-head">
             <span>Prioridade</span>
-            <span>Área</span>
+            <span>Area</span>
             <span>Score</span>
             <span>Fonte</span>
             <span>Impacto</span>
-            <span>Ação</span>
+            <span>Acao</span>
           </div>
           {snapshot.bottlenecks.map((bottleneck) => (
             <Link
@@ -120,18 +215,14 @@ export function DashboardOverview({ snapshot }: DashboardOverviewProps) {
               </span>
               <span className="bottleneck-score">{bottleneck.score.toFixed(1)}</span>
               <span>Baseline</span>
-              <span>{bottleneck.impact === "high" ? "Alto" : bottleneck.impact === "medium" ? "Médio" : "Baixo"}</span>
+              <span>{bottleneck.impact === "high" ? "Alto" : bottleneck.impact === "medium" ? "Medio" : "Baixo"}</span>
               <span className="row-action">Detalhar</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <nav className="dashboard-route-strip" aria-label="Áreas de acompanhamento">
-        <Link href="/metricas"><span>Métricas</span><strong>Aguardando métricas manuais</strong></Link>
-        <Link href="/sinais"><span>Sinais</span><strong>Aguardando camada de sinais</strong></Link>
-        <Link href="/planos"><span>Planos</span><strong>Aguardando domínio organizacional</strong></Link>
-      </nav>
+      <DashboardRouteStrip snapshot={snapshot} />
     </AppShell>
   );
 }
