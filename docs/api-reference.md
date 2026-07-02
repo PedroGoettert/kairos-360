@@ -100,6 +100,7 @@ Elas:
 - `GET /organization/manual-metrics/:id`
 - `PATCH /organization/manual-metrics/:id`
 - `DELETE /organization/manual-metrics/:id`
+- `GET /organization/dashboard`
 
 ## Endpoints alvo apos a refatoracao
 

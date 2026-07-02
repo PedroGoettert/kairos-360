@@ -86,7 +86,6 @@ Em paralelo, o backend ja passou a ter a base do dominio novo:
 ### O que ainda falta no backend
 
 - novas roles
-- `manual_metrics`
 - dashboard consolidado do dominio novo
 - pipeline futuro de data sources e eventos
 
@@ -96,8 +95,8 @@ A auditoria realizada antes da nova implementacao do dashboard confirmou:
 
 - autenticacao, sessao e tenant atual ja podem sustentar telas protegidas
 - o baseline organizacional ja possui rotas proprias no dominio novo
-- ainda nao existe um agregado `GET /organization/dashboard`
-- ainda nao existe o modulo `manual_metrics`
+- o agregado `GET /organization/dashboard` passa a existir com baseline e metricas manuais
+- o modulo `manual_metrics` passa a existir no dominio novo
 - action plans e reports continuam vinculados ao dominio legado de `companies`
 - o backend do baseline permite mutacoes por membros ativos sem restringir todas elas por role
 - ainda nao existem testes automatizados cobrindo o fluxo organizacional completo

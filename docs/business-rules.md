@@ -212,6 +212,14 @@ O dashboard deve exibir, pelo menos:
 - status dos action plans
 - evolucao disponivel dos indicadores
 
+No inicio do MVP:
+
+- `health` vem do ultimo baseline concluido
+- `bottlenecks` vem dos scores por area do baseline
+- `headlineMetrics` vem de `manual_metrics`
+- `recentSignals` pode permanecer vazio
+- `actionPlans` pode permanecer vazio enquanto a migracao do dominio nao for concluida
+
 ## Action Plans
 
 Todo plano deve possuir:
