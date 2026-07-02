@@ -4,7 +4,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -13,57 +12,134 @@ import {
   YAxis,
 } from "recharts";
 
-import type { Bottleneck } from "@/features/dashboard/types/organization-dashboard-types";
+import {
+  manualMetricCategoryLabels,
+  manualMetricCategories,
+  type ManualMetric,
+} from "@/features/manual-metrics/types/manual-metrics-types";
 
-type MetricsChartsProps = { bottlenecks: Bottleneck[] };
+type MetricsChartsProps = {
+  manualMetrics: ManualMetric[];
+};
 
-const funnelData = [
-  { stage: "Leads", value: 184 },
-  { stage: "Qualificados", value: 57 },
-  { stage: "Oportunidades", value: 31 },
-  { stage: "Vendas", value: 12 },
-];
+const tooltipStyle = {
+  background: "#1a1918",
+  border: "1px solid #363430",
+  borderRadius: 6,
+  color: "#fafaf8",
+  fontSize: 12,
+};
 
-const tooltipStyle = { background: "#1a1918", border: "1px solid #363430", borderRadius: 6, color: "#fafaf8", fontSize: 12 };
-const lineColors = ["#ef4444", "#f5c518", "#ff6b2b"];
+function formatDayLabel(referenceDate: string) {
+  return new Date(referenceDate).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
 
-export function MetricsCharts({ bottlenecks }: MetricsChartsProps) {
-  const priorityAreas = bottlenecks.slice(0, 3);
-  const history = priorityAreas[0]?.history.map((point, index) => ({
-    label: point.label,
-    ...Object.fromEntries(priorityAreas.map((area) => [area.areaName, area.history[index]?.score ?? 0])),
-  })) ?? [];
+export function MetricsCharts({ manualMetrics }: MetricsChartsProps) {
+  const categoryData = manualMetricCategories
+    .map((category) => ({
+      category: manualMetricCategoryLabels[category],
+      total: manualMetrics.filter((metric) => metric.category === category).length,
+    }))
+    .filter((entry) => entry.total > 0);
+
+  const referenceTimeline = Object.entries(
+    manualMetrics.reduce<Record<string, number>>((accumulator, metric) => {
+      const key = metric.referenceDate.slice(0, 10);
+      accumulator[key] = (accumulator[key] ?? 0) + 1;
+      return accumulator;
+    }, {}),
+  )
+    .sort(([left], [right]) => left.localeCompare(right))
+    .slice(-8)
+    .map(([referenceDate, total]) => ({
+      label: formatDayLabel(referenceDate),
+      total,
+    }));
 
   return (
-    <section className="metrics-chart-grid" aria-label="Gráficos operacionais">
+    <section className="metrics-chart-grid" aria-label="Graficos das metricas manuais">
       <article className="dashboard-chart-panel">
-        <div className="chart-heading"><div><span className="data-label">Comercial</span><h2>Funil do período</h2></div><span>30 dias</span></div>
-        <p className="sr-only">De 184 leads, 57 foram qualificados, 31 viraram oportunidades e 12 vendas.</p>
+        <div className="chart-heading">
+          <div>
+            <span className="data-label">Distribuicao</span>
+            <h2>Metricas por categoria</h2>
+          </div>
+          <span>Organizacao atual</span>
+        </div>
         <div className="chart-canvas chart-canvas-funnel">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart accessibilityLayer data={funnelData} margin={{ left: -14, right: 8, top: 8, bottom: 0 }}>
+            <BarChart
+              accessibilityLayer
+              data={categoryData}
+              margin={{ left: -18, right: 8, top: 8, bottom: 0 }}
+            >
               <CartesianGrid stroke="#242320" strokeDasharray="3 3" vertical={false} />
-              <XAxis axisLine={false} dataKey="stage" tick={{ fill: "#c7c7be", fontSize: 10 }} tickLine={false} />
-              <YAxis axisLine={false} tick={{ fill: "#9b9b94", fontSize: 10 }} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#22211f" }} formatter={(value) => [value, "Volume"]} />
-              <Bar dataKey="value" fill="#ff6b2b" radius={[3, 3, 0, 0]} />
+              <XAxis
+                axisLine={false}
+                dataKey="category"
+                tick={{ fill: "#c7c7be", fontSize: 10 }}
+                tickLine={false}
+              />
+              <YAxis
+                allowDecimals={false}
+                axisLine={false}
+                tick={{ fill: "#9b9b94", fontSize: 10 }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                cursor={{ fill: "#22211f" }}
+                formatter={(value) => [value, "Metricas"]}
+              />
+              <Bar dataKey="total" fill="#ff6b2b" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </article>
 
       <article className="dashboard-chart-panel">
-        <div className="chart-heading"><div><span className="data-label">Áreas prioritárias</span><h2>Evolução comparada</h2></div><span>6 meses</span></div>
-        <p className="sr-only">Comparação histórica entre Comercial, Financeiro e Marketing.</p>
+        <div className="chart-heading">
+          <div>
+            <span className="data-label">Cadencia</span>
+            <h2>Entradas recentes</h2>
+          </div>
+          <span>Ultimas referencias</span>
+        </div>
         <div className="chart-canvas chart-canvas-funnel">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart accessibilityLayer data={history} margin={{ left: -20, right: 10, top: 8, bottom: 0 }}>
+            <LineChart
+              accessibilityLayer
+              data={referenceTimeline}
+              margin={{ left: -20, right: 10, top: 8, bottom: 0 }}
+            >
               <CartesianGrid stroke="#242320" strokeDasharray="3 3" vertical={false} />
-              <XAxis axisLine={false} dataKey="label" tick={{ fill: "#9b9b94", fontSize: 11 }} tickLine={false} />
-              <YAxis axisLine={false} domain={[0, 10]} tick={{ fill: "#9b9b94", fontSize: 11 }} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend iconType="line" wrapperStyle={{ color: "#c7c7be", fontSize: 11 }} />
-              {priorityAreas.map((area, index) => <Line dataKey={area.areaName} dot={false} key={area.slug} stroke={lineColors[index]} strokeWidth={2.2} type="monotone" />)}
+              <XAxis
+                axisLine={false}
+                dataKey="label"
+                tick={{ fill: "#9b9b94", fontSize: 11 }}
+                tickLine={false}
+              />
+              <YAxis
+                allowDecimals={false}
+                axisLine={false}
+                tick={{ fill: "#9b9b94", fontSize: 11 }}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value) => [value, "Registros"]}
+              />
+              <Line
+                activeDot={{ fill: "#ff6b2b", r: 5 }}
+                dataKey="total"
+                dot={{ fill: "#08080a", r: 3, stroke: "#ff6b2b", strokeWidth: 2 }}
+                stroke="#ff6b2b"
+                strokeWidth={2.5}
+                type="monotone"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
