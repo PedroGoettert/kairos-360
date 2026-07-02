@@ -27,6 +27,22 @@ Cada organizacao possui:
 
 Todos os dados devem estar vinculados a uma organizacao.
 
+## Roles da organizacao
+
+Roles organizacionais do MVP:
+
+- `owner`
+- `admin`
+- `manager`
+- `viewer`
+
+Regra de permissao por role:
+
+- `owner`: pode tudo dentro da organizacao
+- `admin`: gerencia membros, baseline, metricas manuais e planos de acao
+- `manager`: responde baseline, cria metricas manuais e cria/atualiza planos de acao
+- `viewer`: apenas leitura
+
 ## Legado congelado
 
 No MVP, `organizations` e o dominio oficial.

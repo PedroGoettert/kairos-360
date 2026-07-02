@@ -1,5 +1,10 @@
 import { and, asc, eq, ne } from "drizzle-orm";
 
+import {
+  canManageMembers,
+  canManageOrganization,
+  canViewOrganization,
+} from "../../auth/organization-permissions.js";
 import { db } from "../../database/index.js";
 import {
   organizationUsers,
@@ -134,10 +139,6 @@ async function ensureOrganizationSlugAvailable(slug: string, excludeId?: string)
   return !existing;
 }
 
-export function canManageOrganization(role: OrganizationUserRole): boolean {
-  return role === "owner" || role === "admin";
-}
-
 export async function createOrganization(
   currentUserId: string,
   input: CreateOrganizationInput,
@@ -210,6 +211,9 @@ export async function getCurrentOrganization(
   currentUserId: string,
 ): Promise<Organization | null> {
   const membership = await getCurrentOrganizationMembership(currentUserId);
+  if (membership && !canViewOrganization(membership.role)) {
+    return null;
+  }
   return membership?.organization ?? null;
 }
 
@@ -265,6 +269,10 @@ export async function listCurrentOrganizationUsers(
     return null;
   }
 
+  if (!canViewOrganization(membership.role)) {
+    return null;
+  }
+
   return db
     .select({
       id: organizationUsers.id,
@@ -298,7 +306,7 @@ export async function createOrganizationUser(
     return { status: "organization_not_found" };
   }
 
-  if (!canManageOrganization(membership.role)) {
+  if (!canManageMembers(membership.role)) {
     return { status: "forbidden" };
   }
 
@@ -420,7 +428,7 @@ export async function updateOrganizationUserRole(
     return { status: "organization_not_found" };
   }
 
-  if (!canManageOrganization(currentMembership.role)) {
+  if (!canManageMembers(currentMembership.role)) {
     return { status: "forbidden" };
   }
 

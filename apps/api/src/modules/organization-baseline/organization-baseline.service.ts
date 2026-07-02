@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 
+import { canManageBaseline } from "../../auth/organization-permissions.js";
 import { db } from "../../database/index.js";
 import {
   baselineDiagnosticAnswers,
@@ -9,10 +10,7 @@ import {
   organizationBaselineAreas,
   organizationBaselineQuestions,
 } from "../../database/schema/index.js";
-import {
-  canManageOrganization,
-  getCurrentOrganizationMembership,
-} from "../organizations/organizations.service.js";
+import { getCurrentOrganizationMembership } from "../organizations/organizations.service.js";
 import type {
   ApplyTemplateToOrganizationInput,
   ApplyTemplateToOrganizationResult,
@@ -31,10 +29,6 @@ import type {
   UpdateOrganizationBaselineQuestionInput,
   UpdateOrganizationBaselineQuestionResult,
 } from "./organization-baseline.types.js";
-
-function canManageBaseline(role: "owner" | "admin" | "manager" | "viewer") {
-  return canManageOrganization(role) || role === "manager";
-}
 
 export async function listOrganizationBaselineAreas(
   currentUserId: string,
