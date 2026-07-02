@@ -17,6 +17,7 @@ import {
   diagnosticTemplateQuestions,
   diagnosticTemplates,
   diagnostics,
+  manualMetrics,
   organizationBaselineAreas,
   organizationBaselineQuestions,
   organizationUsers,
@@ -280,8 +281,89 @@ const seedOrganization = {
     "Organizacao padrao local para validar o novo dominio baseado em tenant.",
 } as const;
 
+const seedManualMetrics = [
+  {
+    category: "finance",
+    metricKey: "monthly_revenue",
+    metricLabel: "Faturamento mensal",
+    value: 128450,
+    unit: "BRL",
+    referenceDateOffsetDays: -30,
+    notes: "Fechamento do mes anterior consolidado.",
+  },
+  {
+    category: "finance",
+    metricKey: "monthly_revenue",
+    metricLabel: "Faturamento mensal",
+    value: 136980,
+    unit: "BRL",
+    referenceDateOffsetDays: 0,
+    notes: "Fechamento parcial do mes corrente.",
+  },
+  {
+    category: "sales",
+    metricKey: "sales_conversion_rate",
+    metricLabel: "Taxa de conversao comercial",
+    value: 18.6,
+    unit: "%",
+    referenceDateOffsetDays: 0,
+    notes: "Conversao de oportunidades em vendas.",
+  },
+  {
+    category: "marketing",
+    metricKey: "qualified_leads",
+    metricLabel: "Leads qualificados",
+    value: 146,
+    unit: "leads",
+    referenceDateOffsetDays: 0,
+    notes: "Leads com perfil ideal no periodo atual.",
+  },
+  {
+    category: "operations",
+    metricKey: "sla_compliance",
+    metricLabel: "Cumprimento de SLA",
+    value: 92.4,
+    unit: "%",
+    referenceDateOffsetDays: 0,
+    notes: "Pedidos entregues dentro do prazo acordado.",
+  },
+  {
+    category: "customer_service",
+    metricKey: "first_response_time",
+    metricLabel: "Tempo medio de primeira resposta",
+    value: 47,
+    unit: "min",
+    referenceDateOffsetDays: 0,
+    notes: "Media das interacoes de atendimento do periodo.",
+  },
+  {
+    category: "hr",
+    metricKey: "team_attendance",
+    metricLabel: "Presenca do time",
+    value: 96.1,
+    unit: "%",
+    referenceDateOffsetDays: 0,
+    notes: "Presenca consolidada da equipe operacional.",
+  },
+  {
+    category: "management",
+    metricKey: "strategic_actions_completed",
+    metricLabel: "Acoes estrategicas concluidas",
+    value: 7,
+    unit: "acoes",
+    referenceDateOffsetDays: 0,
+    notes: "Entregas executivas finalizadas no ciclo atual.",
+  },
+] as const;
+
 type SeedUser = (typeof seedUsers)[number];
 type SeedCompany = (typeof seedCompanies)[number];
+
+function addDays(baseDate: Date, offsetDays: number) {
+  const date = new Date(baseDate);
+  date.setDate(date.getDate() + offsetDays);
+  return date;
+}
 
 async function ensureUser(seedUser: SeedUser) {
   const [existingUser] = await db
@@ -974,7 +1056,36 @@ async function ensureActionPlansForDiagnostic(
   );
 }
 
+async function replaceOrganizationManualMetrics(
+  organizationId: string,
+  createdByUserId: string,
+) {
+  const referenceBaseDate = new Date();
+
+  await db
+    .delete(manualMetrics)
+    .where(eq(manualMetrics.organizationId, organizationId));
+
+  await db.insert(manualMetrics).values(
+    seedManualMetrics.map((metric) => ({
+      organizationId,
+      createdByUserId,
+      category: metric.category,
+      metricKey: metric.metricKey,
+      metricLabel: metric.metricLabel,
+      value: metric.value,
+      unit: metric.unit,
+      referenceDate: addDays(referenceBaseDate, metric.referenceDateOffsetDays),
+      notes: metric.notes,
+    })),
+  );
+}
+
 async function main() {
+  if (env.NODE_ENV === "production") {
+    throw new Error("Database seed is disabled in production.");
+  }
+
   const seededUsers = new Map<string, Awaited<ReturnType<typeof ensureUser>>>();
 
   for (const seedUser of seedUsers) {
@@ -1075,11 +1186,15 @@ async function main() {
     baselineDiagnostic.id,
     scoreProfiles[0].areaScores,
   );
+  await replaceOrganizationManualMetrics(organization.id, adminUser.id);
 
   console.log("Seed completed successfully.");
   console.log(`Users: ${seedUsers.length}`);
   console.log(`Companies: ${seedCompanies.length}`);
+  console.log(`Organization: ${seedOrganization.tradeName}`);
+  console.log(`Manual metrics: ${seedManualMetrics.length}`);
   console.log(`Default template: ${defaultTemplate.name}`);
+  console.log(`Login email: ${adminUser.email}`);
   console.log(`Default password: ${seedPassword}`);
 }
 
