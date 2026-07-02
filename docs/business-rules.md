@@ -147,6 +147,16 @@ Exemplos:
 - tempo medio de resposta
 - volume de leads
 
+### Categorias iniciais de metricas manuais
+
+- marketing
+- sales
+- finance
+- operations
+- customer_service
+- hr
+- management
+
 ## Business Signals
 
 Sinais sao indicadores derivados de metricas e eventos.

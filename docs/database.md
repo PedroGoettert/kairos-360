@@ -71,6 +71,21 @@ por `user_id`.
 |---|---|
 | `manual-metrics` | indicadores registrados manualmente pela organizacao |
 
+Campos previstos em `manual_metrics`:
+
+- `id`
+- `organization_id`
+- `created_by_user_id`
+- `category`
+- `metric_key`
+- `metric_label`
+- `value`
+- `unit`
+- `reference_date`
+- `notes`
+- `created_at`
+- `updated_at`
+
 ### Dados continuos
 
 | Schema | Descricao |

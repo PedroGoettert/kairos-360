@@ -57,6 +57,13 @@
       "when": 1782949691237,
       "tag": "0007_condemned_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1782950882168,
+      "tag": "0008_fixed_black_panther",
+      "breakpoints": true
     }
   ]
 }

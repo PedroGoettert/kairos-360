@@ -28,6 +28,7 @@ export {
   diagnosticTemplates,
 } from "./diagnostic-templates.js";
 export { diagnosticStatus, diagnostics } from "./diagnostics.js";
+export { manualMetricCategory, manualMetrics } from "./manual-metrics.js";
 export {
   organizationUserRole,
   organizationUserStatus,

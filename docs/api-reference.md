@@ -95,6 +95,11 @@ Elas:
 - `GET /organization/users`
 - `POST /organization/users`
 - `PATCH /organization/users/:id/role`
+- `POST /organization/manual-metrics`
+- `GET /organization/manual-metrics`
+- `GET /organization/manual-metrics/:id`
+- `PATCH /organization/manual-metrics/:id`
+- `DELETE /organization/manual-metrics/:id`
 
 ## Endpoints alvo apos a refatoracao
 
@@ -121,7 +126,9 @@ Elas:
 
 - `POST /organization/manual-metrics`
 - `GET /organization/manual-metrics`
+- `GET /organization/manual-metrics/:id`
 - `PATCH /organization/manual-metrics/:id`
+- `DELETE /organization/manual-metrics/:id`
 
 ### Dashboard
 
